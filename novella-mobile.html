@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#18120e">
+<meta name="description" content="AI-powered romance novella writing studio">
+<link rel="manifest" href="manifest.json">
+<title>Novella Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #18120e;
+    --parchment: #f5efe6;
+    --cream: #faf6f0;
+    --rose: #b5606a;
+    --rose-deep: #8c3d47;
+    --rose-pale: #f5e0e2;
+    --gold: #a67c3a;
+    --gold-light: #c9a05a;
+    --muted: #8a7b72;
+    --border: #ddd4c8;
+    --surface: #ffffff;
+    --nav-h: 64px;
+    --header-h: 56px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Jost', sans-serif;
+    background: var(--parchment);
+    color: var(--ink);
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 50;
+    border-bottom: 1px solid var(--gold);
+  }
+
+  .app-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem;
+    color: var(--gold-light);
+    font-style: italic;
+    letter-spacing: 0.04em;
+  }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.2rem;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s;
+    display: flex; align-items: center;
+  }
+  .icon-btn:active { color: var(--gold-light); }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: fixed;
+    top: var(--header-h);
+    left: 0; right: 0;
+    bottom: var(--nav-h);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: none;
+    flex-direction: column;
+    background: var(--parchment);
+  }
+  .screen.active { display: flex; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--nav-h);
+    background: var(--ink);
+    display: flex;
+    border-top: 1px solid #2e2420;
+    z-index: 50;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    color: #5a4e48;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 8px 0;
+  }
+
+  .nav-item.active { color: var(--gold-light); }
+  .nav-item .nav-icon { font-size: 1.3rem; line-height: 1; }
+  .nav-item .nav-label { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
+
+  /* ── BEATS SCREEN ── */
+  .beats-list { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .beat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .beat-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+
+  .beat-card.written::before { background: var(--rose); }
+
+  .beat-card:active { transform: scale(0.98); }
+
+  .beat-num {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .beat-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .beat-card-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 5px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .beat-chip {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .chip-written { background: #edf7ee; color: #2e7d32; }
+  .chip-pending { background: var(--rose-pale); color: var(--rose-deep); }
+
+  .add-beat-btn {
+    margin: 4px 16px 16px;
+    padding: 14px;
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    color: var(--muted);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    width: calc(100% - 32px);
+    transition: all 0.2s;
+  }
+  .add-beat-btn:active { border-color: var(--rose); color: var(--rose); }
+
+  /* ── EDITOR SCREEN ── */
+  .editor-screen { background: var(--cream); }
+
+  .editor-top {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    flex-shrink: 0;
+  }
+
+  .editor-top .beat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .editor-top h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .editor-top .beat-desc-preview {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 5px;
+    line-height: 1.5;
+  }
+
+  .editor-actions {
+    padding: 12px 16px;
+    display: flex;
+    gap: 10px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .btn-write {
+    flex: 1;
+    padding: 14px;
+    background: var(--rose);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.03em;
+  }
+  .btn-write:active { background: var(--rose-deep); }
+  .btn-write:disabled { background: #ccc; }
+
+  .btn-small {
+    padding: 12px 14px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.78rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .btn-small:active { border-color: var(--ink); color: var(--ink); }
+
+  .prose-area {
+    flex: 1;
+    padding: 24px 20px 32px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.12rem;
+    line-height: 1.9;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+
+  .prose-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .prose-placeholder .p-icon { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.35; }
+
+  .prose-placeholder h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    color: var(--rose);
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  .prose-placeholder p { font-size: 0.88rem; line-height: 1.65; }
+
+  /* ── LORE SCREEN ── */
+  .lore-screen { background: var(--parchment); }
+
+  .lore-section {
+    margin: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lore-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    cursor: pointer;
+    background: var(--surface);
+    user-select: none;
+  }
+
+  .lore-section-header .lore-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+
+  .lore-section-header .lore-chevron {
+    color: var(--muted);
+    transition: transform 0.25s;
+    font-size: 0.8rem;
+  }
+
+  .lore-section.open .lore-chevron { transform: rotate(180deg); }
+
+  .lore-body {
+    display: none;
+    padding: 0 16px 16px;
+    background: var(--surface);
+  }
+
+  .lore-section.open .lore-body { display: block; }
+
+  .lore-body textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--parchment);
+    resize: none;
+    min-height: 100px;
+  }
+
+  /* ── STATE SCREEN ── */
+  .state-screen { background: var(--parchment); }
+
+  .state-block {
+    background: var(--surface);
+    margin: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .state-block-header {
+    padding: 12px 14px;
+    background: var(--ink);
+    color: var(--gold-light);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .state-block textarea {
+    width: 100%;
+    border: none;
+    padding: 14px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--ink);
+    background: var(--surface);
+    resize: none;
+    min-height: 140px;
+    outline: none;
+  }
+
+  .scene-log-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+
+  .scene-log-item:last-child { border-bottom: none; }
+
+  .scene-log-item strong {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* ── SETTINGS SCREEN ── */
+  .settings-screen { background: var(--parchment); }
+
+  .settings-group {
+    background: var(--surface);
+    margin: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .settings-group-title {
+    padding: 12px 14px 6px;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .setting-row:first-of-type { border-top: none; }
+
+  .setting-label { font-size: 0.9rem; color: var(--ink); }
+  .setting-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+  .setting-row input[type="password"],
+  .setting-row select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.82rem;
+    color: var(--ink);
+    background: var(--parchment);
+    max-width: 180px;
+  }
+
+  .toggle {
+    position: relative;
+    width: 44px; height: 26px;
+    flex-shrink: 0;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 26px;
+    transition: background 0.25s;
+    cursor: pointer;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.25s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .toggle input:checked + .toggle-slider { background: var(--rose); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(24,18,14,0.75);
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+  }
+
+  .modal-backdrop.open { display: flex; }
+
+  .modal-sheet {
+    background: var(--cream);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    padding: 20px 16px 32px;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .sheet-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .sheet-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    color: var(--rose-deep);
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+
+  .field-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    margin-bottom: 6px;
+    margin-top: 14px;
+    display: block;
+  }
+
+  .field-label:first-of-type { margin-top: 0; }
+
+  .sheet-input, .sheet-textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--surface);
+    line-height: 1.5;
+  }
+
+  .sheet-textarea { resize: none; min-height: 90px; }
+
+  .sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+  .sheet-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+  .btn-cancel {
+    flex: 1;
+    padding: 14px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.9rem;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .btn-save {
+    flex: 2;
+    padding: 14px;
+    background: var(--rose);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-style: italic;
+    cursor: pointer;
+  }
+
+  /* ── STREAMING ── */
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+  .cursor { display: inline-block; width: 2px; height: 1.1em; background: var(--rose); border-radius: 1px; animation: blink 0.85s infinite; vertical-align: text-bottom; margin-left: 2px; }
+
+  .status-toast {
+    position: fixed;
+    bottom: calc(var(--nav-h) + 12px);
+    left: 50%; transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--parchment);
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    z-index: 80;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .status-toast.show { opacity: 1; }
+
+  /* ── NO BEAT SELECTED ── */
+  .no-beat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .no-beat .icon { font-size: 2.5rem; margin-bottom: 14px; opacity: 0.3; }
+
+  .no-beat p { font-size: 0.88rem; line-height: 1.65; }
+
+  ::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <h1>✦ Novella Studio</h1>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="showToast('All data saved in session')" title="Info">💾</button>
+  </div>
+</header>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="goScreen('beats')" id="nav-beats">
+    <span class="nav-icon">📖</span>
+    <span class="nav-label">Beats</span>
+  </button>
+  <button class="nav-item" onclick="goScreen('editor')" id="nav-editor">
+    <span class="nav-icon">✍️</span>
+    <span class="nav-label">Write</span>
+  </button>
+  <button class="nav-item" onclick="goScreen('lore')" id="nav-lore">
+    <span class="nav-icon">🌹</span>
+    <span class="nav-label">Lore</span>
+  </button>
+  <button class="nav-item" onclick="goScreen('state')" id="nav-state">
+    <span class="nav-icon">🧵</span>
+    <span class="nav-label">State</span>
+  </button>
+  <button class="nav-item" onclick="goScreen('settings')" id="nav-settings">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Setup</span>
+  </button>
+</nav>
+
+<!-- ── BEATS SCREEN ── -->
+<div class="screen active" id="screen-beats">
+  <div class="beats-list" id="beatsList"></div>
+  <button class="add-beat-btn" onclick="openBeatModal(null)">＋ Add Story Beat</button>
+</div>
+
+<!-- ── EDITOR SCREEN ── -->
+<div class="screen editor-screen" id="screen-editor">
+  <div id="editorNoBeat" class="no-beat">
+    <div class="icon">♡</div>
+    <p>Select a beat from the <strong>Beats</strong> tab to start writing</p>
+  </div>
+  <div id="editorContent" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+    <div class="editor-top">
+      <div class="beat-label" id="edBeatLabel">Beat 1</div>
+      <h2 id="edBeatTitle">—</h2>
+      <div class="beat-desc-preview" id="edBeatDesc"></div>
+    </div>
+    <div class="editor-actions">
+      <button class="btn-write" id="btnWrite" onclick="writeScene()">✦ Write Scene</button>
+      <button class="btn-small" id="btnRewrite" style="display:none" onclick="rewriteScene()">↺</button>
+      <button class="btn-small" id="btnCopy" style="display:none" onclick="copyProse()">Copy</button>
+    </div>
+    <div id="proseOutput" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+  </div>
+</div>
+
+<!-- ── LORE SCREEN ── -->
+<div class="screen lore-screen" id="screen-lore">
+
+  <div class="lore-section open">
+    <div class="lore-section-header" onclick="toggleLore(this)">
+      <span class="lore-title">🌸 Protagonist</span>
+      <span class="lore-chevron">▼</span>
+    </div>
+    <div class="lore-body">
+      <textarea id="char1" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+    </div>
+  </div>
+
+  <div class="lore-section">
+    <div class="lore-section-header" onclick="toggleLore(this)">
+      <span class="lore-title">💫 Love Interest</span>
+      <span class="lore-chevron">▼</span>
+    </div>
+    <div class="lore-body">
+      <textarea id="char2" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+    </div>
+  </div>
+
+  <div class="lore-section">
+    <div class="lore-section-header" onclick="toggleLore(this)">
+      <span class="lore-title">👥 Supporting Cast</span>
+      <span class="lore-chevron">▼</span>
+    </div>
+    <div class="lore-body">
+      <textarea id="charSupport" rows="5" placeholder="Other characters and their roles…"></textarea>
+    </div>
+  </div>
+
+  <div class="lore-section">
+    <div class="lore-section-header" onclick="toggleLore(this)">
+      <span class="lore-title">🏛 World & Setting</span>
+      <span class="lore-chevron">▼</span>
+    </div>
+    <div class="lore-body">
+      <textarea id="worldLore" rows="5" placeholder="Time period, location, atmosphere, cultural context…"></textarea>
+    </div>
+  </div>
+
+  <div class="lore-section">
+    <div class="lore-section-header" onclick="toggleLore(this)">
+      <span class="lore-title">🎭 Tone & Style</span>
+      <span class="lore-chevron">▼</span>
+    </div>
+    <div class="lore-body">
+      <textarea id="toneStyle" rows="4" placeholder="e.g. Slow burn, witty banter, emotionally intense, steamy, sweet…"></textarea>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── STATE SCREEN ── -->
+<div class="screen state-screen" id="screen-state">
+  <div class="state-block">
+    <div class="state-block-header">
+      Current Story State
+      <button style="background:none;border:1px solid #4a3f35;color:var(--muted);padding:4px 10px;border-radius:6px;font-size:0.72rem;cursor:pointer;" onclick="clearState()">Reset</button>
+    </div>
+    <textarea id="storyState" placeholder="Updates automatically after each scene. Tracks what happened, character emotions, unresolved tensions, arc position…"></textarea>
+  </div>
+
+  <div class="state-block">
+    <div class="state-block-header">Scene Log</div>
+    <div id="sceneLog" style="min-height:60px;">
+      <div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SETTINGS SCREEN ── -->
+<div class="screen settings-screen" id="screen-settings">
+
+  <div class="settings-group">
+    <div class="settings-group-title">API</div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">OpenRouter Key</div>
+        <div class="setting-sub">sk-or-v1-…</div>
+      </div>
+      <input type="password" id="apiKey" placeholder="Paste key" style="width:140px;" />
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Model</div>
+      <select id="modelSelect">
+        <optgroup label="── Adult Fiction Specialists ──">
+          <option value="neversleep/llama-3-lumimaid-70b">Lumimaid 70B ⭐ Best overall</option>
+          <option value="nothingiisreal/mn-celeste-12b">Celeste 12B — fast &amp; NSFW-tuned</option>
+          <option value="neversleep/llama-3.1-lumimaid-70b">Lumimaid 3.1 70B</option>
+          <option value="neversleep/llama-3.1-lumimaid-8b">Lumimaid 3.1 8B — cheapest</option>
+          <option value="nousresearch/hermes-3-llama-3.1-70b">Hermes 3 70B — uncensored</option>
+        </optgroup>
+        <optgroup label="── Uncensored General ──">
+          <option value="venice/uncensored:free">Venice Uncensored (FREE)</option>
+          <option value="cognitivecomputations/dolphin3.0-mistral-24b:free">Dolphin 3.0 Mistral 24B (FREE)</option>
+          <option value="x-ai/grok-3-beta">Grok 3 — explicit prose</option>
+          <option value="deepseek/deepseek-v3">DeepSeek V3 — permissive</option>
+          <option value="mistralai/mistral-large">Mistral Large</option>
+        </optgroup>
+        <optgroup label="── General Quality ──">
+          <option value="google/gemini-2.5-pro-preview">Gemini 2.5 Pro</option>
+          <option value="openai/gpt-4o">GPT-4o</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-title">Writing</div>
+    <div class="setting-row">
+      <div class="setting-label">Scene Length</div>
+      <select id="lengthTarget">
+        <option value="short">~300 words</option>
+        <option value="medium" selected>~600 words</option>
+        <option value="long">~1000 words</option>
+        <option value="chapter">~1500 words</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Auto-update State</div>
+        <div class="setting-sub">After each scene is written</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="autoUpdateState" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Include History</div>
+        <div class="setting-sub">Prev scenes for continuity</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="includeHistory" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-title">Data</div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Auto-saves to this browser</div>
+        <div class="setting-sub">Closes &amp; reopens safely ✓</div>
+      </div>
+      <span style="font-size:1.2rem">💾</span>
+    </div>
+    <div class="setting-row" id="installBtn" style="display:none">
+      <div>
+        <div class="setting-label" style="color:var(--rose-deep)">Install as App</div>
+        <div class="setting-sub">Add to home screen</div>
+      </div>
+      <button onclick="installApp()" style="padding:8px 14px;background:var(--rose);border:none;border-radius:8px;color:white;font-size:0.85rem;cursor:pointer;">Install</button>
+    </div>
+    <div class="setting-row">
+      <div>
+        <div class="setting-label" style="color:#c0392b">Clear All Data</div>
+        <div class="setting-sub">Permanently delete everything</div>
+      </div>
+      <button onclick="clearAllData()" style="padding:8px 12px;background:none;border:1px solid #e74c3c;border-radius:8px;color:#c0392b;font-size:0.8rem;cursor:pointer;">Delete</button>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-title">AI Persona</div>
+    <div style="padding: 0 14px 14px;">
+      <textarea id="systemPrefix" rows="4" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Cormorant Garamond',serif;font-size:0.95rem;background:var(--parchment);color:var(--ink);line-height:1.55;resize:none;margin-top:8px;">You are a skilled romance novelist. Write in third-person limited POV. Focus on emotional interiority, sensory detail, and romantic tension. Avoid clichés. Each scene should advance either the plot or the relationship. End scenes at a compelling moment.</textarea>
+    </div>
+  </div>
+
+</div>
+
+<!-- BEAT MODAL (bottom sheet) -->
+<div class="modal-backdrop" id="beatModal" onclick="handleBackdropClick(event)">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheetTitle">New Story Beat</div>
+
+    <label class="field-label">Title</label>
+    <input class="sheet-input" id="modalTitle" type="text" placeholder="e.g. The Chance Meeting" />
+
+    <label class="field-label" style="margin-top:12px;">What happens?</label>
+    <textarea class="sheet-textarea" id="modalDesc" placeholder="Key events, emotional beats, what's revealed or felt…"></textarea>
+
+    <div class="sheet-row">
+      <div>
+        <label class="field-label">POV Character</label>
+        <input class="sheet-input" id="modalPOV" type="text" placeholder="e.g. Elena" />
+      </div>
+      <div>
+        <label class="field-label">Location</label>
+        <input class="sheet-input" id="modalLoc" type="text" placeholder="e.g. Rainy café" />
+      </div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeBeatModal()">Cancel</button>
+      <button class="btn-save" onclick="saveBeat()">Save Beat</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="status-toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════
+// STATE
+// ══════════════════════════════
+let beats = [];
+let activeBeatIdx = null;
+let writtenScenes = {};
+let editingBeatIdx = null;
+
+// ══════════════════════════════
+// NAVIGATION
+// ══════════════════════════════
+function goScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+// ══════════════════════════════
+// LORE ACCORDION
+// ══════════════════════════════
+function toggleLore(header) {
+  const section = header.parentElement;
+  section.classList.toggle('open');
+}
+
+// ══════════════════════════════
+// BEATS
+// ══════════════════════════════
+function renderBeats() {
+  const list = document.getElementById('beatsList');
+  list.innerHTML = '';
+  beats.forEach((beat, i) => {
+    const card = document.createElement('div');
+    card.className = 'beat-card' + (writtenScenes[i] ? ' written' : '');
+    card.innerHTML = `
+      <div class="beat-num">Beat ${i + 1}</div>
+      <div class="beat-card-title">${beat.title || 'Untitled'}</div>
+      ${beat.desc ? `<div class="beat-card-desc">${beat.desc}</div>` : ''}
+      <span class="beat-chip ${writtenScenes[i] ? 'chip-written' : 'chip-pending'}">${writtenScenes[i] ? '✓ Written' : 'Pending'}</span>
+    `;
+    card.onclick = () => selectBeat(i);
+    // Long press to edit
+    let pressTimer;
+    card.addEventListener('touchstart', () => { pressTimer = setTimeout(() => openBeatModal(i), 600); });
+    card.addEventListener('touchend', () => clearTimeout(pressTimer));
+    card.addEventListener('touchmove', () => clearTimeout(pressTimer));
+    list.appendChild(card);
+  });
+}
+
+function selectBeat(i) {
+  activeBeatIdx = i;
+  const beat = beats[i];
+  renderBeats();
+
+  document.getElementById('editorNoBeat').style.display = 'none';
+  const content = document.getElementById('editorContent');
+  content.style.display = 'flex';
+
+  document.getElementById('edBeatLabel').textContent = `Beat ${i + 1}`;
+  document.getElementById('edBeatTitle').textContent = beat.title || 'Untitled';
+  document.getElementById('edBeatDesc').textContent = beat.desc || '';
+  document.getElementById('btnWrite').disabled = false;
+
+  const proseOut = document.getElementById('proseOutput');
+  if (writtenScenes[i]) {
+    proseOut.innerHTML = `<div class="prose-area">${escapeHtml(writtenScenes[i])}</div>`;
+    document.getElementById('btnCopy').style.display = '';
+    document.getElementById('btnRewrite').style.display = '';
+  } else {
+    proseOut.innerHTML = `
+      <div class="prose-placeholder">
+        <div class="p-icon">♡</div>
+        <h3>${escapeHtml(beat.title)}</h3>
+        <p>${beat.desc ? escapeHtml(beat.desc) : 'Tap <strong>Write Scene</strong> to generate this beat.'}</p>
+      </div>`;
+    document.getElementById('btnCopy').style.display = 'none';
+    document.getElementById('btnRewrite').style.display = 'none';
+  }
+
+  goScreen('editor');
+}
+
+function escapeHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════
+// BEAT MODAL
+// ══════════════════════════════
+function openBeatModal(idx) {
+  editingBeatIdx = idx;
+  document.getElementById('sheetTitle').textContent = idx === null ? 'New Story Beat' : 'Edit Beat';
+  if (idx !== null && beats[idx]) {
+    const b = beats[idx];
+    document.getElementById('modalTitle').value = b.title || '';
+    document.getElementById('modalDesc').value = b.desc || '';
+    document.getElementById('modalPOV').value = b.pov || '';
+    document.getElementById('modalLoc').value = b.loc || '';
+  } else {
+    document.getElementById('modalTitle').value = '';
+    document.getElementById('modalDesc').value = '';
+    document.getElementById('modalPOV').value = '';
+    document.getElementById('modalLoc').value = '';
+  }
+  document.getElementById('beatModal').classList.add('open');
+  setTimeout(() => document.getElementById('modalTitle').focus(), 350);
+}
+
+function closeBeatModal() {
+  document.getElementById('beatModal').classList.remove('open');
+}
+
+function handleBackdropClick(e) {
+  if (e.target === document.getElementById('beatModal')) closeBeatModal();
+}
+
+function saveBeat() {
+  const title = document.getElementById('modalTitle').value.trim();
+  if (!title) { document.getElementById('modalTitle').focus(); return; }
+  const beat = {
+    title,
+    desc: document.getElementById('modalDesc').value.trim(),
+    pov: document.getElementById('modalPOV').value.trim(),
+    loc: document.getElementById('modalLoc').value.trim(),
+  };
+  if (editingBeatIdx !== null) {
+    beats[editingBeatIdx] = beat;
+  } else {
+    beats.push(beat);
+  }
+  closeBeatModal();
+  renderBeats();
+  saveAll();
+  showToast(editingBeatIdx !== null ? 'Beat updated' : 'Beat added');
+}
+
+// ══════════════════════════════
+// WRITE SCENE
+// ══════════════════════════════
+function buildContext() {
+  const char1 = document.getElementById('char1').value.trim();
+  const char2 = document.getElementById('char2').value.trim();
+  const charSupport = document.getElementById('charSupport').value.trim();
+  const worldLore = document.getElementById('worldLore').value.trim();
+  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const storyState = document.getElementById('storyState').value.trim();
+  const includeHistory = document.getElementById('includeHistory').checked;
+
+  let ctx = '';
+  if (char1) ctx += `## PROTAGONIST\n${char1}\n\n`;
+  if (char2) ctx += `## LOVE INTEREST\n${char2}\n\n`;
+  if (charSupport) ctx += `## SUPPORTING CHARACTERS\n${charSupport}\n\n`;
+  if (worldLore) ctx += `## WORLD & SETTING\n${worldLore}\n\n`;
+  if (toneStyle) ctx += `## TONE & STYLE\n${toneStyle}\n\n`;
+  if (storyState) ctx += `## CURRENT STORY STATE\n${storyState}\n\n`;
+
+  if (includeHistory) {
+    const prev = [];
+    for (let i = 0; i < activeBeatIdx; i++) {
+      if (writtenScenes[i]) prev.push(`### Beat ${i+1}: ${beats[i].title}\n${writtenScenes[i]}`);
+    }
+    if (prev.length) ctx += `## PREVIOUS SCENES\n\n${prev.slice(-2).join('\n\n---\n\n')}\n\n`;
+  }
+  return ctx;
+}
+
+function getLengthInstruction() {
+  return { short: '~300 words', medium: '~600 words', long: '~1000 words', chapter: '~1500 words' }[document.getElementById('lengthTarget').value] || '~600 words';
+}
+
+async function writeScene() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add your OpenRouter API key in Setup ⚙️'); goScreen('settings'); return; }
+  if (activeBeatIdx === null) return;
+
+  const beat = beats[activeBeatIdx];
+  const model = document.getElementById('modelSelect').value;
+  const systemPrefix = document.getElementById('systemPrefix').value.trim();
+  const context = buildContext();
+
+  const systemPrompt = `${systemPrefix}\n\n${context}`;
+  const userPrompt = `Write the next scene for Beat ${activeBeatIdx + 1}: "${beat.title}"
+${beat.desc ? `\nWhat happens: ${beat.desc}` : ''}
+${beat.pov ? `POV: ${beat.pov}` : ''}
+${beat.loc ? `Location: ${beat.loc}` : ''}
+
+Target length: ${getLengthInstruction()}
+Output only prose — no titles, labels, or commentary.`;
+
+  const proseOut = document.getElementById('proseOutput');
+  const proseDiv = document.createElement('div');
+  proseDiv.className = 'prose-area';
+  proseOut.innerHTML = '';
+  proseOut.appendChild(proseDiv);
+
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  proseDiv.appendChild(cursor);
+
+  document.getElementById('btnWrite').disabled = true;
+  document.getElementById('btnWrite').textContent = 'Writing…';
+  document.getElementById('btnCopy').style.display = 'none';
+  document.getElementById('btnRewrite').style.display = 'none';
+
+  let fullText = '';
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://novella-studio.local',
+        'X-Title': 'Novella Studio'
+      },
+      body: JSON.stringify({
+        model, stream: true,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const json = JSON.parse(data);
+          const delta = json.choices?.[0]?.delta?.content || '';
+          fullText += delta;
+          proseDiv.textContent = fullText;
+          proseDiv.appendChild(cursor);
+          proseOut.scrollTop = proseOut.scrollHeight;
+        } catch {}
+      }
+    }
+
+    cursor.remove();
+    writtenScenes[activeBeatIdx] = fullText;
+    renderBeats();
+    saveAll();
+    document.getElementById('btnCopy').style.display = '';
+    document.getElementById('btnRewrite').style.display = '';
+
+    updateSceneLog(activeBeatIdx, beat.title, fullText);
+
+    if (document.getElementById('autoUpdateState').checked) {
+      showToast('Updating story state…');
+      await updateStoryState(apiKey, model, beat, fullText);
+    }
+
+    showToast(`✓ Scene written — ${fullText.split(/\s+/).length} words`);
+
+  } catch (err) {
+    proseDiv.textContent = `Error: ${err.message}`;
+    showToast('Error — check Setup ⚙️');
+  }
+
+  document.getElementById('btnWrite').disabled = false;
+  document.getElementById('btnWrite').textContent = '✦ Write Scene';
+}
+
+function rewriteScene() {
+  delete writtenScenes[activeBeatIdx];
+  renderBeats();
+  writeScene();
+}
+
+function copyProse() {
+  const text = writtenScenes[activeBeatIdx] || '';
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+// ══════════════════════════════
+// STATE UPDATE
+// ══════════════════════════════
+async function updateStoryState(apiKey, model, beat, sceneText) {
+  const currentState = document.getElementById('storyState').value.trim();
+  const char1 = document.getElementById('char1').value.trim();
+  const char2 = document.getElementById('char2').value.trim();
+
+  const prompt = `Track story continuity for a romance novella.
+${currentState ? `CURRENT STATE:\n${currentState}\n\n` : ''}CHARACTERS: ${char1 ? `Protagonist: ${char1.slice(0,150)}` : ''} ${char2 ? `| Love Interest: ${char2.slice(0,150)}` : ''}
+
+BEAT JUST WRITTEN: "${beat.title}"
+${beat.desc}
+
+SCENE (excerpt):
+${sceneText.slice(0, 1200)}
+
+Update the Story State concisely. Cover:
+1. What just happened (2-3 sentences)
+2. Emotional status of each main character
+3. Unresolved tensions / open threads
+4. Romance arc position
+5. Key details now established
+
+Output only the updated state, no headings.`;
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://novella-studio.local',
+        'X-Title': 'Novella Studio'
+      },
+      body: JSON.stringify({
+        model, max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const newState = data.choices?.[0]?.message?.content?.trim();
+    if (newState) { document.getElementById('storyState').value = newState; saveAll(); }
+  } catch (e) { console.warn('State update failed:', e); }
+}
+
+// ══════════════════════════════
+// SCENE LOG
+// ══════════════════════════════
+function updateSceneLog(idx, title, text) {
+  const log = document.getElementById('sceneLog');
+  if (log.querySelector('[style*="italic"]')) log.innerHTML = '';
+  const item = document.createElement('div');
+  item.className = 'scene-log-item';
+  item.innerHTML = `<strong>${idx + 1}. ${escapeHtml(title)}</strong><span style="color:var(--muted)">${text.split(/\s+/).length} words written</span>`;
+  log.appendChild(item);
+}
+
+function clearState() {
+  if (confirm('Reset story state?')) {
+    document.getElementById('storyState').value = '';
+    document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
+    showToast('State reset');
+  }
+}
+
+// ══════════════════════════════
+// TOAST
+// ══════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════
+// PERSISTENCE (localStorage)
+// ══════════════════════════════
+const SAVE_KEY = 'novella_studio_v1';
+
+function saveAll() {
+  try {
+    const data = {
+      beats,
+      writtenScenes,
+      activeBeatIdx,
+      lore: {
+        char1: document.getElementById('char1').value,
+        char2: document.getElementById('char2').value,
+        charSupport: document.getElementById('charSupport').value,
+        worldLore: document.getElementById('worldLore').value,
+        toneStyle: document.getElementById('toneStyle').value,
+      },
+      settings: {
+        apiKey: document.getElementById('apiKey').value,
+        model: document.getElementById('modelSelect').value,
+        length: document.getElementById('lengthTarget').value,
+        autoUpdate: document.getElementById('autoUpdateState').checked,
+        includeHistory: document.getElementById('includeHistory').checked,
+        systemPrefix: document.getElementById('systemPrefix').value,
+      },
+      storyState: document.getElementById('storyState').value,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch(e) { console.warn('Save failed:', e); }
+}
+
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+
+    // Beats & scenes
+    if (data.beats) beats = data.beats;
+    if (data.writtenScenes) writtenScenes = data.writtenScenes;
+
+    // Lore
+    if (data.lore) {
+      if (data.lore.char1)       document.getElementById('char1').value = data.lore.char1;
+      if (data.lore.char2)       document.getElementById('char2').value = data.lore.char2;
+      if (data.lore.charSupport) document.getElementById('charSupport').value = data.lore.charSupport;
+      if (data.lore.worldLore)   document.getElementById('worldLore').value = data.lore.worldLore;
+      if (data.lore.toneStyle)   document.getElementById('toneStyle').value = data.lore.toneStyle;
+    }
+
+    // Settings
+    if (data.settings) {
+      if (data.settings.apiKey)       document.getElementById('apiKey').value = data.settings.apiKey;
+      if (data.settings.model)        document.getElementById('modelSelect').value = data.settings.model;
+      if (data.settings.length)       document.getElementById('lengthTarget').value = data.settings.length;
+      if (data.settings.systemPrefix) document.getElementById('systemPrefix').value = data.settings.systemPrefix;
+      document.getElementById('autoUpdateState').checked  = data.settings.autoUpdate !== false;
+      document.getElementById('includeHistory').checked   = data.settings.includeHistory !== false;
+    }
+
+    // Story state
+    if (data.storyState) document.getElementById('storyState').value = data.storyState;
+
+    // Rebuild scene log from written scenes
+    const log = document.getElementById('sceneLog');
+    log.innerHTML = '';
+    let hasLog = false;
+    beats.forEach((beat, i) => {
+      if (writtenScenes[i]) {
+        hasLog = true;
+        const item = document.createElement('div');
+        item.className = 'scene-log-item';
+        item.innerHTML = `<strong>${i + 1}. ${escapeHtml(beat.title)}</strong><span style="color:var(--muted)">${writtenScenes[i].split(/\s+/).length} words written</span>`;
+        log.appendChild(item);
+      }
+    });
+    if (!hasLog) log.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
+
+    // Restore active beat view if one was selected
+    if (data.activeBeatIdx !== null && beats[data.activeBeatIdx]) {
+      activeBeatIdx = data.activeBeatIdx;
+    }
+
+    renderBeats();
+
+    // Show last active beat in editor if applicable
+    if (activeBeatIdx !== null && beats[activeBeatIdx]) {
+      const beat = beats[activeBeatIdx];
+      document.getElementById('editorNoBeat').style.display = 'none';
+      document.getElementById('editorContent').style.display = 'flex';
+      document.getElementById('edBeatLabel').textContent = `Beat ${activeBeatIdx + 1}`;
+      document.getElementById('edBeatTitle').textContent = beat.title || 'Untitled';
+      document.getElementById('edBeatDesc').textContent = beat.desc || '';
+      document.getElementById('btnWrite').disabled = false;
+      const proseOut = document.getElementById('proseOutput');
+      if (writtenScenes[activeBeatIdx]) {
+        proseOut.innerHTML = `<div class="prose-area">${escapeHtml(writtenScenes[activeBeatIdx])}</div>`;
+        document.getElementById('btnCopy').style.display = '';
+        document.getElementById('btnRewrite').style.display = '';
+      }
+    }
+
+    if (data.savedAt) {
+      const d = new Date(data.savedAt);
+      showToast(`Loaded save from ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`);
+    }
+    return true;
+  } catch(e) {
+    console.warn('Load failed:', e);
+    return false;
+  }
+}
+
+function clearAllData() {
+  if (confirm('Delete ALL saved data? This cannot be undone.\n\nBeats, lore, scenes, settings — everything will be cleared.')) {
+    localStorage.removeItem(SAVE_KEY);
+    beats = [];
+    writtenScenes = {};
+    activeBeatIdx = null;
+    ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
+    document.getElementById('editorNoBeat').style.display = 'flex';
+    document.getElementById('editorContent').style.display = 'none';
+    renderBeats();
+    showToast('All data cleared');
+  }
+}
+
+// Auto-save whenever inputs change (debounced)
+let saveTimer;
+function debouncedSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveAll(); }, 800);
+}
+
+// Hook auto-save onto all persistent inputs
+const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','apiKey','modelSelect','lengthTarget','autoUpdateState','includeHistory'];
+document.addEventListener('DOMContentLoaded', () => {
+  watchIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', debouncedSave);
+    if (el) el.addEventListener('change', debouncedSave);
+  });
+});
+
+// ══════════════════════════════
+// INIT — load or seed
+// ══════════════════════════════
+const loaded = loadAll();
+if (!loaded) {
+  // First time — seed example beats
+  beats = [
+    { title: 'The Chance Meeting', desc: 'Protagonists meet unexpectedly — instant friction or fascination. Establish their contrasting worlds and the spark that makes this significant.', pov: '', loc: '' },
+    { title: 'Forced Together', desc: 'Circumstances throw them together again. Tension builds. A small moment of unexpected vulnerability cracks the surface.', pov: '', loc: '' },
+    { title: 'The Barrier Revealed', desc: 'The central obstacle to their romance becomes clear — a secret, a wound, a misunderstanding they must overcome.', pov: '', loc: '' },
+  ];
+  renderBeats();
+}
+
+// ══════════════════════════════
+// SERVICE WORKER REGISTRATION
+// ══════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.warn('SW failed:', e));
+  });
+}
+
+// ══════════════════════════════
+// PWA INSTALL PROMPT
+// ══════════════════════════════
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  showToast('\u2713 Novella Studio installed!');
+  deferredInstallPrompt = null;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'none';
+});
+
+function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') showToast('Installing\u2026');
+      deferredInstallPrompt = null;
+    });
+  }
+}
+</script>
+</body>
+</html>
