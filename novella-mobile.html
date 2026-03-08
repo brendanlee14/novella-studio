@@ -622,139 +622,69 @@
   ::-webkit-scrollbar { width: 0; }
 
   /* ── CHAPTERS ── */
-  .chapter-block { margin-bottom: 6px; }
+  .chapter-block { margin-bottom: 4px; }
+  .chapter-block.collapsed .chapter-beats { display: none !important; }
+  .chapter-block.collapsed .chapter-chevron { transform: rotate(-90deg); }
 
   .chapter-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     background: var(--ink);
-    padding: 12px 14px;
+    padding: 13px 14px;
     cursor: pointer;
     user-select: none;
     gap: 10px;
   }
-
-  .chapter-header .ch-num {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .chapter-header .ch-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem;
-    color: var(--parchment);
-    font-style: italic;
+  .chapter-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex: 1;
-    line-height: 1.2;
+    min-width: 0;
   }
-
-  .chapter-header .ch-chevron {
+  .chapter-chevron {
     color: var(--gold);
     font-size: 0.7rem;
     transition: transform 0.25s;
     flex-shrink: 0;
   }
-
-  .chapter-header .ch-edit {
+  .chapter-title-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    color: var(--parchment);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chapter-meta { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 2px; }
+  .chapter-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .chapter-action-btn {
     background: none;
     border: 1px solid #4a3f35;
     color: var(--muted);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     padding: 3px 8px;
     border-radius: 5px;
     cursor: pointer;
-    white-space: nowrap;
   }
+  .chapter-beats { display: flex; flex-direction: column; border-left: 3px solid var(--rose); }
 
-  .chapter-block.open .ch-chevron { transform: rotate(180deg); }
-
-  .chapter-beats {
-    display: none;
-    flex-direction: column;
-    gap: 0;
-    border-left: 3px solid var(--rose);
-    margin-left: 0;
-  }
-
-  .chapter-block.open .chapter-beats { display: flex; }
-
-  .beat-card {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 14px 12px 16px;
-    cursor: pointer;
-    transition: background 0.15s;
-    position: relative;
-  }
-
-  .beat-card:active { background: #fff8f8; }
-  .beat-card.active-beat { background: #fff0f1; }
-
-  .beat-card .beat-num {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    font-weight: 500;
-    margin-bottom: 3px;
-  }
-
-  .beat-card-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
-    color: var(--ink);
-    line-height: 1.3;
-  }
-
-  .beat-card-desc {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-top: 4px;
-    line-height: 1.45;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .beat-chip {
-    display: inline-block;
-    margin-top: 6px;
-    padding: 2px 7px;
-    border-radius: 20px;
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-  }
-
-  .chip-written { background: #edf7ee; color: #2e7d32; }
-  .chip-pending { background: var(--rose-pale); color: var(--rose-deep); }
-
-  .add-beat-row {
-    padding: 10px 14px;
-    background: var(--cream);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .add-beat-inline {
+  .add-beat-in-chapter {
     width: 100%;
-    padding: 8px 12px;
-    background: none;
-    border: 1px dashed var(--border);
-    border-radius: 8px;
+    padding: 12px 16px;
+    background: var(--cream);
+    border: none;
+    border-top: 1px dashed var(--border);
     color: var(--muted);
     font-family: 'Jost', sans-serif;
     font-size: 0.82rem;
     cursor: pointer;
-    transition: all 0.2s;
     text-align: left;
+    transition: color 0.2s, background 0.2s;
   }
-
-  .add-beat-inline:active { border-color: var(--rose); color: var(--rose); }
+  .add-beat-in-chapter:active { color: var(--rose); background: var(--rose-pale); }
 
   .add-chapter-btn {
     margin: 12px 16px 20px;
@@ -769,15 +699,8 @@
     width: calc(100% - 32px);
     transition: all 0.2s;
   }
-
   .add-chapter-btn:active { border-color: var(--gold); color: var(--gold); }
 
-  .ch-progress {
-    font-size: 0.62rem;
-    color: var(--muted);
-    white-space: nowrap;
-    margin-right: 4px;
-  }
 </style>
 </head>
 <body>
@@ -1342,55 +1265,6 @@ function escapeHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ══════════════════════════════
-// BEAT MODAL
-// ══════════════════════════════
-function openBeatModal(idx) {
-  editingBeatIdx = idx;
-  document.getElementById('sheetTitle').textContent = idx === null ? 'New Story Beat' : 'Edit Beat';
-  if (idx !== null && beats[idx]) {
-    const b = beats[idx];
-    document.getElementById('modalTitle').value = b.title || '';
-    document.getElementById('modalDesc').value = b.desc || '';
-    document.getElementById('modalPOV').value = b.pov || '';
-    document.getElementById('modalLoc').value = b.loc || '';
-  } else {
-    document.getElementById('modalTitle').value = '';
-    document.getElementById('modalDesc').value = '';
-    document.getElementById('modalPOV').value = '';
-    document.getElementById('modalLoc').value = '';
-  }
-  document.getElementById('beatModal').classList.add('open');
-  setTimeout(() => document.getElementById('modalTitle').focus(), 350);
-}
-
-function closeBeatModal() {
-  document.getElementById('beatModal').classList.remove('open');
-}
-
-function handleBackdropClick(e) {
-  if (e.target === document.getElementById('beatModal')) closeBeatModal();
-}
-
-function saveBeat() {
-  const title = document.getElementById('modalTitle').value.trim();
-  if (!title) { document.getElementById('modalTitle').focus(); return; }
-  const beat = {
-    title,
-    desc: document.getElementById('modalDesc').value.trim(),
-    pov: document.getElementById('modalPOV').value.trim(),
-    loc: document.getElementById('modalLoc').value.trim(),
-  };
-  if (editingBeatIdx !== null) {
-    beats[editingBeatIdx] = beat;
-  } else {
-    beats.push(beat);
-  }
-  closeBeatModal();
-  renderChapters();
-  saveAll();
-  showToast(editingBeatIdx !== null ? 'Beat updated' : 'Beat added');
-}
 
 // ══════════════════════════════
 // WRITE SCENE
