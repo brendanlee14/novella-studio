@@ -1,4 +1,4 @@
-const CACHE = 'novella-studio-v1';
+const CACHE = 'novella-studio-v2';
 const ASSETS = [
   './novella-mobile.html',
   './manifest.json',
