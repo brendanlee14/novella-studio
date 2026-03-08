@@ -1063,6 +1063,7 @@ function saveChapter() {
     chapters[editingChIdx].summary = summary;
   } else {
     chapters.push({ title, summary, collapsed: false, beats: [] });
+    activeChIdx = chapters.length - 1; // auto-expand the new chapter
   }
   closeChapterModal();
   renderChapters();
@@ -1101,7 +1102,16 @@ function toggleChapter(chIdx) {
 // ══════════════════════════════
 function openBeatModal(beatIdx, chIdx) {
   // chIdx is which chapter this beat belongs to (for new beats)
-  pendingBeatChIdx = chIdx !== undefined ? chIdx : (activeChIdx !== null ? activeChIdx : 0);
+  if (chIdx !== undefined && chIdx !== null) {
+    pendingBeatChIdx = chIdx;
+  } else if (activeChIdx !== null) {
+    pendingBeatChIdx = activeChIdx;
+  } else if (chapters.length > 0) {
+    pendingBeatChIdx = 0;
+  } else {
+    showToast('Add a chapter first');
+    return;
+  }
   editingBeatIdx = beatIdx;
   document.getElementById('sheetTitle').textContent = beatIdx === null ? 'New Beat' : 'Edit Beat';
   const beat = (beatIdx !== null && chapters[pendingBeatChIdx]) ? chapters[pendingBeatChIdx].beats[beatIdx] : null;
@@ -1165,8 +1175,11 @@ function renderChapters() {
     const totalBeats = ch.beats.length;
     const writtenCount = ch.beats.filter((_, bIdx) => writtenScenes[chIdx + '-' + bIdx]).length;
 
+    // Chapter is open if: not collapsed AND (it's the active chapter OR has no collapse state set)
+    const isOpen = !ch.collapsed;
+
     const block = document.createElement('div');
-    block.className = 'chapter-block' + (ch.collapsed ? ' collapsed' : '');
+    block.className = 'chapter-block' + (isOpen ? '' : ' collapsed');
 
     block.innerHTML = `
       <div class="chapter-header" onclick="toggleChapter(${chIdx})">
@@ -1187,7 +1200,7 @@ function renderChapters() {
 
     container.appendChild(block);
 
-    if (!ch.collapsed) {
+    if (isOpen) {
       const beatsContainer = block.querySelector(`#beats-${chIdx}`);
       ch.beats.forEach((beat, bIdx) => {
         const key = chIdx + '-' + bIdx;
@@ -1518,7 +1531,7 @@ function showToast(msg) {
 // ══════════════════════════════
 // PERSISTENCE (localStorage)
 // ══════════════════════════════
-const SAVE_KEY = 'novella_studio_v1';
+const SAVE_KEY = 'novella_studio_v3';
 
 function saveAll() {
   try {
