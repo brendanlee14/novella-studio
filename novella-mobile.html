@@ -1338,8 +1338,8 @@ function getLengthInstruction() {
 
 async function writeScene() {
   const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add your OpenRouter API key in Setup ⚙️'); goScreen('settings'); return; }
-  if (activeChIdx === null || activeBeatIdx === null) return;
+  if (!apiKey) { showToast('No API key — check Setup ⚙️'); goScreen('settings'); return; }
+  if (activeChIdx === null || activeBeatIdx === null) { showToast('No beat selected (ch:' + activeChIdx + ' b:' + activeBeatIdx + ')'); return; }
 
   const ch = chapters[activeChIdx];
   const beat = ch.beats[activeBeatIdx];
@@ -1439,8 +1439,9 @@ Output only prose — no titles, labels, or commentary.`;
     showToast(`✓ Scene written — ${fullText.split(/\s+/).length} words`);
 
   } catch (err) {
-    proseDiv.textContent = `Error: ${err.message}`;
-    showToast('Error — check Setup ⚙️');
+    proseDiv.innerHTML = `<div style="color:#c0392b;padding:16px;font-family:'Jost',sans-serif;font-size:0.9rem;line-height:1.6;"><strong>Error:</strong> ${err.message}<br><br>Check your API key in Setup ⚙️ and make sure you have credits on OpenRouter.</div>`;
+    showToast('Error: ' + err.message.slice(0, 60));
+    console.error('writeScene error:', err);
   }
 
   document.getElementById('btnWrite').disabled = false;
