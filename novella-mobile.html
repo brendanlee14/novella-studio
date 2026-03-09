@@ -922,7 +922,7 @@
         <div class="setting-label">Version</div>
         <div class="setting-sub">Novella Studio</div>
       </div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v15</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v17</span>
     </div>
   </div>
 
@@ -1390,29 +1390,34 @@ function getLengthInstruction() {
   return { short: '~300 words', medium: '~600 words', long: '~1000 words', chapter: '~1500 words' }[document.getElementById('lengthTarget').value] || '~600 words';
 }
 
-async function writeScene() {
+function writeScene() {
   dbg('writeScene called');
   const apiKey = document.getElementById('apiKey').value.trim();
   dbg('apiKey present: ' + !!apiKey);
-  if (!apiKey) { showToast('No API key — check Setup ⚙️'); goScreen('settings'); return; }
+  if (!apiKey) { showToast('No API key — check Setup'); goScreen('settings'); return; }
   dbg('activeChIdx=' + activeChIdx + ' activeBeatIdx=' + activeBeatIdx);
-  if (activeChIdx === null || activeBeatIdx === null) { showToast('No beat selected (ch:' + activeChIdx + ' b:' + activeBeatIdx + ')'); return; }
+  if (activeChIdx === null || activeBeatIdx === null) { showToast('No beat selected'); return; }
 
+  dbg('getting chapter and beat...');
   const ch = chapters[activeChIdx];
+  dbg('ch=' + (ch ? ch.title : 'NULL'));
   const beat = ch.beats[activeBeatIdx];
+  dbg('beat=' + (beat ? beat.title : 'NULL'));
   const key = activeChIdx + '-' + activeBeatIdx;
   const model = document.getElementById('modelSelect').value;
+  dbg('model=' + model);
   const systemPrefix = document.getElementById('systemPrefix').value.trim();
+  dbg('calling buildContext...');
   const context = buildContext();
+  dbg('context len=' + context.length);
 
-  const systemPrompt = `${systemPrefix}\n\n${context}`;
-  const userPrompt = `Write the next scene for ${ch.title}, Beat ${activeBeatIdx + 1}: "${beat.title}"
-${beat.desc ? `\nWhat happens: ${beat.desc}` : ''}
-${beat.pov ? `POV: ${beat.pov}` : ''}
-${beat.loc ? `Location: ${beat.loc}` : ''}
-
-Target length: ${getLengthInstruction()}
-Output only prose — no titles, labels, or commentary.`;
+  const systemPrompt = systemPrefix + '\n\n' + context;
+  const userPrompt = 'Write the next scene for ' + ch.title + ', Beat ' + (activeBeatIdx + 1) + ': "' + beat.title + '"'
+    + (beat.desc ? '\nWhat happens: ' + beat.desc : '')
+    + (beat.pov ? '\nPOV: ' + beat.pov : '')
+    + (beat.loc ? '\nLocation: ' + beat.loc : '')
+    + '\n\nTarget length: ' + getLengthInstruction()
+    + '\nOutput only prose — no titles, labels, or commentary.';
 
   const proseOut = document.getElementById('proseOutput');
   const proseDiv = document.createElement('div');
@@ -1431,83 +1436,84 @@ Output only prose — no titles, labels, or commentary.`;
 
   let fullText = '';
 
-  try {
-    dbg('model=' + model + ' key starts=' + apiKey.slice(0,8));
-    dbg('fetching from OpenRouter...');
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://novella-studio.local',
-        'X-Title': 'Novella Studio'
-      },
-      body: JSON.stringify({
-        model, stream: true,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      })
-    });
-
-    dbg('response received, status=' + res.status + ' ok=' + res.ok);
+  dbg('fetching from OpenRouter...');
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({
+      model: model,
+      stream: true,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ]
+    })
+  }).then(function(res) {
+    dbg('response status=' + res.status + ' ok=' + res.ok);
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || `HTTP ${res.status}`);
+      return res.json().then(function(err) {
+        throw new Error(err.error && err.error.message ? err.error.message : 'HTTP ' + res.status);
+      });
     }
-
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      const lines = buf.split('\n');
-      buf = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') continue;
-        try {
-          const json = JSON.parse(data);
-          const delta = json.choices?.[0]?.delta?.content || '';
-          fullText += delta;
-          proseDiv.textContent = fullText;
-          proseDiv.appendChild(cursor);
-          proseOut.scrollTop = proseOut.scrollHeight;
-        } catch {}
-      }
+    function readChunk() {
+      return reader.read().then(function(result) {
+        if (result.done) {
+          dbg('stream done, words=' + fullText.split(/\s+/).length);
+          cursor.remove();
+          writtenScenes[key] = fullText;
+          renderChapters();
+          saveAll();
+          document.getElementById('btnCopy').style.display = '';
+          document.getElementById('btnRewrite').style.display = '';
+          updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
+          if (document.getElementById('autoUpdateState').checked) {
+            showToast('Updating story state…');
+            updateStoryState(apiKey, model, beat, fullText);
+          }
+          showToast('✓ Scene written — ' + fullText.split(/\s+/).length + ' words');
+          document.getElementById('btnWrite').disabled = false;
+          document.getElementById('btnWrite').textContent = '✦ Write Scene';
+          return;
+        }
+        buf += decoder.decode(result.value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            const delta = (json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) ? json.choices[0].delta.content : '';
+            fullText += delta;
+            proseDiv.textContent = fullText;
+            proseDiv.appendChild(cursor);
+            proseOut.scrollTop = proseOut.scrollHeight;
+          } catch(e) {}
+        }
+        return readChunk();
+      });
     }
-
-    cursor.remove();
-    writtenScenes[key] = fullText;
-    renderChapters();
-    saveAll();
-    document.getElementById('btnCopy').style.display = '';
-    document.getElementById('btnRewrite').style.display = '';
-
-    updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
-
-    if (document.getElementById('autoUpdateState').checked) {
-      showToast('Updating story state…');
-      await updateStoryState(apiKey, model, beat, fullText);
-    }
-
-    showToast(`✓ Scene written — ${fullText.split(/\s+/).length} words`);
-
-  } catch (err) {
+    return readChunk();
+  }).catch(function(err) {
     dbg('ERROR: ' + err.message);
-    proseDiv.innerHTML = `<div style="color:#c0392b;padding:16px;font-family:'Jost',sans-serif;font-size:0.9rem;line-height:1.6;"><strong>Error:</strong> ${err.message}<br><br>Check your API key in Setup ⚙️ and make sure you have credits on OpenRouter.</div>`;
+    proseDiv.innerHTML = '<div style="color:#c0392b;padding:16px;font-size:0.9rem;line-height:1.6;"><strong>Error:</strong> ' + err.message + '</div>';
     showToast('Error: ' + err.message.slice(0, 60));
-    console.error('writeScene error:', err);
-  }
-
-  document.getElementById('btnWrite').disabled = false;
-  document.getElementById('btnWrite').textContent = '✦ Write Scene';
+    document.getElementById('btnWrite').disabled = false;
+    document.getElementById('btnWrite').textContent = '✦ Write Scene';
+  });
 }
+
 
 function rewriteScene() {
   delete writtenScenes[activeChIdx + '-' + activeBeatIdx];
