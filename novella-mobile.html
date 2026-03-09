@@ -922,7 +922,7 @@
         <div class="setting-label">Version</div>
         <div class="setting-sub">Novella Studio</div>
       </div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v14</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v15</span>
     </div>
   </div>
 
@@ -1432,7 +1432,8 @@ Output only prose — no titles, labels, or commentary.`;
   let fullText = '';
 
   try {
-    dbg('fetching from OpenRouter, model=' + model);
+    dbg('model=' + model + ' key starts=' + apiKey.slice(0,8));
+    dbg('fetching from OpenRouter...');
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -1450,7 +1451,7 @@ Output only prose — no titles, labels, or commentary.`;
       })
     });
 
-    dbg('response status=' + res.status);
+    dbg('response received, status=' + res.status + ' ok=' + res.ok);
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.error?.message || `HTTP ${res.status}`);
@@ -1498,6 +1499,7 @@ Output only prose — no titles, labels, or commentary.`;
     showToast(`✓ Scene written — ${fullText.split(/\s+/).length} words`);
 
   } catch (err) {
+    dbg('ERROR: ' + err.message);
     proseDiv.innerHTML = `<div style="color:#c0392b;padding:16px;font-family:'Jost',sans-serif;font-size:0.9rem;line-height:1.6;"><strong>Error:</strong> ${err.message}<br><br>Check your API key in Setup ⚙️ and make sure you have credits on OpenRouter.</div>`;
     showToast('Error: ' + err.message.slice(0, 60));
     console.error('writeScene error:', err);
@@ -1545,7 +1547,8 @@ Update the Story State concisely. Cover:
 Output only the updated state, no headings.`;
 
   try {
-    dbg('fetching from OpenRouter, model=' + model);
+    dbg('model=' + model + ' key starts=' + apiKey.slice(0,8));
+    dbg('fetching from OpenRouter...');
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
