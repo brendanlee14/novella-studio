@@ -922,7 +922,7 @@
         <div class="setting-label">Version</div>
         <div class="setting-sub">Novella Studio</div>
       </div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v10</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v11</span>
     </div>
   </div>
 
@@ -1240,11 +1240,18 @@ function renderChapters() {
             </div>
           </div>
         `;
-        card.onclick = () => selectBeat(chIdx, bIdx);
-        let pressTimer;
-        card.addEventListener('touchstart', () => { pressTimer = setTimeout(() => openBeatModal(bIdx, chIdx), 600); });
-        card.addEventListener('touchend', () => clearTimeout(pressTimer));
-        card.addEventListener('touchmove', () => clearTimeout(pressTimer));
+        let pressTimer = null;
+        let didLongPress = false;
+        card.addEventListener('touchstart', () => {
+          didLongPress = false;
+          pressTimer = setTimeout(() => { didLongPress = true; openBeatModal(bIdx, chIdx); }, 600);
+        });
+        card.addEventListener('touchend', (e) => {
+          clearTimeout(pressTimer);
+          if (!didLongPress) { e.preventDefault(); selectBeat(chIdx, bIdx); }
+        });
+        card.addEventListener('touchmove', () => { clearTimeout(pressTimer); didLongPress = true; });
+        card.addEventListener('click', (e) => { if (!('ontouchstart' in window)) selectBeat(chIdx, bIdx); });
         beatsContainer.appendChild(card);
       });
 
