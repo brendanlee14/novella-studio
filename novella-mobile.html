@@ -922,7 +922,7 @@
         <div class="setting-label">Version</div>
         <div class="setting-sub">Novella Studio</div>
       </div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v17</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v18</span>
     </div>
   </div>
 
@@ -1372,7 +1372,7 @@ function buildContext() {
     const prev = [];
     chapters.forEach((ch, ci) => {
       ch.beats.forEach((beat, bi) => {
-        const key = sceneKey(ci, bi);
+        const key = ci + '-' + bi;
         if (writtenScenes[key]) {
           // Stop before current beat
           if (ci < activeChIdx || (ci === activeChIdx && bi < activeBeatIdx)) {
