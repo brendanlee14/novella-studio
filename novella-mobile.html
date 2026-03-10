@@ -37,83 +37,167 @@
     color: var(--ink);
   }
 
-  /* ── HEADER ── */
+  /* ── HOME SCREEN ── */
+  #homeScreen {
+    position: fixed; inset: 0;
+    background: var(--ink);
+    z-index: 200;
+    display: flex; flex-direction: column; overflow: hidden;
+    transition: opacity 0.25s;
+  }
+  #homeScreen.hidden { display: none; }
+
+  .home-header {
+    padding: 56px 24px 20px;
+    flex-shrink: 0;
+    border-bottom: 1px solid #2a1f18;
+  }
+  .home-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    color: var(--gold-light);
+    font-style: italic;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .home-header p { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; }
+
+  .stories-list {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .story-card {
+    background: #1e1510;
+    border: 1px solid #3a2e26;
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .story-card:active { border-color: var(--gold); }
+
+  .story-card-tap { display: flex; align-items: center; gap: 12px; }
+  .story-card-body { flex: 1; min-width: 0; }
+  .story-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem; color: var(--parchment);
+    font-style: italic; margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .story-card-meta { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; }
+  .story-card-arrow { color: var(--gold); font-size: 1rem; flex-shrink: 0; }
+
+  .story-card-actions {
+    display: flex; gap: 8px;
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid #2a1f18;
+  }
+  .story-action-btn {
+    background: none; border: 1px solid #4a3f35;
+    color: var(--muted); font-size: 0.68rem;
+    padding: 5px 10px; border-radius: 6px;
+    cursor: pointer; font-family: 'Jost', sans-serif;
+  }
+  .story-action-btn:active { color: var(--rose); border-color: var(--rose); }
+
+  .add-story-btn {
+    margin: 0 16px 32px;
+    padding: 18px; background: none;
+    border: 1.5px dashed #3a2e26; border-radius: 14px;
+    color: var(--muted); font-family: 'Jost', sans-serif;
+    font-size: 0.9rem; cursor: pointer;
+    width: calc(100% - 32px); flex-shrink: 0;
+  }
+  .add-story-btn:active { border-color: var(--gold); color: var(--gold-light); }
+
+  .home-empty {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--muted); gap: 12px; padding: 40px;
+    text-align: center;
+  }
+  .home-empty-icon { font-size: 2.5rem; opacity: 0.4; }
+  .home-empty p { font-size: 0.85rem; line-height: 1.6; }
+
+  /* ── STORY MODAL ── */
+  #storyModal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(24,18,14,0.85);
+    z-index: 300; align-items: flex-end; justify-content: center;
+  }
+  #storyModal.open { display: flex; }
+  .story-modal-sheet {
+    background: var(--cream); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px;
+    padding: 24px 16px 48px;
+  }
+
+  /* ── APP HEADER ── */
   .app-header {
-    position: fixed;
-    top: 0; left: 0; right: 0;
+    position: fixed; top: 0; left: 0; right: 0;
     height: var(--header-h);
     background: var(--ink);
-    display: flex;
-    align-items: center;
+    display: flex; align-items: center;
     justify-content: space-between;
     padding: 0 16px;
     z-index: 50;
-    border-bottom: 1px solid var(--gold);
   }
 
   .app-header h1 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.25rem;
-    color: var(--gold-light);
-    font-style: italic;
-    letter-spacing: 0.04em;
+    font-size: 1.25rem; color: var(--gold-light);
+    font-style: italic; letter-spacing: 0.04em;
   }
 
+  .back-btn {
+    background: none; border: none;
+    color: var(--gold); font-family: 'Jost', sans-serif;
+    font-size: 0.75rem; cursor: pointer; padding: 6px 0;
+    letter-spacing: 0.05em; white-space: nowrap;
+  }
+
+  .header-col { display: flex; flex-direction: column; gap: 1px; }
+  .header-story-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; color: var(--gold-light);
+    font-style: italic; letter-spacing: 0.04em;
+    white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; max-width: 200px;
+  }
   .header-actions { display: flex; gap: 8px; align-items: center; }
 
   .icon-btn {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 1.2rem;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: color 0.2s;
+    background: none; border: none; color: var(--muted);
+    font-size: 1.2rem; padding: 8px; cursor: pointer;
+    border-radius: 8px; transition: color 0.2s;
     display: flex; align-items: center;
   }
   .icon-btn:active { color: var(--gold-light); }
 
   /* ── SCREENS ── */
   .screen {
-    position: fixed;
-    top: var(--header-h);
-    left: 0; right: 0;
-    bottom: var(--nav-h);
-    overflow-y: auto;
+    position: fixed; top: var(--header-h); left: 0; right: 0;
+    bottom: var(--nav-h); overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    display: none;
-    flex-direction: column;
+    display: none; flex-direction: column;
     background: var(--parchment);
   }
   .screen.active { display: flex; }
 
   /* ── BOTTOM NAV ── */
   .bottom-nav {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: var(--nav-h);
-    background: var(--ink);
-    display: flex;
-    border-top: 1px solid #2e2420;
-    z-index: 50;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: var(--nav-h); background: var(--ink);
+    display: flex; border-top: 1px solid #2e2420; z-index: 50;
   }
-
   .nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    background: none;
-    border: none;
-    color: #5a4e48;
-    cursor: pointer;
-    transition: color 0.2s;
-    padding: 8px 0;
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px;
+    background: none; border: none; color: #5a4e48;
+    cursor: pointer; transition: color 0.2s; padding: 8px 0;
   }
-
   .nav-item.active { color: var(--gold-light); }
   .nav-item .nav-icon { font-size: 1.3rem; line-height: 1; }
   .nav-item .nav-label { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
@@ -122,626 +206,596 @@
   .beats-list { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 
   .beat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+    cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
   }
-
   .beat-card::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--border);
-    transition: background 0.2s;
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--border); transition: background 0.2s;
   }
-
   .beat-card.written::before { background: var(--rose); }
-
   .beat-card:active { transform: scale(0.98); }
 
   .beat-num {
-    font-size: 0.62rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    font-weight: 500;
-    margin-bottom: 4px;
+    font-size: 0.62rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--gold);
+    font-weight: 500; margin-bottom: 4px;
   }
-
   .beat-card-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    color: var(--ink);
-    line-height: 1.3;
+    font-size: 1.1rem; color: var(--ink); line-height: 1.3;
   }
-
   .beat-card-desc {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 5px;
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 0.8rem; color: var(--muted); margin-top: 5px;
+    line-height: 1.5; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
-
   .beat-chip {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
+    display: inline-block; margin-top: 8px;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: 0.65rem; font-weight: 500; letter-spacing: 0.05em;
   }
-
   .chip-written { background: #edf7ee; color: #2e7d32; }
   .chip-pending { background: var(--rose-pale); color: var(--rose-deep); }
 
-  .add-beat-btn {
-    margin: 4px 16px 16px;
-    padding: 14px;
-    background: none;
-    border: 1.5px dashed var(--border);
-    border-radius: 12px;
-    color: var(--muted);
-    font-family: 'Jost', sans-serif;
-    font-size: 0.9rem;
-    cursor: pointer;
-    width: calc(100% - 32px);
-    transition: all 0.2s;
-  }
-  .add-beat-btn:active { border-color: var(--rose); color: var(--rose); }
-
   /* ── EDITOR SCREEN ── */
   .editor-screen { background: var(--cream); }
-
   .editor-top {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
-    flex-shrink: 0;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 16px; flex-shrink: 0;
   }
-
   .editor-top .beat-label {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--gold);
-    margin-bottom: 4px;
+    font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--gold); margin-bottom: 4px;
   }
-
   .editor-top h2 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.35rem;
-    color: var(--ink);
-    line-height: 1.3;
+    font-size: 1.3rem; color: var(--ink); line-height: 1.3;
   }
-
-  .editor-top .beat-desc-preview {
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin-top: 5px;
-    line-height: 1.5;
+  .beat-desc-preview {
+    font-size: 0.8rem; color: var(--muted); margin-top: 5px; line-height: 1.5;
   }
-
   .editor-actions {
-    padding: 12px 16px;
-    display: flex;
-    gap: 10px;
-    background: var(--surface);
+    display: flex; gap: 8px; padding: 12px 16px;
+    background: var(--cream); flex-shrink: 0;
     border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
   }
-
   .btn-write {
-    flex: 1;
-    padding: 14px;
-    background: var(--rose);
-    color: white;
-    border: none;
-    border-radius: 10px;
+    flex: 1; padding: 14px; background: var(--rose); color: white;
+    border: none; border-radius: 12px;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem;
-    font-style: italic;
-    cursor: pointer;
-    transition: background 0.2s;
-    letter-spacing: 0.03em;
+    font-size: 1.05rem; font-style: italic; cursor: pointer;
+    transition: opacity 0.2s;
   }
-  .btn-write:active { background: var(--rose-deep); }
-  .btn-write:disabled { background: #ccc; }
-
+  .btn-write:disabled { opacity: 0.5; }
   .btn-small {
-    padding: 12px 14px;
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--muted);
-    font-family: 'Jost', sans-serif;
-    font-size: 0.78rem;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s;
+    padding: 14px 16px; background: none; border: 1px solid var(--border);
+    border-radius: 12px; font-family: 'Jost', sans-serif;
+    font-size: 0.85rem; color: var(--muted); cursor: pointer;
   }
-  .btn-small:active { border-color: var(--ink); color: var(--ink); }
-
+  .no-beat {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--muted); gap: 12px; padding: 40px; text-align: center;
+  }
+  .no-beat .icon { font-size: 2rem; opacity: 0.4; }
   .prose-area {
-    flex: 1;
-    padding: 24px 20px 32px;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.12rem;
-    line-height: 1.9;
-    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif; font-size: 1.05rem;
+    line-height: 1.85; color: var(--ink); padding: 20px 16px;
     white-space: pre-wrap;
   }
-
   .prose-placeholder {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 30px;
-    text-align: center;
-    color: var(--muted);
+    padding: 40px 20px; text-align: center; color: var(--muted);
   }
-
-  .prose-placeholder .p-icon { font-size: 2.5rem; margin-bottom: 16px; opacity: 0.35; }
-
+  .prose-placeholder .p-icon { font-size: 2rem; margin-bottom: 12px; opacity: 0.4; }
   .prose-placeholder h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem;
-    color: var(--rose);
-    margin-bottom: 10px;
-    font-style: italic;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.2rem;
+    color: var(--rose-deep); font-style: italic; margin-bottom: 8px;
   }
-
-  .prose-placeholder p { font-size: 0.88rem; line-height: 1.65; }
+  .prose-placeholder p { font-size: 0.85rem; line-height: 1.6; }
+  .cursor {
+    display: inline-block; width: 2px; height: 1.1em;
+    background: var(--rose); margin-left: 2px;
+    animation: blink 0.9s infinite; vertical-align: text-bottom;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
   /* ── LORE SCREEN ── */
-  .lore-screen { background: var(--parchment); }
-
-  .lore-section {
-    margin: 0;
-    border-bottom: 1px solid var(--border);
-  }
-
+  .lore-section { border-bottom: 1px solid var(--border); }
   .lore-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    cursor: pointer;
-    background: var(--surface);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px; cursor: pointer; background: var(--cream);
     user-select: none;
   }
-
-  .lore-section-header .lore-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
-    color: var(--ink);
+  .lore-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
+    color: var(--rose-deep); font-style: italic;
   }
-
-  .lore-section-header .lore-chevron {
-    color: var(--muted);
-    transition: transform 0.25s;
-    font-size: 0.8rem;
-  }
-
+  .lore-chevron { color: var(--gold); font-size: 0.75rem; transition: transform 0.25s; }
   .lore-section.open .lore-chevron { transform: rotate(180deg); }
-
-  .lore-body {
-    display: none;
-    padding: 0 16px 16px;
-    background: var(--surface);
-  }
-
+  .lore-body { display: none; padding: 0 16px 16px; }
   .lore-section.open .lore-body { display: block; }
-
   .lore-body textarea {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
-    line-height: 1.6;
-    color: var(--ink);
-    background: var(--parchment);
-    resize: none;
-    min-height: 100px;
+    width: 100%; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; color: var(--ink); background: var(--surface);
+    line-height: 1.6; resize: none; min-height: 120px;
   }
 
   /* ── STATE SCREEN ── */
-  .state-screen { background: var(--parchment); }
-
-  .state-block {
-    background: var(--surface);
-    margin: 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    overflow: hidden;
+  .state-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .state-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--gold); margin-bottom: 8px; display: block;
   }
-
-  .state-block-header {
-    padding: 12px 14px;
-    background: var(--ink);
-    color: var(--gold-light);
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.95rem;
-    font-style: italic;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .state-section textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; color: var(--ink); background: var(--surface);
+    line-height: 1.6; resize: none; min-height: 100px;
   }
-
-  .state-block textarea {
-    width: 100%;
-    border: none;
-    padding: 14px;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.95rem;
-    line-height: 1.65;
-    color: var(--ink);
-    background: var(--surface);
-    resize: none;
-    min-height: 140px;
-    outline: none;
-  }
-
   .scene-log-item {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.82rem;
-  }
-
-  .scene-log-item:last-child { border-bottom: none; }
-
-  .scene-log-item strong {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.95rem;
-    display: block;
-    margin-bottom: 2px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 0.82rem; gap: 8px;
   }
 
   /* ── SETTINGS SCREEN ── */
   .settings-screen { background: var(--parchment); overflow-y: auto; -webkit-overflow-scrolling: touch; }
-
   .settings-group {
-    background: var(--surface);
-    margin: 12px;
-    border-radius: 12px;
+    background: var(--cream); border-radius: 14px;
+    margin: 12px 16px; overflow: hidden;
     border: 1px solid var(--border);
-    overflow: hidden;
   }
-
   .settings-group-title {
-    padding: 12px 14px 6px;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    font-weight: 500;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--gold); padding: 12px 14px 8px; font-weight: 500;
   }
-
   .setting-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 14px;
-    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-top: 1px solid var(--border); gap: 12px;
   }
-
-  .setting-row:first-of-type { border-top: none; }
-
-  .setting-label { font-size: 0.9rem; color: var(--ink); }
-  .setting-sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-
+  .setting-label { font-size: 0.85rem; color: var(--ink); font-weight: 500; }
+  .setting-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
   .setting-row input[type="password"],
   .setting-row select {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 10px;
-    font-family: 'Jost', sans-serif;
-    font-size: 0.82rem;
-    color: var(--ink);
-    background: var(--parchment);
-    max-width: 180px;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; font-family: 'Jost', sans-serif;
+    font-size: 0.82rem; background: var(--surface);
+    color: var(--ink); max-width: 180px;
   }
-
-  .toggle {
-    position: relative;
-    width: 44px; height: 26px;
-    flex-shrink: 0;
-  }
-
+  .toggle { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
-
   .toggle-slider {
-    position: absolute;
-    inset: 0;
-    background: #ccc;
-    border-radius: 26px;
-    transition: background 0.25s;
-    cursor: pointer;
+    position: absolute; inset: 0; background: var(--border);
+    border-radius: 26px; cursor: pointer; transition: background 0.2s;
   }
-
   .toggle-slider::before {
-    content: '';
-    position: absolute;
-    width: 20px; height: 20px;
-    left: 3px; top: 3px;
-    background: white;
-    border-radius: 50%;
-    transition: transform 0.25s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    content: ''; position: absolute; width: 18px; height: 18px;
+    left: 4px; bottom: 4px; background: white;
+    border-radius: 50%; transition: transform 0.2s;
   }
-
   .toggle input:checked + .toggle-slider { background: var(--rose); }
   .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
 
   /* ── MODAL ── */
   .modal-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(24,18,14,0.75);
-    z-index: 100;
-    display: none;
-    align-items: flex-end;
-    justify-content: center;
+    position: fixed; inset: 0; background: rgba(24,18,14,0.75);
+    z-index: 100; display: none; align-items: flex-end; justify-content: center;
   }
-
   .modal-backdrop.open { display: flex; }
-
   .modal-sheet {
-    background: var(--cream);
-    border-radius: 20px 20px 0 0;
-    width: 100%;
-    max-width: 600px;
-    max-height: 85vh;
-    overflow-y: auto;
+    background: var(--cream); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px;
+    max-height: 85vh; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 20px 16px 48px;
   }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
   .sheet-handle {
-    width: 40px; height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 0 auto 20px;
+    width: 40px; height: 4px; background: var(--border);
+    border-radius: 2px; margin: 0 auto 20px;
   }
-
   .sheet-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem;
-    color: var(--rose-deep);
-    margin-bottom: 16px;
-    font-style: italic;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.3rem;
+    color: var(--rose-deep); margin-bottom: 16px; font-style: italic;
   }
-
   .field-label {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    margin-bottom: 6px;
-    margin-top: 14px;
-    display: block;
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--gold); margin-bottom: 6px; margin-top: 14px; display: block;
   }
-
   .field-label:first-of-type { margin-top: 0; }
-
   .sheet-input, .sheet-textarea {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1rem;
-    color: var(--ink);
-    background: var(--surface);
-    line-height: 1.5;
+    width: 100%; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; color: var(--ink); background: var(--surface); line-height: 1.5;
   }
-
   .sheet-textarea { resize: none; min-height: 90px; }
-
   .sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-
-  .sheet-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 24px;
-  }
-
+  .sheet-actions { display: flex; gap: 10px; margin-top: 24px; }
   .btn-cancel {
-    flex: 1;
-    padding: 14px;
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font-family: 'Jost', sans-serif;
-    font-size: 0.9rem;
-    color: var(--muted);
-    cursor: pointer;
+    flex: 1; padding: 14px; background: none; border: 1px solid var(--border);
+    border-radius: 10px; font-family: 'Jost', sans-serif;
+    font-size: 0.9rem; color: var(--muted); cursor: pointer;
   }
-
   .btn-save {
-    flex: 2;
-    padding: 14px;
-    background: var(--rose);
-    color: white;
-    border: none;
-    border-radius: 10px;
+    flex: 2; padding: 14px; background: var(--rose); color: white;
+    border: none; border-radius: 10px;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem;
-    font-style: italic;
-    cursor: pointer;
+    font-size: 1.05rem; font-style: italic; cursor: pointer;
   }
 
-  /* ── STREAMING ── */
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
-  .cursor { display: inline-block; width: 2px; height: 1.1em; background: var(--rose); border-radius: 1px; animation: blink 0.85s infinite; vertical-align: text-bottom; margin-left: 2px; }
-
-  .status-toast {
-    position: fixed;
-    bottom: calc(var(--nav-h) + 12px);
-    left: 50%; transform: translateX(-50%);
-    background: var(--ink);
-    color: var(--parchment);
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    z-index: 80;
-    opacity: 0;
-    transition: opacity 0.3s;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-
-  .status-toast.show { opacity: 1; }
-
-  /* ── NO BEAT SELECTED ── */
-  .no-beat {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 30px;
-    text-align: center;
-    color: var(--muted);
-  }
-
-  .no-beat .icon { font-size: 2.5rem; margin-bottom: 14px; opacity: 0.3; }
-
-  .no-beat p { font-size: 0.88rem; line-height: 1.65; }
-
-  ::-webkit-scrollbar { width: 0; }
-
-  /* ── CHAPTERS ── */
+  /* ── CHAPTER STRUCTURE ── */
   .chapter-block { margin-bottom: 4px; }
   .chapter-block.collapsed .chapter-beats { display: none !important; }
   .chapter-block.collapsed .chapter-chevron { transform: rotate(-90deg); }
-
   .chapter-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--ink);
-    padding: 13px 14px;
-    cursor: pointer;
-    user-select: none;
-    gap: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--ink); padding: 13px 14px;
+    cursor: pointer; user-select: none; gap: 10px;
   }
-  .chapter-header-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    min-width: 0;
-  }
-  .chapter-chevron {
-    color: var(--gold);
-    font-size: 0.7rem;
-    transition: transform 0.25s;
-    flex-shrink: 0;
-  }
+  .chapter-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .chapter-chevron { color: var(--gold); font-size: 0.7rem; transition: transform 0.25s; flex-shrink: 0; }
   .chapter-title-text {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem;
-    color: var(--parchment);
-    font-style: italic;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.05rem;
+    color: var(--parchment); font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .chapter-meta { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 2px; }
   .chapter-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .chapter-action-btn {
-    background: none;
-    border: 1px solid #4a3f35;
-    color: var(--muted);
-    font-size: 0.68rem;
-    padding: 3px 8px;
-    border-radius: 5px;
-    cursor: pointer;
+    background: none; border: 1px solid #4a3f35; color: var(--muted);
+    font-size: 0.68rem; padding: 3px 8px; border-radius: 5px; cursor: pointer;
   }
   .chapter-beats { display: flex; flex-direction: column; border-left: 3px solid var(--rose); }
-
   .add-beat-in-chapter {
-    width: 100%;
-    padding: 12px 16px;
-    background: var(--cream);
-    border: none;
-    border-top: 1px dashed var(--border);
-    color: var(--muted);
-    font-family: 'Jost', sans-serif;
-    font-size: 0.82rem;
-    cursor: pointer;
-    text-align: left;
-    transition: color 0.2s, background 0.2s;
+    width: 100%; padding: 12px 16px; background: var(--cream);
+    border: none; border-top: 1px dashed var(--border);
+    color: var(--muted); font-family: 'Jost', sans-serif;
+    font-size: 0.82rem; cursor: pointer; text-align: left;
   }
-  .add-beat-in-chapter:active { color: var(--rose); background: var(--rose-pale); }
-
+  .add-beat-in-chapter:active { color: var(--rose); }
   .add-chapter-btn {
-    margin: 12px 16px 20px;
-    padding: 14px;
-    background: none;
-    border: 1.5px dashed var(--border);
-    border-radius: 12px;
-    color: var(--muted);
-    font-family: 'Jost', sans-serif;
-    font-size: 0.9rem;
-    cursor: pointer;
-    width: calc(100% - 32px);
-    transition: all 0.2s;
+    margin: 12px 16px 20px; padding: 14px; background: none;
+    border: 1.5px dashed var(--border); border-radius: 12px;
+    color: var(--muted); font-family: 'Jost', sans-serif;
+    font-size: 0.9rem; cursor: pointer; width: calc(100% - 32px);
   }
   .add-chapter-btn:active { border-color: var(--gold); color: var(--gold); }
 
+  /* ── TOAST ── */
+  .status-toast {
+    position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: var(--parchment);
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 0.82rem; opacity: 0; transition: all 0.3s;
+    z-index: 500; white-space: nowrap; pointer-events: none;
+    border: 1px solid #3a2e26;
+  }
+  .status-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── PORTRAIT CARDS ── */
+  .portrait-card {
+    background: var(--ink);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 1px solid #2e2420;
+  }
+  .portrait-placeholder {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    height: 120px; gap: 8px;
+    color: #5a4e48;
+  }
+  .portrait-icon { font-size: 1.8rem; opacity: 0.4; }
+  .portrait-hint { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .portrait-img {
+    width: 100%; display: block;
+    max-height: 360px; object-fit: cover;
+    object-position: top;
+  }
+  .portrait-actions {
+    display: flex; gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid #2e2420;
+    background: #1a120d;
+  }
+  .portrait-btn {
+    flex: 1; padding: 10px;
+    background: var(--rose); color: white;
+    border: none; border-radius: 8px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem; font-style: italic;
+    cursor: pointer;
+  }
+  .portrait-btn:disabled { opacity: 0.5; }
+  .portrait-btn-subtle {
+    flex: 0 0 auto;
+    background: none;
+    border: 1px solid #4a3f35;
+    color: var(--muted);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.8rem;
+    font-style: normal;
+    padding: 10px 14px;
+  }
+  .portrait-generating {
+    display: flex; align-items: center; justify-content: center;
+    height: 200px; color: var(--gold);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; font-style: italic;
+    gap: 10px;
+  }
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+  .portrait-spinner { animation: pulse 1.4s infinite; }
+
+  /* ── PLAN SCREEN ── */
+  .plan-screen { background: var(--parchment); }
+
+  /* Stage progress bar */
+  .plan-stages {
+    display: flex; background: var(--ink);
+    padding: 10px 16px 0; gap: 0; flex-shrink: 0;
+  }
+  .plan-stage-tab {
+    flex: 1; text-align: center; padding: 8px 4px 10px;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: #5a4e48; cursor: default; position: relative;
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+  }
+  .plan-stage-tab.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+  .plan-stage-tab.done { color: var(--muted); border-bottom-color: #3a2e26; }
+
+  /* Stage panels */
+  .plan-stage { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+  .plan-stage.active { display: flex; }
+
+  .plan-body {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px;
+  }
+  .plan-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--gold); margin-bottom: 8px; display: block;
+  }
+  .plan-desc {
+    font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 14px;
+  }
+  .plan-textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; color: var(--ink); background: var(--surface);
+    line-height: 1.65; resize: none; min-height: 140px;
+  }
+  .plan-count-row {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+  }
+  .plan-count-row label { font-size: 0.82rem; color: var(--ink); flex: 1; }
+  .count-stepper {
+    display: flex; align-items: center; gap: 0;
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .count-stepper button {
+    width: 36px; height: 36px; background: none; border: none;
+    font-size: 1.2rem; color: var(--rose); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .count-stepper span {
+    width: 32px; text-align: center; font-size: 0.95rem;
+    font-weight: 500; color: var(--ink);
+  }
+
+  /* Chapter summary cards */
+  .ch-summary-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; margin-bottom: 12px; overflow: hidden;
+  }
+  .ch-summary-header {
+    background: var(--ink); padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ch-summary-num {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--gold);
+  }
+  .ch-summary-title-input {
+    width: 100%; background: none; border: none;
+    font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+    color: var(--parchment); font-style: italic; padding: 4px 0;
+    outline: none;
+  }
+  .ch-summary-title-input::placeholder { color: #5a4e48; }
+  .ch-summary-body { padding: 12px 14px; }
+  .ch-summary-textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px; font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem; color: var(--ink); background: var(--cream);
+    line-height: 1.65; resize: none; min-height: 90px;
+  }
+  .ch-summary-footer {
+    padding: 8px 14px 12px; display: flex; gap: 8px;
+  }
+  .btn-refine {
+    flex: 1; padding: 10px; background: none;
+    border: 1px solid var(--gold); border-radius: 8px;
+    color: var(--gold); font-family: 'Jost', sans-serif;
+    font-size: 0.8rem; cursor: pointer;
+  }
+  .btn-refine:disabled { opacity: 0.4; }
+
+  /* Beat count rows per chapter */
+  .beat-count-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .beat-count-card-title {
+    flex: 1; font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem; color: var(--ink); font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Plan action footer */
+  .plan-footer {
+    padding: 12px 16px; background: var(--cream);
+    border-top: 1px solid var(--border); display: flex; gap: 10px; flex-shrink: 0;
+  }
+  .btn-plan-next {
+    flex: 2; padding: 14px; background: var(--rose); color: white;
+    border: none; border-radius: 12px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; font-style: italic; cursor: pointer;
+  }
+  .btn-plan-next:disabled { opacity: 0.5; }
+  .btn-plan-back {
+    flex: 1; padding: 14px; background: none;
+    border: 1px solid var(--border); border-radius: 12px;
+    font-family: 'Jost', sans-serif; font-size: 0.9rem;
+    color: var(--muted); cursor: pointer;
+  }
+
+  /* Generating shimmer */
+  .plan-generating {
+    padding: 24px; text-align: center;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem;
+    font-style: italic; color: var(--rose-deep);
+    animation: pulse 1.4s infinite;
+  }
+
+  /* ── READING MODE OVERLAY ── */
+  #readingMode {
+    display: none;
+    position: fixed; inset: 0;
+    background: #faf6f0;
+    z-index: 400;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #readingMode.open { display: flex; }
+
+  .reading-header {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    background: linear-gradient(to bottom, rgba(250,246,240,1) 60%, rgba(250,246,240,0));
+    z-index: 10;
+    opacity: 1; transition: opacity 0.4s;
+  }
+  .reading-header.hidden { opacity: 0; pointer-events: none; }
+  .reading-close {
+    background: none; border: none;
+    font-family: 'Jost', sans-serif; font-size: 0.78rem;
+    color: var(--muted); cursor: pointer; letter-spacing: 0.06em; padding: 6px 0;
+  }
+  .reading-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem; color: var(--gold); font-style: italic; letter-spacing: 0.04em;
+  }
+  .reading-export-btn {
+    background: none; border: none; font-size: 0.78rem;
+    color: var(--muted); cursor: pointer;
+    font-family: 'Jost', sans-serif; letter-spacing: 0.06em; padding: 6px 0;
+  }
+  .reading-scroll {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 64px 24px 80px;
+    max-width: 680px; margin: 0 auto; width: 100%;
+  }
+  .reading-story-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 2rem;
+    color: var(--ink); text-align: center; font-style: italic;
+    letter-spacing: 0.04em; margin-bottom: 8px;
+  }
+  .reading-story-divider { text-align: center; color: var(--gold); font-size: 1rem; letter-spacing: 0.3em; margin-bottom: 48px; }
+  .reading-chapter-heading {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.3rem;
+    color: var(--rose-deep); font-style: italic; letter-spacing: 0.04em;
+    margin: 40px 0 6px; text-align: center;
+  }
+  .reading-chapter-num { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); text-align: center; margin-bottom: 20px; }
+  .reading-scene-divider { text-align: center; color: var(--border); font-size: 0.9rem; letter-spacing: 0.4em; margin: 28px 0; }
+  .reading-prose { font-family: 'Cormorant Garamond', serif; font-size: 1.12rem; line-height: 1.95; color: #2a1f18; white-space: pre-wrap; }
+  .reading-empty { text-align: center; padding: 80px 24px; font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 1.1rem; line-height: 1.7; }
+
+  /* ── EXPORT SHEET ── */
+  #exportSheet { display: none; position: fixed; inset: 0; background: rgba(24,18,14,0.75); z-index: 500; align-items: flex-end; justify-content: center; }
+  #exportSheet.open { display: flex; }
+  .export-modal-body { background: var(--cream); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; padding: 24px 16px 48px; }
+  .export-option { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
+  .export-option:active { border-color: var(--rose); }
+  .export-option-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .export-option-label { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--ink); font-style: italic; }
+  .export-option-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  ::-webkit-scrollbar { width: 0; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
+<!-- ══════════════════════════════
+     HOME SCREEN — Stories List
+══════════════════════════════ -->
+<div id="homeScreen">
+  <div class="home-header">
+    <h1>✦ Novella Studio</h1>
+    <p>Select a story to continue</p>
+  </div>
+  <div class="stories-list" id="storiesList"></div>
+  <button class="add-story-btn" type="button" id="addStoryBtn">＋ New Story</button>
+</div>
+
+<!-- Story create/rename modal -->
+<div id="storyModal">
+  <div class="story-modal-sheet">
+    <div style="width:40px;height:4px;background:#ddd4c8;border-radius:2px;margin:0 auto 20px;"></div>
+    <div id="storyModalTitle" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#8c3d47;font-style:italic;margin-bottom:16px;">New Story</div>
+    <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">Story Title</label>
+    <input id="storyNameInput" type="text" placeholder="e.g. The Singapore Affair" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button type="button" id="storyCancelBtn" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
+      <button type="button" id="storySaveBtn" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;">Save Story</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     APP SHELL — shown inside a story
+══════════════════════════════ -->
+<div id="appShell" style="display:none;">
+
 <header class="app-header">
-  <h1>✦ Novella Studio</h1>
+  <div class="header-col">
+    <button class="back-btn" type="button" id="backToStoriesBtn">← Stories</button>
+    <span id="activeStoryLabel" class="header-story-name">Story</span>
+  </div>
   <div class="header-actions">
-    <button class="icon-btn" onclick="showToast('All data saved in session')" title="Info">💾</button>
+    <button class="icon-btn" onclick="openReadingMode()" title="Read story" style="font-size:1rem;color:var(--gold);">📖</button>
+    <button class="icon-btn" onclick="showToast('Auto-saves to this browser')" title="Info">💾</button>
   </div>
 </header>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <button class="nav-item active" onclick="goScreen('beats')" id="nav-beats">
-    <span class="nav-icon">📖</span>
-    <span class="nav-label">Beats</span>
+    <span class="nav-icon">📖</span><span class="nav-label">Beats</span>
   </button>
   <button class="nav-item" onclick="goScreen('editor')" id="nav-editor">
-    <span class="nav-icon">✍️</span>
-    <span class="nav-label">Write</span>
+    <span class="nav-icon">✍️</span><span class="nav-label">Write</span>
   </button>
   <button class="nav-item" onclick="goScreen('lore')" id="nav-lore">
-    <span class="nav-icon">🌹</span>
-    <span class="nav-label">Lore</span>
+    <span class="nav-icon">🌹</span><span class="nav-label">Lore</span>
+  </button>
+  <button class="nav-item" onclick="goScreen('plan')" id="nav-plan">
+    <span class="nav-icon">🗺️</span><span class="nav-label">Plan</span>
   </button>
   <button class="nav-item" onclick="goScreen('state')" id="nav-state">
-    <span class="nav-icon">🧵</span>
-    <span class="nav-label">State</span>
+    <span class="nav-icon">🧵</span><span class="nav-label">State</span>
   </button>
   <button class="nav-item" onclick="goScreen('settings')" id="nav-settings">
-    <span class="nav-icon">⚙️</span>
-    <span class="nav-label">Setup</span>
+    <span class="nav-icon">⚙️</span><span class="nav-label">Setup</span>
   </button>
 </nav>
 
@@ -774,91 +828,188 @@
 
 <!-- ── LORE SCREEN ── -->
 <div class="screen lore-screen" id="screen-lore">
-
   <div class="lore-section open">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🌸 Protagonist</span>
-      <span class="lore-chevron">▼</span>
+      <span class="lore-title">🌸 Protagonist</span><span class="lore-chevron">▼</span>
     </div>
     <div class="lore-body">
+      <div class="portrait-card" id="portrait-char1">
+        <div class="portrait-placeholder" id="portrait-char1-empty">
+          <span class="portrait-icon">🌸</span>
+          <span class="portrait-hint">Generate Portrait</span>
+        </div>
+        <img id="portrait-char1-img" class="portrait-img" style="display:none" alt="Protagonist portrait" />
+        <div class="portrait-actions">
+          <button type="button" class="portrait-btn" onclick="generatePortrait('char1')">
+            <span id="portrait-char1-label">✦ Generate Portrait</span>
+          </button>
+          <button type="button" class="portrait-btn portrait-btn-subtle" id="portrait-char1-regen" style="display:none" onclick="generatePortrait('char1')">↺ Regenerate</button>
+        </div>
+      </div>
       <textarea id="char1" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
-
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">💫 Love Interest</span>
-      <span class="lore-chevron">▼</span>
+      <span class="lore-title">💫 Love Interest</span><span class="lore-chevron">▼</span>
     </div>
     <div class="lore-body">
+      <div class="portrait-card" id="portrait-char2">
+        <div class="portrait-placeholder" id="portrait-char2-empty">
+          <span class="portrait-icon">💫</span>
+          <span class="portrait-hint">Generate Portrait</span>
+        </div>
+        <img id="portrait-char2-img" class="portrait-img" style="display:none" alt="Love Interest portrait" />
+        <div class="portrait-actions">
+          <button type="button" class="portrait-btn" onclick="generatePortrait('char2')">
+            <span id="portrait-char2-label">✦ Generate Portrait</span>
+          </button>
+          <button type="button" class="portrait-btn portrait-btn-subtle" id="portrait-char2-regen" style="display:none" onclick="generatePortrait('char2')">↺ Regenerate</button>
+        </div>
+      </div>
       <textarea id="char2" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
-
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">👥 Supporting Cast</span>
-      <span class="lore-chevron">▼</span>
+      <span class="lore-title">👥 Supporting Cast</span><span class="lore-chevron">▼</span>
     </div>
     <div class="lore-body">
-      <textarea id="charSupport" rows="5" placeholder="Other characters and their roles…"></textarea>
+      <div class="portrait-card" id="portrait-charSupport">
+        <div class="portrait-placeholder" id="portrait-charSupport-empty">
+          <span class="portrait-icon">👥</span>
+          <span class="portrait-hint">Generate Portrait</span>
+        </div>
+        <img id="portrait-charSupport-img" class="portrait-img" style="display:none" alt="Supporting cast portrait" />
+        <div class="portrait-actions">
+          <button type="button" class="portrait-btn" onclick="generatePortrait('charSupport')">
+            <span id="portrait-charSupport-label">✦ Generate Portrait</span>
+          </button>
+          <button type="button" class="portrait-btn portrait-btn-subtle" id="portrait-charSupport-regen" style="display:none" onclick="generatePortrait('charSupport')">↺ Regenerate</button>
+        </div>
+      </div>
+      <textarea id="charSupport" rows="4" placeholder="Secondary characters, their roles and relationships…"></textarea>
     </div>
   </div>
-
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🏛 World & Setting</span>
-      <span class="lore-chevron">▼</span>
+      <span class="lore-title">🏛 World & Setting</span><span class="lore-chevron">▼</span>
     </div>
-    <div class="lore-body">
-      <textarea id="worldLore" rows="5" placeholder="Time period, location, atmosphere, cultural context…"></textarea>
-    </div>
+    <div class="lore-body"><textarea id="worldLore" rows="5" placeholder="Time period, location, atmosphere, rules of the world…"></textarea></div>
   </div>
-
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🎭 Tone & Style</span>
-      <span class="lore-chevron">▼</span>
+      <span class="lore-title">🎭 Tone & Style</span><span class="lore-chevron">▼</span>
     </div>
-    <div class="lore-body">
-      <textarea id="toneStyle" rows="4" placeholder="e.g. Slow burn, witty banter, emotionally intense, steamy, sweet…"></textarea>
-    </div>
+    <div class="lore-body"><textarea id="toneStyle" rows="4" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea></div>
   </div>
-
 </div>
 
 <!-- ── STATE SCREEN ── -->
-<div class="screen state-screen" id="screen-state">
-  <div class="state-block">
-    <div class="state-block-header">
-      Current Story State
-      <button style="background:none;border:1px solid #4a3f35;color:var(--muted);padding:4px 10px;border-radius:6px;font-size:0.72rem;cursor:pointer;" onclick="clearState()">Reset</button>
-    </div>
-    <textarea id="storyState" placeholder="Updates automatically after each scene. Tracks what happened, character emotions, unresolved tensions, arc position…"></textarea>
+<div class="screen" id="screen-state">
+  <div class="state-section">
+    <span class="state-label">Current Story State</span>
+    <textarea id="storyState" rows="6" placeholder="Where the story is right now — updated automatically after each scene…"></textarea>
+    <button onclick="resetStoryState()" style="margin-top:8px;padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">Reset</button>
   </div>
-
-  <div class="state-block">
-    <div class="state-block-header">Scene Log</div>
-    <div id="sceneLog" style="min-height:60px;">
-      <div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>
-    </div>
+  <div class="state-section">
+    <span class="state-label">Scene Log</span>
+    <div id="sceneLog"><div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div></div>
   </div>
 </div>
 
+<!-- ── PLAN SCREEN ── -->
+<div class="screen plan-screen" id="screen-plan">
+
+  <!-- Stage progress tabs -->
+  <div class="plan-stages">
+    <div class="plan-stage-tab active" id="plan-tab-1">① Synopsis</div>
+    <div class="plan-stage-tab" id="plan-tab-2">② Chapters</div>
+    <div class="plan-stage-tab" id="plan-tab-3">③ Beats</div>
+  </div>
+
+  <!-- Stage 1: Synopsis -->
+  <div class="plan-stage active" id="plan-stage-1">
+    <div class="plan-body">
+      <span class="plan-label">Full Story Plot</span>
+      <p class="plan-desc">Describe your entire story — characters, conflict, key events, how it ends. The more detail, the better the AI output.</p>
+      <textarea class="plan-textarea" id="planSynopsis" rows="10" placeholder="e.g. Brendan is a married man in Singapore who becomes obsessed with his neighbour Elisa, a strikingly beautiful woman who seems unaware of her effect on him…&#10;&#10;Include: setting, main characters, inciting incident, key turning points, climax, resolution."></textarea>
+      <div class="plan-count-row" style="margin-top:16px;">
+        <label>Number of chapters to generate</label>
+        <div class="count-stepper">
+          <button type="button" onclick="adjustCount('planChCount', -1)">−</button>
+          <span id="planChCount">5</span>
+          <button type="button" onclick="adjustCount('planChCount', 1)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="plan-footer">
+      <button class="btn-plan-next" id="planGenChBtn" onclick="generateChapterSummaries()">✦ Generate Chapter Summaries</button>
+    </div>
+  </div>
+
+  <!-- Stage 2: Chapter Summaries -->
+  <div class="plan-stage" id="plan-stage-2">
+    <div class="plan-body">
+      <span class="plan-label">Chapter Summaries</span>
+      <p class="plan-desc">Edit each summary to shape the story your way. Use Refine to have AI polish your edits.</p>
+      <div id="chSummaryList"></div>
+    </div>
+    <div class="plan-footer">
+      <button class="btn-plan-back" onclick="planGoStage(1)">← Back</button>
+      <button class="btn-plan-next" id="planGenBeatsBtn" onclick="planGoStage(3)">Set Up Beats →</button>
+    </div>
+  </div>
+
+  <!-- Stage 3: Beat Generation -->
+  <div class="plan-stage" id="plan-stage-3">
+    <div class="plan-body">
+      <span class="plan-label">Beat Generation</span>
+      <p class="plan-desc">Set how many beats to generate per chapter. Adjust individually or use the default for all.</p>
+      <div class="plan-count-row">
+        <label style="font-weight:500;">Default beats per chapter</label>
+        <div class="count-stepper">
+          <button type="button" onclick="adjustCount('planDefaultBeats', -1)">−</button>
+          <span id="planDefaultBeats">4</span>
+          <button type="button" onclick="adjustCount('planDefaultBeats', 1)">+</button>
+        </div>
+      </div>
+      <button type="button" onclick="applyDefaultBeats()" style="margin-bottom:16px;padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.78rem;cursor:pointer;">Apply to all chapters</button>
+      <div id="beatCountList"></div>
+    </div>
+    <div class="plan-footer">
+      <button class="btn-plan-back" onclick="planGoStage(2)">← Back</button>
+      <button class="btn-plan-next" id="planImportBtn" onclick="generateAndImportBeats()">✦ Generate &amp; Import Beats</button>
+    </div>
+  </div>
+
+</div>
+
 <!-- ── SETTINGS SCREEN ── -->
-<div class="screen settings-screen" id="screen-settings"><div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:24px;">
+<div class="screen settings-screen" id="screen-settings">
+<div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:24px;">
 
   <div class="settings-group">
     <div class="settings-group-title">API</div>
     <div class="setting-row">
-      <div>
-        <div class="setting-label">OpenRouter Key</div>
-        <div class="setting-sub">sk-or-v1-…</div>
-      </div>
+      <div><div class="setting-label">OpenRouter Key</div><div class="setting-sub">sk-or-v1-… (for writing)</div></div>
       <input type="password" id="apiKey" placeholder="Paste key" style="width:140px;" />
     </div>
     <div class="setting-row">
-      <div class="setting-label">Model</div>
+      <div><div class="setting-label">Venice Key</div><div class="setting-sub">For portrait generation</div></div>
+      <input type="password" id="veniceApiKey" placeholder="Paste key" style="width:140px;" />
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Portrait Model</div>
+      <select id="veniceImageModel">
+        <option value="hidream-i1-full">HiDream Full ⭐ (best)</option>
+        <option value="hidream-i1-fast">HiDream Fast</option>
+        <option value="lustify-sdxl">Lustify SDXL (explicit)</option>
+        <option value="fluently-xl">Fluently XL</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Writing Model</div>
       <select id="modelSelect">
         <optgroup label="── Free ──">
           <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash (FREE) ⭐</option>
@@ -892,35 +1043,20 @@
       </select>
     </div>
     <div class="setting-row">
-      <div>
-        <div class="setting-label">Auto-update State</div>
-        <div class="setting-sub">After each scene is written</div>
-      </div>
-      <label class="toggle">
-        <input type="checkbox" id="autoUpdateState" checked />
-        <span class="toggle-slider"></span>
-      </label>
+      <div><div class="setting-label">Auto-update State</div><div class="setting-sub">After each scene is written</div></div>
+      <label class="toggle"><input type="checkbox" id="autoUpdateState" checked /><span class="toggle-slider"></span></label>
     </div>
     <div class="setting-row">
-      <div>
-        <div class="setting-label">Include History</div>
-        <div class="setting-sub">Prev scenes for continuity</div>
-      </div>
-      <label class="toggle">
-        <input type="checkbox" id="includeHistory" checked />
-        <span class="toggle-slider"></span>
-      </label>
+      <div><div class="setting-label">Include History</div><div class="setting-sub">Prev scenes for continuity</div></div>
+      <label class="toggle"><input type="checkbox" id="includeHistory" checked /><span class="toggle-slider"></span></label>
     </div>
   </div>
 
   <div class="settings-group">
     <div class="settings-group-title">About</div>
     <div class="setting-row">
-      <div>
-        <div class="setting-label">Version</div>
-        <div class="setting-sub">Novella Studio</div>
-      </div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v20</span>
+      <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v25</span>
     </div>
   </div>
 
@@ -936,25 +1072,16 @@
   <div class="settings-group">
     <div class="settings-group-title">Data</div>
     <div class="setting-row">
-      <div>
-        <div class="setting-label">Auto-saves to this browser</div>
-        <div class="setting-sub">Closes &amp; reopens safely ✓</div>
-      </div>
+      <div><div class="setting-label">Auto-saves to this browser</div><div class="setting-sub">Closes &amp; reopens safely ✓</div></div>
       <span style="font-size:1.2rem">💾</span>
     </div>
     <div class="setting-row" id="installBtn" style="display:none">
-      <div>
-        <div class="setting-label" style="color:var(--rose-deep)">Install as App</div>
-        <div class="setting-sub">Add to home screen</div>
-      </div>
+      <div><div class="setting-label" style="color:var(--rose-deep)">Install as App</div><div class="setting-sub">Add to home screen</div></div>
       <button onclick="installApp()" style="padding:8px 14px;background:var(--rose);border:none;border-radius:8px;color:white;font-size:0.85rem;cursor:pointer;">Install</button>
     </div>
     <div class="setting-row">
-      <div>
-        <div class="setting-label" style="color:#c0392b">Clear All Data</div>
-        <div class="setting-sub">Permanently delete everything</div>
-      </div>
-      <button onclick="clearAllData()" style="padding:8px 12px;background:none;border:1px solid #e74c3c;border-radius:8px;color:#c0392b;font-size:0.8rem;cursor:pointer;">Delete</button>
+      <div><div class="setting-label" style="color:#c0392b">Clear This Story</div><div class="setting-sub">Clears chapters, lore & scenes</div></div>
+      <button onclick="clearStoryData()" style="padding:8px 12px;background:none;border:1px solid #e74c3c;border-radius:8px;color:#c0392b;font-size:0.8rem;cursor:pointer;">Clear</button>
     </div>
   </div>
 
@@ -966,73 +1093,862 @@
   </div>
 
 </div>
-
 </div>
+
 <!-- CHAPTER MODAL -->
-<div id="chapterModal" style="display:none;position:fixed;inset:0;background:rgba(24,18,14,0.8);z-index:99999;align-items:flex-end;justify-content:center;">
-  <div style="background:#faf6f0;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:85vh;overflow-y:auto;padding:24px 16px 48px;">
-    <div style="width:40px;height:4px;background:#ddd4c8;border-radius:2px;margin:0 auto 20px;"></div>
-    <div id="chapterSheetTitle" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#8c3d47;font-style:italic;margin-bottom:16px;">New Chapter</div>
-    <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">Chapter Title</label>
-    <input id="modalChapterTitle" type="text" placeholder="e.g. Chapter One — The Encounter" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
-    <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-top:14px;margin-bottom:6px;">Chapter Summary (optional)</label>
-    <textarea id="modalChapterSummary" placeholder="Brief overview of what this chapter covers…" rows="4" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;resize:none;box-sizing:border-box;"></textarea>
-    <div style="display:flex;gap:10px;margin-top:24px;">
-      <button type="button" id="chCancelBtn" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
-      <button type="button" id="chSaveBtn" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;">Save Chapter</button>
+<div class="modal-backdrop" id="chapterModal">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="chapterSheetTitle">New Chapter</div>
+    <label class="field-label">Chapter Title</label>
+    <input class="sheet-input" id="modalChapterTitle" type="text" placeholder="e.g. Chapter One — The Encounter" />
+    <label class="field-label" style="margin-top:12px;">Chapter Summary (optional)</label>
+    <textarea class="sheet-textarea" id="modalChapterSummary" placeholder="Brief overview of what this chapter covers…" rows="3"></textarea>
+    <div class="sheet-actions">
+      <button class="btn-cancel" type="button" id="chCancelBtn">Cancel</button>
+      <button class="btn-save" type="button" id="chSaveBtn">Save Chapter</button>
     </div>
   </div>
 </div>
 
 <!-- BEAT MODAL -->
-<div id="beatModal" style="display:none;position:fixed;inset:0;background:rgba(24,18,14,0.8);z-index:99999;align-items:flex-end;justify-content:center;">
-  <div style="background:#faf6f0;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:85vh;overflow-y:auto;padding:24px 16px 48px;">
-    <div style="width:40px;height:4px;background:#ddd4c8;border-radius:2px;margin:0 auto 20px;"></div>
-    <div id="sheetTitle" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#8c3d47;font-style:italic;margin-bottom:16px;">New Story Beat</div>
-    <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">Title</label>
-    <input id="modalTitle" type="text" placeholder="e.g. The Chance Meeting" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
-    <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-top:14px;margin-bottom:6px;">What happens?</label>
-    <textarea id="modalDesc" placeholder="Key events, emotional beats, what's revealed or felt…" rows="4" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;resize:none;box-sizing:border-box;"></textarea>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+<div class="modal-backdrop" id="beatModal">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheetTitle">New Story Beat</div>
+    <label class="field-label">Title</label>
+    <input class="sheet-input" id="modalTitle" type="text" placeholder="e.g. The Chance Meeting" />
+    <label class="field-label" style="margin-top:12px;">What happens?</label>
+    <textarea class="sheet-textarea" id="modalDesc" placeholder="Key events, emotional beats, what's revealed or felt…"></textarea>
+    <div class="sheet-row">
       <div>
-        <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">POV Character</label>
-        <input id="modalPOV" type="text" placeholder="e.g. Brendan" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
+        <label class="field-label">POV Character</label>
+        <input class="sheet-input" id="modalPOV" type="text" placeholder="e.g. Brendan" />
       </div>
       <div>
-        <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">Location</label>
-        <input id="modalLoc" type="text" placeholder="e.g. Singapore apartment" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
+        <label class="field-label">Location</label>
+        <input class="sheet-input" id="modalLoc" type="text" placeholder="e.g. Singapore apartment" />
       </div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:24px;">
-      <button type="button" id="beatCancelBtn" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
-      <button type="button" id="beatSaveBtn" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;">Save Beat</button>
+    <div class="sheet-actions">
+      <button class="btn-cancel" type="button" id="beatCancelBtn">Cancel</button>
+      <button class="btn-save" type="button" id="beatSaveBtn">Save Beat</button>
     </div>
   </div>
 </div>
+
+<!-- ── READING MODE OVERLAY ── -->
+<div id="readingMode">
+  <div class="reading-header" id="readingHeader">
+    <button class="reading-close" type="button" onclick="closeReadingMode()">✕ Close</button>
+    <span class="reading-title" id="readingStoryLabel">—</span>
+    <button class="reading-export-btn" type="button" onclick="closeReadingMode();openExportSheet()">Export ↗</button>
+  </div>
+  <div class="reading-scroll" id="readingScroll" onclick="toggleReadingHeader()"></div>
+</div>
+
+<!-- ── EXPORT SHEET ── -->
+<div id="exportSheet">
+  <div class="export-modal-body">
+    <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--rose-deep);font-style:italic;margin-bottom:6px;">Export Manuscript</div>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:20px;" id="exportWordCount"></div>
+    <div class="export-option" onclick="exportAsText()">
+      <span class="export-option-icon">📄</span>
+      <div><div class="export-option-label">Plain Text</div><div class="export-option-sub">Download .txt — paste anywhere</div></div>
+    </div>
+    <div class="export-option" onclick="exportAsHTML()">
+      <span class="export-option-icon">🖨️</span>
+      <div><div class="export-option-label">Formatted HTML</div><div class="export-option-sub">Open in browser → Print to PDF</div></div>
+    </div>
+    <button type="button" onclick="closeExportSheet()" style="width:100%;margin-top:10px;padding:14px;background:none;border:1px solid var(--border);border-radius:12px;font-family:'Jost',sans-serif;font-size:0.9rem;color:var(--muted);cursor:pointer;">Cancel</button>
+  </div>
+</div>
+
+</div><!-- /appShell -->
 
 <!-- TOAST -->
 <div class="status-toast" id="toast"></div>
 
 <script>
 // ══════════════════════════════
-// STATE
-// Data model: chapters = [{title, summary, collapsed, beats:[{title,desc,pov,loc}]}]
-// writtenScenes keyed by "chIdx-beatIdx"
+// MULTI-STORY DATA MODEL
+// stories = [ { id, title, createdAt, data: { chapters, writtenScenes, lore, settings, storyState } } ]
 // ══════════════════════════════
+const STORIES_KEY = 'novella_studio_stories_v1';
+
+let stories = [];           // all stories meta + data
+let activeStoryId = null;   // which story is open
+
+// Per-story runtime state
 let chapters = [];
+let writtenScenes = {};
 let activeChIdx = null;
 let activeBeatIdx = null;
-let writtenScenes = {};
 let editingChIdx = null;
 let editingBeatIdx = null;
-let pendingBeatChIdx = null; // which chapter a new beat belongs to
+let pendingBeatChIdx = null;
+let editingStoryId = null;  // for rename modal
 
-// Legacy compat: expose flat beats array for buildContext
-Object.defineProperty(window, 'beats', {
-  get() {
-    return chapters.flatMap(ch => ch.beats || []);
+// ── STORY ID GENERATOR ──
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// ── LOAD ALL STORIES FROM LOCALSTORAGE ──
+function loadStories() {
+  try {
+    const raw = localStorage.getItem(STORIES_KEY);
+    if (raw) stories = JSON.parse(raw);
+  } catch(e) { stories = []; }
+}
+
+// ── SAVE ALL STORIES TO LOCALSTORAGE ──
+function saveStories() {
+  try { localStorage.setItem(STORIES_KEY, JSON.stringify(stories)); } catch(e) { console.warn('Save failed', e); }
+}
+
+// ── GET ACTIVE STORY OBJECT ──
+function getActiveStory() { return stories.find(s => s.id === activeStoryId); }
+
+// ── SAVE CURRENT RUNTIME STATE INTO ACTIVE STORY ──
+function saveCurrentStory() {
+  const story = getActiveStory();
+  if (!story) return;
+  story.data = {
+    chapters,
+    writtenScenes,
+    storyState: document.getElementById('storyState').value,
+    lore: {
+      char1: document.getElementById('char1').value,
+      char2: document.getElementById('char2').value,
+      charSupport: document.getElementById('charSupport').value,
+      worldLore: document.getElementById('worldLore').value,
+      toneStyle: document.getElementById('toneStyle').value,
+    },
+    settings: {
+      apiKey: document.getElementById('apiKey').value,
+      veniceApiKey: document.getElementById('veniceApiKey').value,
+      veniceImageModel: document.getElementById('veniceImageModel').value,
+      model: document.getElementById('modelSelect').value,
+      length: document.getElementById('lengthTarget').value,
+      autoUpdate: document.getElementById('autoUpdateState').checked,
+      includeHistory: document.getElementById('includeHistory').checked,
+      systemPrefix: document.getElementById('systemPrefix').value,
+    },
+    portraits: {
+      char1: story.data && story.data.portraits ? story.data.portraits.char1 : null,
+      char2: story.data && story.data.portraits ? story.data.portraits.char2 : null,
+      charSupport: story.data && story.data.portraits ? story.data.portraits.charSupport : null,
+    },
+    plan: {
+      synopsis: document.getElementById('planSynopsis').value,
+      summaries: planSummaries,
+      stage: planCurrentStage,
+    }
+  };
+  story.updatedAt = new Date().toISOString();
+  saveStories();
+}
+
+// ── LOAD A STORY INTO RUNTIME STATE ──
+function loadStoryIntoApp(story) {
+  const d = story.data || {};
+  chapters = d.chapters || [];
+  writtenScenes = d.writtenScenes || {};
+  activeChIdx = null; activeBeatIdx = null;
+
+  const lore = d.lore || {};
+  document.getElementById('char1').value = lore.char1 || '';
+  document.getElementById('char2').value = lore.char2 || '';
+  document.getElementById('charSupport').value = lore.charSupport || '';
+  document.getElementById('worldLore').value = lore.worldLore || '';
+  document.getElementById('toneStyle').value = lore.toneStyle || '';
+  document.getElementById('storyState').value = d.storyState || '';
+
+  const s = d.settings || {};
+  document.getElementById('apiKey').value = s.apiKey || '';
+  document.getElementById('veniceApiKey').value = s.veniceApiKey || '';
+  document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream-i1-full';
+  document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
+  document.getElementById('lengthTarget').value = s.length || 'medium';
+  document.getElementById('autoUpdateState').checked = s.autoUpdate !== false;
+  document.getElementById('includeHistory').checked = s.includeHistory !== false;
+  document.getElementById('systemPrefix').value = s.systemPrefix || 'You are a skilled romance novelist. Write in third-person limited POV. Focus on emotional interiority, sensory detail, and romantic tension. Avoid clichés. Each scene should advance either the plot or the relationship. End scenes at a compelling moment.';
+
+  renderChapters();
+  rebuildSceneLog();
+
+  // Restore portraits
+  const portraits = d.portraits || {};
+  ['char1', 'char2', 'charSupport'].forEach(function(id) {
+    if (portraits[id]) {
+      setPortraitImage(id, portraits[id]);
+    } else {
+      clearPortraitImage(id);
+    }
+  });
+
+  // Restore plan
+  const plan = d.plan || {};
+  document.getElementById('planSynopsis').value = plan.synopsis || '';
+  planSummaries = plan.summaries || [];
+  planCurrentStage = plan.stage || 1;
+  planGoStage(planCurrentStage, true);
+
+  document.getElementById('editorNoBeat').style.display = 'flex';
+  document.getElementById('editorContent').style.display = 'none';
+}
+
+// ══════════════════════════════
+// HOME SCREEN
+// ══════════════════════════════
+function renderStoriesList() {
+  const list = document.getElementById('storiesList');
+  list.innerHTML = '';
+
+  if (stories.length === 0) {
+    list.innerHTML = '<div class="home-empty"><div class="home-empty-icon">✦</div><p>No stories yet.<br>Tap below to begin your first novella.</p></div>';
+    return;
   }
-});
+
+  stories.forEach(story => {
+    const totalChapters = (story.data && story.data.chapters) ? story.data.chapters.length : 0;
+    const totalBeats = (story.data && story.data.chapters) ? story.data.chapters.reduce((n, ch) => n + (ch.beats ? ch.beats.length : 0), 0) : 0;
+    const totalWritten = (story.data && story.data.writtenScenes) ? Object.keys(story.data.writtenScenes).length : 0;
+    const updated = story.updatedAt ? new Date(story.updatedAt).toLocaleDateString() : 'New';
+
+    const card = document.createElement('div');
+    card.className = 'story-card';
+    card.innerHTML = `
+      <div class="story-card-tap">
+        <div class="story-card-body">
+          <div class="story-card-title">${escapeHtml(story.title)}</div>
+          <div class="story-card-meta">${totalChapters} chapters · ${totalBeats} beats · ${totalWritten} scenes written · ${updated}</div>
+        </div>
+        <span class="story-card-arrow">›</span>
+      </div>
+      <div class="story-card-actions" onclick="event.stopPropagation()">
+        <button class="story-action-btn" type="button" onclick="openRenameStory('${story.id}')">Rename</button>
+        <button class="story-action-btn" type="button" style="color:#c0392b;border-color:#c0392b" onclick="deleteStory('${story.id}')">Delete</button>
+      </div>
+    `;
+    card.querySelector('.story-card-tap').addEventListener('click', () => openStory(story.id));
+    list.appendChild(card);
+  });
+}
+
+function openStory(id) {
+  activeStoryId = id;
+  const story = getActiveStory();
+  if (!story) return;
+  loadStoryIntoApp(story);
+  document.getElementById('activeStoryLabel').textContent = story.title;
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('appShell').style.display = '';
+  goScreen('beats');
+  dbg('Opened story: ' + story.title);
+}
+
+function goHome() {
+  if (activeStoryId) saveCurrentStory();
+  activeStoryId = null;
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('homeScreen').classList.remove('hidden');
+  renderStoriesList();
+}
+
+// ── CREATE / RENAME STORY MODAL ──
+function openNewStoryModal() {
+  editingStoryId = null;
+  document.getElementById('storyModalTitle').textContent = 'New Story';
+  document.getElementById('storyNameInput').value = '';
+  document.getElementById('storyModal').classList.add('open');
+  setTimeout(() => document.getElementById('storyNameInput').focus(), 300);
+}
+
+function openRenameStory(id) {
+  editingStoryId = id;
+  const story = stories.find(s => s.id === id);
+  document.getElementById('storyModalTitle').textContent = 'Rename Story';
+  document.getElementById('storyNameInput').value = story ? story.title : '';
+  document.getElementById('storyModal').classList.add('open');
+  setTimeout(() => document.getElementById('storyNameInput').focus(), 300);
+}
+
+function closeStoryModal() { document.getElementById('storyModal').classList.remove('open'); }
+
+function saveStoryModal() {
+  const title = document.getElementById('storyNameInput').value.trim();
+  if (!title) { document.getElementById('storyNameInput').focus(); return; }
+
+  if (editingStoryId) {
+    const story = stories.find(s => s.id === editingStoryId);
+    if (story) {
+      story.title = title;
+      if (activeStoryId === editingStoryId) {
+        document.getElementById('activeStoryLabel').textContent = title;
+      }
+    }
+  } else {
+    const newStory = { id: genId(), title, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), data: {} };
+    stories.push(newStory);
+    saveStories();
+    closeStoryModal();
+    openStory(newStory.id);
+    return;
+  }
+
+  saveStories();
+  closeStoryModal();
+  renderStoriesList();
+}
+
+function deleteStory(id) {
+  const story = stories.find(s => s.id === id);
+  if (!story) return;
+  if (!confirm(`Delete "${story.title}" and all its content? This cannot be undone.`)) return;
+  stories = stories.filter(s => s.id !== id);
+  saveStories();
+  renderStoriesList();
+}
+
+// ══════════════════════════════
+// PLAN — RUNTIME STATE
+// ══════════════════════════════
+let planSummaries = [];   // [{title, summary, beatCount}]
+let planCurrentStage = 1;
+
+// ── STAGE NAVIGATION ──
+function planGoStage(n, silent) {
+  planCurrentStage = n;
+  [1,2,3].forEach(i => {
+    document.getElementById('plan-stage-' + i).classList.toggle('active', i === n);
+    const tab = document.getElementById('plan-tab-' + i);
+    tab.classList.remove('active','done');
+    if (i === n) tab.classList.add('active');
+    else if (i < n) tab.classList.add('done');
+  });
+  if (n === 2) renderChSummaryList();
+  if (n === 3) renderBeatCountList();
+  if (!silent) saveCurrentStory();
+}
+
+// ── COUNT STEPPER ──
+function adjustCount(id, delta) {
+  const el = document.getElementById(id);
+  const cur = parseInt(el.textContent) || 1;
+  const min = id === 'planDefaultBeats' ? 1 : 1;
+  const max = id === 'planDefaultBeats' ? 12 : 20;
+  el.textContent = Math.max(min, Math.min(max, cur + delta));
+}
+
+// ── APPLY DEFAULT BEATS TO ALL CHAPTERS ──
+function applyDefaultBeats() {
+  const def = parseInt(document.getElementById('planDefaultBeats').textContent) || 4;
+  planSummaries.forEach(s => s.beatCount = def);
+  renderBeatCountList();
+}
+
+// ── RENDER CHAPTER SUMMARY CARDS ──
+function renderChSummaryList() {
+  const list = document.getElementById('chSummaryList');
+  list.innerHTML = '';
+  if (!planSummaries.length) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-style:italic;">No summaries yet — go back and generate them.</div>';
+    return;
+  }
+  planSummaries.forEach((ch, i) => {
+    const card = document.createElement('div');
+    card.className = 'ch-summary-card';
+    card.innerHTML = `
+      <div class="ch-summary-header">
+        <div style="flex:1">
+          <div class="ch-summary-num">Chapter ${i+1}</div>
+          <input class="ch-summary-title-input" type="text" value="${escapeAttr(ch.title)}" placeholder="Chapter title…" onchange="planSummaries[${i}].title=this.value;saveCurrentStory()" />
+        </div>
+      </div>
+      <div class="ch-summary-body">
+        <textarea class="ch-summary-textarea" rows="4" id="chsum-${i}" onchange="planSummaries[${i}].summary=this.value;saveCurrentStory()">${escapeHtml(ch.summary)}</textarea>
+      </div>
+      <div class="ch-summary-footer">
+        <button class="btn-refine" type="button" id="refine-btn-${i}" onclick="refineChapterSummary(${i})">✦ Refine my edits</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ── RENDER BEAT COUNT LIST ──
+function renderBeatCountList() {
+  const list = document.getElementById('beatCountList');
+  list.innerHTML = '';
+  const def = parseInt(document.getElementById('planDefaultBeats').textContent) || 4;
+  planSummaries.forEach((ch, i) => {
+    if (!ch.beatCount) ch.beatCount = def;
+    const row = document.createElement('div');
+    row.className = 'beat-count-card';
+    row.innerHTML = `
+      <div class="beat-count-card-title">${escapeHtml(ch.title || 'Chapter ' + (i+1))}</div>
+      <div class="count-stepper">
+        <button type="button" onclick="planSummaries[${i}].beatCount=Math.max(1,(planSummaries[${i}].beatCount||4)-1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">−</button>
+        <span>${ch.beatCount}</span>
+        <button type="button" onclick="planSummaries[${i}].beatCount=Math.min(12,(planSummaries[${i}].beatCount||4)+1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">+</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ── GENERATE CHAPTER SUMMARIES ──
+function generateChapterSummaries() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  const synopsis = document.getElementById('planSynopsis').value.trim();
+  if (!synopsis) { showToast('Write your plot synopsis first'); return; }
+  const numCh = parseInt(document.getElementById('planChCount').textContent) || 5;
+  const model = document.getElementById('modelSelect').value;
+
+  // Build full lore + persona context
+  const persona = document.getElementById('systemPrefix').value.trim();
+  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const char1 = document.getElementById('char1').value.trim();
+  const char2 = document.getElementById('char2').value.trim();
+  const charSupport = document.getElementById('charSupport').value.trim();
+  const worldLore = document.getElementById('worldLore').value.trim();
+
+  const loreCtx = [
+    char1 ? 'PROTAGONIST:\n' + char1 : '',
+    char2 ? 'LOVE INTEREST:\n' + char2 : '',
+    charSupport ? 'SUPPORTING CAST:\n' + charSupport : '',
+    worldLore ? 'WORLD & SETTING:\n' + worldLore : '',
+    toneStyle ? 'TONE & STYLE (follow this closely — including heat level and explicitness):\n' + toneStyle : '',
+  ].filter(Boolean).join('\n\n');
+
+  const systemMsg = (persona || 'You are a story structure expert for adult romance fiction.')
+    + '\n\nYou are planning a story. All chapter summaries must reflect the tone, heat level, and style described in the lore — including any explicit or adult content requirements. Do not sanitise or soften the content if the tone calls for explicitness.';
+
+  const btn = document.getElementById('planGenChBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+
+  const list = document.getElementById('chSummaryList');
+  planGoStage(2, true);
+  list.innerHTML = '<div class="plan-generating">✦ Writing chapter summaries…</div>';
+
+  const prompt = `Generate exactly ${numCh} chapter summaries for this story.
+
+${loreCtx ? loreCtx + '\n\n' : ''}SYNOPSIS:\n${synopsis}
+
+Output ONLY valid JSON — an array of ${numCh} objects, each with "title" (evocative chapter title) and "summary" (2-4 sentences describing what happens, the emotional and physical beats, and how it advances the story — reflecting the tone and heat level above).
+
+Example format:
+[{"title":"Chapter One — The Encounter","summary":"Brendan first sees Elisa..."},...]
+
+No markdown, no commentary, just the JSON array.`;
+
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({ model, stream: false, messages: [
+      { role: 'system', content: systemMsg },
+      { role: 'user', content: prompt }
+    ] })
+  }).then(r => r.json()).then(data => {
+    btn.disabled = false;
+    btn.textContent = '✦ Regenerate Summaries';
+    const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
+    dbg('Chapter summary raw: ' + raw.slice(0, 120));
+    // Strip markdown fences if present
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    try {
+      const parsed = JSON.parse(cleaned);
+      planSummaries = parsed.map(ch => ({ title: ch.title || '', summary: ch.summary || '', beatCount: 4 }));
+      renderChSummaryList();
+      saveCurrentStory();
+      showToast(numCh + ' chapter summaries generated');
+    } catch(e) {
+      dbg('JSON parse error: ' + e.message + ' raw: ' + cleaned.slice(0,200));
+      list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;line-height:1.6"><strong>Parse error.</strong> The AI returned unexpected format. Try again or use a different model.<br><br><small>' + escapeHtml(cleaned.slice(0,300)) + '</small></div>';
+    }
+  }).catch(err => {
+    btn.disabled = false;
+    btn.textContent = '✦ Generate Chapter Summaries';
+    list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error: ' + escapeHtml(err.message) + '</div>';
+    dbg('Chapter gen error: ' + err.message);
+  });
+}
+
+// ── REFINE A SINGLE CHAPTER SUMMARY ──
+function refineChapterSummary(i) {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup'); return; }
+  const model = document.getElementById('modelSelect').value;
+  const textarea = document.getElementById('chsum-' + i);
+  const currentText = textarea ? textarea.value.trim() : planSummaries[i].summary;
+  const btn = document.getElementById('refine-btn-' + i);
+
+  btn.disabled = true;
+  btn.textContent = 'Refining…';
+
+  const persona = document.getElementById('systemPrefix').value.trim();
+  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const systemMsg = (persona || 'You are a story editor for adult romance fiction.')
+    + (toneStyle ? '\n\nTONE & STYLE to maintain:\n' + toneStyle : '')
+    + '\n\nWhen refining, preserve the user\'s intent and edits. Keep the heat level and any explicit content — do not sanitise.';
+
+  const prompt = `Refine this chapter summary based on the user's edits. Keep their intent and changes — polish the prose, fix inconsistencies, ensure it reads as a coherent story beat. Output ONLY the refined summary text, no titles or labels.
+
+Chapter: ${planSummaries[i].title || 'Chapter ' + (i+1)}
+Current summary (with user edits):
+${currentText}
+
+Overall story synopsis for context:
+${document.getElementById('planSynopsis').value.trim().slice(0, 500)}`;
+
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({ model, stream: false, messages: [
+      { role: 'system', content: systemMsg },
+      { role: 'user', content: prompt }
+    ] })
+  }).then(r => r.json()).then(data => {
+    btn.disabled = false;
+    btn.textContent = '✦ Refine my edits';
+    const refined = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
+    if (refined) {
+      planSummaries[i].summary = refined;
+      if (textarea) textarea.value = refined;
+      saveCurrentStory();
+      showToast('Chapter ' + (i+1) + ' refined');
+    }
+  }).catch(err => {
+    btn.disabled = false;
+    btn.textContent = '✦ Refine my edits';
+    showToast('Refine error: ' + err.message.slice(0, 40));
+    dbg('Refine error: ' + err.message);
+  });
+}
+
+// ── GENERATE BEATS AND IMPORT ──
+function generateAndImportBeats() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  if (!planSummaries.length) { showToast('Generate chapter summaries first'); return; }
+  const model = document.getElementById('modelSelect').value;
+
+  // Check for existing beats
+  const hasExisting = chapters.some(ch => ch.beats && ch.beats.length > 0);
+  if (hasExisting) {
+    const choice = confirm('You have existing beats.\n\nOK = Replace all\nCancel = Append to existing');
+    if (choice === null) return;
+    if (choice) {
+      // Replace
+      doGenerateBeats(apiKey, model, false);
+    } else {
+      doGenerateBeats(apiKey, model, true);
+    }
+  } else {
+    doGenerateBeats(apiKey, model, false);
+  }
+}
+
+function doGenerateBeats(apiKey, model, append) {
+  const btn = document.getElementById('planImportBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+
+  const synopsis = document.getElementById('planSynopsis').value.trim();
+  const persona = document.getElementById('systemPrefix').value.trim();
+  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const char1 = document.getElementById('char1').value.trim();
+  const char2 = document.getElementById('char2').value.trim();
+  const worldLore = document.getElementById('worldLore').value.trim();
+
+  const loreCtx = [
+    char1 ? 'PROTAGONIST:\n' + char1 : '',
+    char2 ? 'LOVE INTEREST:\n' + char2 : '',
+    worldLore ? 'WORLD & SETTING:\n' + worldLore : '',
+    toneStyle ? 'TONE & STYLE (follow closely — including heat level and explicitness):\n' + toneStyle : '',
+  ].filter(Boolean).join('\n\n');
+
+  const systemMsg = (persona || 'You are a story structure expert for adult romance fiction.')
+    + '\n\nYou are generating story beats. Each beat must reflect the tone, heat level, and explicitness requirements in the lore. Do not sanitise or soften beats if the story calls for explicit content — beats should clearly indicate what happens, including sexual or intimate scenes.';
+
+  const total = planSummaries.length;
+  let completed = 0;
+  const results = new Array(total);
+
+  // Generate beats for each chapter in parallel
+  planSummaries.forEach((ch, i) => {
+    const beatCount = ch.beatCount || 4;
+    const prompt = `Generate exactly ${beatCount} story beats for this chapter.
+
+${loreCtx ? loreCtx + '\n\n' : ''}OVERALL STORY:\n${synopsis.slice(0, 400)}
+
+CHAPTER ${i+1}: ${ch.title}
+${ch.summary}
+
+Output ONLY valid JSON — an array of ${beatCount} beat objects, each with:
+- "title": short evocative beat title (max 8 words) — be specific about what happens including intimate/explicit beats
+- "desc": 1-2 sentences describing the scene — reflect the heat level and tone, don't fade to black in descriptions
+- "pov": POV character name (if clear from context)
+- "loc": location (if clear from context)
+
+No markdown, no commentary, just the JSON array.`;
+
+    fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+        'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+        'X-Title': 'Novella Studio'
+      },
+      body: JSON.stringify({ model, stream: false, messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: prompt }
+      ] })
+    }).then(r => r.json()).then(data => {
+      const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '[]';
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      try {
+        results[i] = JSON.parse(cleaned);
+      } catch(e) {
+        dbg('Beat parse error ch' + i + ': ' + e.message);
+        results[i] = [];
+      }
+      completed++;
+      btn.textContent = 'Generating… (' + completed + '/' + total + ')';
+      if (completed === total) finishImport(append, results, btn);
+    }).catch(err => {
+      dbg('Beat gen error ch' + i + ': ' + err.message);
+      results[i] = [];
+      completed++;
+      if (completed === total) finishImport(append, results, btn);
+    });
+  });
+}
+
+function finishImport(append, results, btn) {
+  btn.disabled = false;
+  btn.textContent = '✦ Generate & Import Beats';
+
+  if (!append) {
+    // Full replace — rebuild chapters from plan summaries
+    chapters = planSummaries.map((ch, i) => ({
+      title: ch.title || ('Chapter ' + (i+1)),
+      summary: ch.summary || '',
+      collapsed: false,
+      beats: (results[i] || []).map(b => ({
+        title: b.title || 'Untitled Beat',
+        desc: b.desc || '',
+        pov: b.pov || '',
+        loc: b.loc || '',
+      }))
+    }));
+    writtenScenes = {};
+    activeChIdx = null; activeBeatIdx = null;
+  } else {
+    // Append: add chapters or add beats to existing ones
+    planSummaries.forEach((ch, i) => {
+      const beats = (results[i] || []).map(b => ({
+        title: b.title || 'Untitled Beat',
+        desc: b.desc || '',
+        pov: b.pov || '',
+        loc: b.loc || '',
+      }));
+      if (chapters[i]) {
+        chapters[i].beats = chapters[i].beats.concat(beats);
+      } else {
+        chapters.push({
+          title: ch.title || ('Chapter ' + (i+1)),
+          summary: ch.summary || '',
+          collapsed: false,
+          beats
+        });
+      }
+    });
+  }
+
+  renderChapters();
+  saveCurrentStory();
+  goScreen('beats');
+  showToast('Beats imported to Story ✓');
+  dbg('Beat import complete. Chapters: ' + chapters.length);
+}
+
+function escapeAttr(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════
+// PORTRAIT GENERATION (Venice API)
+// ══════════════════════════════
+function setPortraitImage(charId, base64Data) {
+  var img = document.getElementById('portrait-' + charId + '-img');
+  var empty = document.getElementById('portrait-' + charId + '-empty');
+  var regen = document.getElementById('portrait-' + charId + '-regen');
+  var label = document.getElementById('portrait-' + charId + '-label');
+  if (!img) return;
+  img.src = 'data:image/jpeg;base64,' + base64Data;
+  img.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+  if (regen) regen.style.display = '';
+  if (label) label.textContent = '✦ New Portrait';
+}
+
+function clearPortraitImage(charId) {
+  var img = document.getElementById('portrait-' + charId + '-img');
+  var empty = document.getElementById('portrait-' + charId + '-empty');
+  var regen = document.getElementById('portrait-' + charId + '-regen');
+  var label = document.getElementById('portrait-' + charId + '-label');
+  if (img) { img.src = ''; img.style.display = 'none'; }
+  if (empty) empty.style.display = 'flex';
+  if (regen) regen.style.display = 'none';
+  if (label) label.textContent = '✦ Generate Portrait';
+}
+
+function savePortrait(charId, base64Data) {
+  var story = getActiveStory();
+  if (!story) return;
+  if (!story.data) story.data = {};
+  if (!story.data.portraits) story.data.portraits = {};
+  story.data.portraits[charId] = base64Data;
+  saveStories();
+}
+
+function generatePortrait(charId) {
+  var veniceKey = document.getElementById('veniceApiKey').value.trim();
+  if (!veniceKey) {
+    showToast('Add Venice API key in Setup first');
+    goScreen('settings');
+    return;
+  }
+
+  var loreText = document.getElementById(charId).value.trim();
+  if (!loreText) {
+    showToast('Write some character lore first');
+    return;
+  }
+
+  var card = document.getElementById('portrait-' + charId);
+  var btnLabel = document.getElementById('portrait-' + charId + '-label');
+  var regenBtn = document.getElementById('portrait-' + charId + '-regen');
+  var img = document.getElementById('portrait-' + charId + '-img');
+  var empty = document.getElementById('portrait-' + charId + '-empty');
+  var btns = card.querySelectorAll('.portrait-btn');
+
+  // Show generating state
+  if (empty) empty.style.display = 'none';
+  if (img) img.style.display = 'none';
+
+  var spinner = document.createElement('div');
+  spinner.className = 'portrait-generating';
+  spinner.id = 'portrait-' + charId + '-spinner';
+  spinner.innerHTML = '<span class="portrait-spinner">✦</span> Painting portrait…';
+  card.insertBefore(spinner, card.querySelector('.portrait-actions'));
+
+  btns.forEach(function(b) { b.disabled = true; });
+  if (btnLabel) btnLabel.textContent = 'Generating…';
+
+  var model = document.getElementById('veniceImageModel').value;
+
+  // Step 1: use OpenRouter (if available) or just use lore directly as prompt
+  var openRouterKey = document.getElementById('apiKey').value.trim();
+  var loreTruncated = loreText.slice(0, 600);
+
+  function doGenerate(imagePrompt) {
+    dbg('Venice portrait prompt: ' + imagePrompt.slice(0, 80) + '…');
+    fetch('https://api.venice.ai/api/v1/image/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + veniceKey
+      },
+      body: JSON.stringify({
+        model: model,
+        prompt: imagePrompt,
+        negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text',
+        width: 832,
+        height: 1216,
+        steps: 30,
+        hide_watermark: true,
+        return_binary: false
+      })
+    }).then(function(res) {
+      if (!res.ok) {
+        return res.json().then(function(e) { throw new Error(e.message || 'Venice error ' + res.status); });
+      }
+      return res.json();
+    }).then(function(data) {
+      var spinner = document.getElementById('portrait-' + charId + '-spinner');
+      if (spinner) spinner.remove();
+      btns.forEach(function(b) { b.disabled = false; });
+
+      var images = data.images || (data.data && data.data.images);
+      if (!images || !images[0]) throw new Error('No image returned');
+
+      var b64 = images[0];
+      // Strip data URI prefix if present
+      if (b64.indexOf(',') > -1) b64 = b64.split(',')[1];
+
+      setPortraitImage(charId, b64);
+      savePortrait(charId, b64);
+      showToast('Portrait generated ✓');
+      dbg('Portrait saved for ' + charId);
+    }).catch(function(err) {
+      dbg('Portrait error: ' + err.message);
+      var spinner = document.getElementById('portrait-' + charId + '-spinner');
+      if (spinner) spinner.remove();
+      btns.forEach(function(b) { b.disabled = false; });
+      if (btnLabel) btnLabel.textContent = '✦ Generate Portrait';
+      if (empty) empty.style.display = 'flex';
+      showToast('Portrait failed: ' + err.message.slice(0, 50));
+    });
+  }
+
+  // Build a good image prompt from lore using OpenRouter if available
+  if (openRouterKey) {
+    var orModel = document.getElementById('modelSelect').value;
+    dbg('Building image prompt via OpenRouter…');
+    fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + openRouterKey,
+        'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+        'X-Title': 'Novella Studio'
+      },
+      body: JSON.stringify({
+        model: orModel, stream: false,
+        messages: [{
+          role: 'user',
+          content: 'Convert this character description into a Stable Diffusion image prompt for a photorealistic portrait. Output ONLY the prompt — no labels, no explanation, no quotes. Focus on physical appearance: body type, face, hair, eyes, skin tone, expression, clothing, pose. Make it detailed and cinematic. Max 120 words.\n\nCharacter:\n' + loreTruncated
+        }]
+      })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var prompt = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
+      if (!prompt) throw new Error('No prompt generated');
+      doGenerate(prompt + ', photorealistic, cinematic lighting, detailed skin, sharp focus, 8k, portrait');
+    }).catch(function(err) {
+      dbg('Prompt build failed, using lore directly: ' + err.message);
+      doGenerate('photorealistic portrait, ' + loreTruncated + ', cinematic lighting, detailed skin, sharp focus, 8k');
+    });
+  } else {
+    // No OpenRouter key — use lore directly
+    doGenerate('photorealistic portrait, ' + loreTruncated + ', cinematic lighting, detailed skin, sharp focus, 8k');
+  }
+}
 
 // ══════════════════════════════
 // NAVIGATION
@@ -1047,10 +1963,7 @@ function goScreen(name) {
 // ══════════════════════════════
 // LORE ACCORDION
 // ══════════════════════════════
-function toggleLore(header) {
-  const section = header.parentElement;
-  section.classList.toggle('open');
-}
+function toggleLore(header) { header.parentElement.classList.toggle('open'); }
 
 // ══════════════════════════════
 // CHAPTER MODAL
@@ -1058,28 +1971,12 @@ function toggleLore(header) {
 function openChapterModal(idx) {
   editingChIdx = idx;
   document.getElementById('chapterSheetTitle').textContent = idx === null ? 'New Chapter' : 'Edit Chapter';
-  if (idx !== null && chapters[idx]) {
-    document.getElementById('modalChapterTitle').value = chapters[idx].title || '';
-    document.getElementById('modalChapterSummary').value = chapters[idx].summary || '';
-  } else {
-    document.getElementById('modalChapterTitle').value = '';
-    document.getElementById('modalChapterSummary').value = '';
-  }
+  document.getElementById('modalChapterTitle').value = (idx !== null && chapters[idx]) ? chapters[idx].title || '' : '';
+  document.getElementById('modalChapterSummary').value = (idx !== null && chapters[idx]) ? chapters[idx].summary || '' : '';
   document.getElementById('chapterModal').style.display = 'flex';
   setTimeout(() => document.getElementById('modalChapterTitle').focus(), 350);
 }
-
-function closeChapterModal() {
-  document.getElementById('chapterModal').style.display = 'none';
-}
-
-function closeBeatModal() {
-  document.getElementById('beatModal').style.display = 'none';
-}
-
-function handleChapterBackdropClick(e) {
-  if (e.target === document.getElementById('chapterModal')) closeChapterModal();
-}
+function closeChapterModal() { document.getElementById('chapterModal').style.display = 'none'; }
 
 function saveChapter() {
   const title = document.getElementById('modalChapterTitle').value.trim();
@@ -1090,20 +1987,18 @@ function saveChapter() {
     chapters[editingChIdx].summary = summary;
   } else {
     chapters.push({ title, summary, collapsed: false, beats: [] });
-    activeChIdx = chapters.length - 1; // auto-expand the new chapter
+    activeChIdx = chapters.length - 1;
   }
   closeChapterModal();
   renderChapters();
-  saveAll();
+  saveCurrentStory();
   showToast(editingChIdx !== null ? 'Chapter updated' : 'Chapter added');
 }
 
 function deleteChapter(chIdx) {
   if (!confirm(`Delete "${chapters[chIdx].title}" and all its beats?`)) return;
-  // Remove written scenes for this chapter
   chapters[chIdx].beats.forEach((_, bIdx) => delete writtenScenes[chIdx + '-' + bIdx]);
   chapters.splice(chIdx, 1);
-  // Re-key written scenes after deletion
   const newScenes = {};
   Object.keys(writtenScenes).forEach(key => {
     const [ci, bi] = key.split('-').map(Number);
@@ -1114,21 +2009,20 @@ function deleteChapter(chIdx) {
   if (activeChIdx === chIdx) { activeChIdx = null; activeBeatIdx = null; }
   else if (activeChIdx > chIdx) activeChIdx--;
   renderChapters();
-  saveAll();
+  saveCurrentStory();
   showToast('Chapter deleted');
 }
 
 function toggleChapter(chIdx) {
   chapters[chIdx].collapsed = !chapters[chIdx].collapsed;
   renderChapters();
-  saveAll();
+  saveCurrentStory();
 }
 
 // ══════════════════════════════
-// BEATS
+// BEAT MODAL
 // ══════════════════════════════
 function openBeatModal(beatIdx, chIdx) {
-  // chIdx is which chapter this beat belongs to (for new beats)
   if (chIdx !== undefined && chIdx !== null) {
     pendingBeatChIdx = chIdx;
   } else if (activeChIdx !== null) {
@@ -1150,6 +2044,8 @@ function openBeatModal(beatIdx, chIdx) {
   setTimeout(() => document.getElementById('modalTitle').focus(), 350);
 }
 
+function closeBeatModal() { document.getElementById('beatModal').style.display = 'none'; }
+
 function saveBeat() {
   const title = document.getElementById('modalTitle').value.trim();
   if (!title) { document.getElementById('modalTitle').focus(); return; }
@@ -1161,7 +2057,6 @@ function saveBeat() {
   };
   const chIdx = pendingBeatChIdx !== null ? pendingBeatChIdx : 0;
   if (!chapters[chIdx]) return;
-
   if (editingBeatIdx !== null) {
     chapters[chIdx].beats[editingBeatIdx] = beat;
   } else {
@@ -1169,7 +2064,7 @@ function saveBeat() {
   }
   closeBeatModal();
   renderChapters();
-  saveAll();
+  saveCurrentStory();
   showToast(editingBeatIdx !== null ? 'Beat updated' : 'Beat added');
 }
 
@@ -1177,7 +2072,6 @@ function deleteBeat(chIdx, beatIdx) {
   if (!confirm(`Delete beat "${chapters[chIdx].beats[beatIdx].title}"?`)) return;
   delete writtenScenes[chIdx + '-' + beatIdx];
   chapters[chIdx].beats.splice(beatIdx, 1);
-  // Re-key remaining beats in this chapter
   const newScenes = {};
   Object.keys(writtenScenes).forEach(key => {
     const [ci, bi] = key.split('-').map(Number);
@@ -1187,7 +2081,7 @@ function deleteBeat(chIdx, beatIdx) {
   writtenScenes = newScenes;
   if (activeChIdx === chIdx && activeBeatIdx === beatIdx) { activeBeatIdx = null; }
   renderChapters();
-  saveAll();
+  saveCurrentStory();
   showToast('Beat deleted');
 }
 
@@ -1197,17 +2091,12 @@ function deleteBeat(chIdx, beatIdx) {
 function renderChapters() {
   const container = document.getElementById('chapterList');
   container.innerHTML = '';
-
   chapters.forEach((ch, chIdx) => {
     const totalBeats = ch.beats.length;
     const writtenCount = ch.beats.filter((_, bIdx) => writtenScenes[chIdx + '-' + bIdx]).length;
-
-    // Chapter is open if: not collapsed AND (it's the active chapter OR has no collapse state set)
     const isOpen = !ch.collapsed;
-
     const block = document.createElement('div');
     block.className = 'chapter-block' + (isOpen ? '' : ' collapsed');
-
     block.innerHTML = `
       <div class="chapter-header" onclick="toggleChapter(${chIdx})">
         <div class="chapter-header-left">
@@ -1224,22 +2113,19 @@ function renderChapters() {
       </div>
       <div class="chapter-beats" id="beats-${chIdx}"></div>
     `;
-
     container.appendChild(block);
-
     if (isOpen) {
-      const beatsContainer = block.querySelector(`#beats-${chIdx}`);
+      const beatsContainer = block.querySelector('#beats-' + chIdx);
       ch.beats.forEach((beat, bIdx) => {
         const key = chIdx + '-' + bIdx;
         const isActive = activeChIdx === chIdx && activeBeatIdx === bIdx;
         const isWritten = !!writtenScenes[key];
-
         const card = document.createElement('div');
         card.className = 'beat-card' + (isWritten ? ' written' : '') + (isActive ? ' active-beat' : '');
         card.innerHTML = `
           <div class="beat-num">Beat ${bIdx + 1}</div>
           <div class="beat-card-title">${escapeHtml(beat.title || 'Untitled')}</div>
-          ${beat.desc ? `<div class="beat-card-desc">${escapeHtml(beat.desc)}</div>` : ''}
+          ${beat.desc ? '<div class="beat-card-desc">' + escapeHtml(beat.desc) + '</div>' : ''}
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
             <span class="beat-chip ${isWritten ? 'chip-written' : 'chip-pending'}">${isWritten ? '✓ Written' : 'Pending'}</span>
             <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
@@ -1256,18 +2142,17 @@ function renderChapters() {
         });
         card.addEventListener('touchend', (e) => {
           clearTimeout(pressTimer);
-          dbg('touchend on beat card ch=' + chIdx + ' b=' + bIdx + ' longPress=' + didLongPress);
+          dbg('touchend beat ch=' + chIdx + ' b=' + bIdx + ' lp=' + didLongPress);
           if (!didLongPress) { e.preventDefault(); selectBeat(chIdx, bIdx); }
         });
         card.addEventListener('touchmove', () => { clearTimeout(pressTimer); didLongPress = true; });
-        card.addEventListener('click', (e) => { if (!('ontouchstart' in window)) selectBeat(chIdx, bIdx); });
+        card.addEventListener('click', () => { if (!('ontouchstart' in window)) selectBeat(chIdx, bIdx); });
         beatsContainer.appendChild(card);
       });
-
-      // Add beat button inside chapter
       const addBtn = document.createElement('button');
       addBtn.className = 'add-beat-in-chapter';
       addBtn.textContent = '＋ Add Beat';
+      addBtn.type = 'button';
       addBtn.onclick = () => openBeatModal(null, chIdx);
       beatsContainer.appendChild(addBtn);
     }
@@ -1275,39 +2160,27 @@ function renderChapters() {
 }
 
 function selectBeat(chIdx, bIdx) {
-  dbg('selectBeat called ch=' + chIdx + ' b=' + bIdx);
-  activeChIdx = chIdx;
-  activeBeatIdx = bIdx;
+  dbg('selectBeat ch=' + chIdx + ' b=' + bIdx);
+  activeChIdx = chIdx; activeBeatIdx = bIdx;
   const beat = chapters[chIdx].beats[bIdx];
   const key = chIdx + '-' + bIdx;
   renderChapters();
-
   document.getElementById('editorNoBeat').style.display = 'none';
-  const editorContent = document.getElementById('editorContent');
-  editorContent.style.display = 'flex';
-
-  document.getElementById('edBeatLabel').textContent = `${chapters[chIdx].title} · Beat ${bIdx + 1}`;
+  document.getElementById('editorContent').style.display = 'flex';
+  document.getElementById('edBeatLabel').textContent = chapters[chIdx].title + ' · Beat ' + (bIdx + 1);
   document.getElementById('edBeatTitle').textContent = beat.title || 'Untitled';
   document.getElementById('edBeatDesc').textContent = beat.desc || '';
   document.getElementById('btnWrite').disabled = false;
-  dbg('selectBeat done, navigating to editor');
-
   const proseOut = document.getElementById('proseOutput');
   if (writtenScenes[key]) {
-    proseOut.innerHTML = `<div class="prose-area">${escapeHtml(writtenScenes[key])}</div>`;
+    proseOut.innerHTML = '<div class="prose-area">' + escapeHtml(writtenScenes[key]) + '</div>';
     document.getElementById('btnCopy').style.display = '';
     document.getElementById('btnRewrite').style.display = '';
   } else {
-    proseOut.innerHTML = `
-      <div class="prose-placeholder">
-        <div class="p-icon">♡</div>
-        <h3>${escapeHtml(beat.title)}</h3>
-        <p>${beat.desc ? escapeHtml(beat.desc) : 'Tap <strong>Write Scene</strong> to generate this beat.'}</p>
-      </div>`;
+    proseOut.innerHTML = '<div class="prose-placeholder"><div class="p-icon">♡</div><h3>' + escapeHtml(beat.title) + '</h3><p>' + (beat.desc ? escapeHtml(beat.desc) : 'Tap <strong>Write Scene</strong> to generate this beat.') + '</p></div>';
     document.getElementById('btnCopy').style.display = 'none';
     document.getElementById('btnRewrite').style.display = 'none';
   }
-
   goScreen('editor');
 }
 
@@ -1328,19 +2201,262 @@ function dbg(msg) {
   log.scrollTop = log.scrollHeight;
   console.log('[DBG]', msg);
 }
-function clearDebugLog() {
-  const log = document.getElementById('debugLog');
-  if (log) log.innerHTML = '';
-}
+function clearDebugLog() { const l = document.getElementById('debugLog'); if (l) l.innerHTML = ''; }
 function copyDebugLog() {
-  const log = document.getElementById('debugLog');
-  if (!log) return;
-  navigator.clipboard.writeText(log.innerText).then(() => showToast('Log copied'));
+  const l = document.getElementById('debugLog');
+  if (!l) return;
+  navigator.clipboard.writeText(l.innerText).then(() => showToast('Log copied'));
 }
-
 
 // ══════════════════════════════
-// WRITE SCENE
+// TOAST
+// ══════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════
+// STORY STATE
+// ══════════════════════════════
+function resetStoryState() {
+  document.getElementById('storyState').value = '';
+  saveCurrentStory();
+  showToast('Story state reset');
+}
+
+function rebuildSceneLog() {
+  const log = document.getElementById('sceneLog');
+  log.innerHTML = '';
+  let hasLog = false;
+  chapters.forEach((ch, chIdx) => {
+    ch.beats.forEach((beat, bIdx) => {
+      const key = chIdx + '-' + bIdx;
+      if (writtenScenes[key]) {
+        hasLog = true;
+        const item = document.createElement('div');
+        item.className = 'scene-log-item';
+        item.innerHTML = '<strong>' + escapeHtml(ch.title) + ' · Beat ' + (bIdx+1) + ': ' + escapeHtml(beat.title) + '</strong><span style="color:var(--muted)">' + writtenScenes[key].split(/\s+/).length + ' words</span>';
+        log.appendChild(item);
+      }
+    });
+  });
+  if (!hasLog) log.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
+}
+
+function updateSceneLog(chIdx, bIdx, beatTitle, text) {
+  rebuildSceneLog();
+}
+
+// ══════════════════════════════
+// READING MODE
+// ══════════════════════════════
+function buildManuscriptData() {
+  // Returns [{chapterTitle, chapterNum, scenes:[{beatTitle, text}]}]
+  const result = [];
+  chapters.forEach((ch, ci) => {
+    const scenes = [];
+    (ch.beats || []).forEach((beat, bi) => {
+      const key = ci + '-' + bi;
+      if (writtenScenes[key]) scenes.push({ beatTitle: beat.title, text: writtenScenes[key] });
+    });
+    if (scenes.length) result.push({ chapterTitle: ch.title, chapterNum: ci + 1, scenes });
+  });
+  return result;
+}
+
+function getTotalWordCount() {
+  let total = 0;
+  Object.values(writtenScenes).forEach(t => { total += t.split(/\s+/).filter(Boolean).length; });
+  return total;
+}
+
+let readingHeaderVisible = true;
+let readingHeaderTimer;
+
+function openReadingMode() {
+  const story = getActiveStory();
+  const storyTitle = story ? story.title : 'My Story';
+  document.getElementById('readingStoryLabel').textContent = storyTitle;
+
+  const scroll = document.getElementById('readingScroll');
+  const data = buildManuscriptData();
+
+  if (!data.length) {
+    scroll.innerHTML = '<div class="reading-empty">No scenes written yet.<br><br>Write some scenes first,<br>then return here to read your story.</div>';
+  } else {
+    let html = '<div class="reading-story-title">' + escapeHtml(storyTitle) + '</div>';
+    html += '<div class="reading-story-divider">✦ ✦ ✦</div>';
+    data.forEach(ch => {
+      html += '<div class="reading-chapter-num">Chapter ' + ch.chapterNum + '</div>';
+      html += '<div class="reading-chapter-heading">' + escapeHtml(ch.chapterTitle) + '</div>';
+      ch.scenes.forEach((scene, si) => {
+        if (si > 0) html += '<div class="reading-scene-divider">· · ·</div>';
+        html += '<div class="reading-prose">' + escapeHtml(scene.text) + '</div>';
+      });
+    });
+    scroll.innerHTML = html;
+  }
+
+  scroll.scrollTop = 0;
+  readingHeaderVisible = true;
+  document.getElementById('readingHeader').classList.remove('hidden');
+  document.getElementById('readingMode').classList.add('open');
+}
+
+function closeReadingMode() {
+  document.getElementById('readingMode').classList.remove('open');
+}
+
+function toggleReadingHeader() {
+  readingHeaderVisible = !readingHeaderVisible;
+  document.getElementById('readingHeader').classList.toggle('hidden', !readingHeaderVisible);
+}
+
+// ══════════════════════════════
+// EXPORT
+// ══════════════════════════════
+function openExportSheet() {
+  const wc = getTotalWordCount();
+  const data = buildManuscriptData();
+  const sceneCount = data.reduce((n, ch) => n + ch.scenes.length, 0);
+  document.getElementById('exportWordCount').textContent =
+    sceneCount + ' scene' + (sceneCount !== 1 ? 's' : '') + ' · ' + wc.toLocaleString() + ' words';
+  document.getElementById('exportSheet').classList.add('open');
+}
+
+function closeExportSheet() {
+  document.getElementById('exportSheet').classList.remove('open');
+}
+
+function exportAsText() {
+  const story = getActiveStory();
+  const title = story ? story.title : 'My Story';
+  const data = buildManuscriptData();
+  if (!data.length) { showToast('No written scenes to export'); closeExportSheet(); return; }
+
+  let text = title.toUpperCase() + '\n' + '═'.repeat(title.length) + '\n\n';
+  data.forEach(ch => {
+    text += 'CHAPTER ' + ch.chapterNum + '\n';
+    text += ch.chapterTitle + '\n';
+    text += '─'.repeat(40) + '\n\n';
+    ch.scenes.forEach((scene, si) => {
+      text += scene.text + '\n';
+      if (si < ch.scenes.length - 1) text += '\n· · ·\n\n';
+    });
+    text += '\n\n';
+  });
+
+  const wc = getTotalWordCount();
+  text += '─'.repeat(40) + '\n';
+  text += 'Word count: ' + wc.toLocaleString() + '\n';
+  text += 'Exported from Novella Studio · ' + new Date().toLocaleDateString();
+
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  closeExportSheet();
+  showToast('Downloaded as .txt');
+}
+
+function exportAsHTML() {
+  const story = getActiveStory();
+  const title = story ? story.title : 'My Story';
+  const data = buildManuscriptData();
+  if (!data.length) { showToast('No written scenes to export'); closeExportSheet(); return; }
+
+  let body = '';
+  data.forEach(ch => {
+    body += `<div class="chapter">
+      <p class="chapter-num">Chapter ${ch.chapterNum}</p>
+      <h2>${escapeHtml(ch.chapterTitle)}</h2>`;
+    ch.scenes.forEach((scene, si) => {
+      if (si > 0) body += '<p class="scene-break">· · ·</p>';
+      // Split into paragraphs
+      scene.text.split(/\n{2,}/).forEach(para => {
+        const trimmed = para.trim();
+        if (trimmed) body += '<p>' + escapeHtml(trimmed).replace(/\n/g, '<br>') + '</p>';
+      });
+    });
+    body += '</div>';
+  });
+
+  const wc = getTotalWordCount();
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Cormorant Garamond', Georgia, serif; background: #faf6f0; color: #18120e; }
+  .page { max-width: 680px; margin: 0 auto; padding: 60px 40px 80px; }
+  h1.story-title { font-size: 2.4rem; text-align: center; font-style: italic; letter-spacing: 0.04em; margin-bottom: 12px; }
+  .story-divider { text-align: center; color: #a67c3a; letter-spacing: 0.3em; margin-bottom: 60px; }
+  .chapter { margin-bottom: 60px; }
+  .chapter-num { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.2em; color: #8a7b72; text-align: center; margin-bottom: 8px; }
+  h2 { font-size: 1.4rem; text-align: center; font-style: italic; color: #8c3d47; margin-bottom: 32px; font-weight: 400; }
+  p { font-size: 1.1rem; line-height: 1.95; margin-bottom: 1.2em; text-indent: 1.5em; }
+  p.scene-break { text-align: center; text-indent: 0; color: #ddd4c8; letter-spacing: 0.4em; margin: 28px 0; font-size: 0.9rem; }
+  .footer { border-top: 1px solid #ddd4c8; padding-top: 24px; margin-top: 60px; font-size: 0.75rem; color: #8a7b72; text-align: center; letter-spacing: 0.06em; }
+  @media print {
+    body { background: white; }
+    .page { padding: 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1 class="story-title">${escapeHtml(title)}</h1>
+  <p class="story-divider">✦ ✦ ✦</p>
+  ${body}
+  <div class="footer">${wc.toLocaleString()} words &nbsp;·&nbsp; Exported from Novella Studio &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</div>
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  closeExportSheet();
+  showToast('Downloaded as .html — open & print to PDF');
+}
+
+// ══════════════════════════════
+// CLEAR STORY DATA
+// ══════════════════════════════
+function clearStoryData() {
+  if (!confirm('Clear all chapters, beats, lore and scenes for this story? This cannot be undone.')) return;
+  chapters = []; writtenScenes = {}; activeChIdx = null; activeBeatIdx = null;
+  ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
+  ['char1','char2','charSupport'].forEach(id => clearPortraitImage(id));
+  document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
+  document.getElementById('editorNoBeat').style.display = 'flex';
+  document.getElementById('editorContent').style.display = 'none';
+  renderChapters();
+  saveCurrentStory();
+  showToast('Story data cleared');
+}
+
+// ══════════════════════════════
+// BUILD CONTEXT
 // ══════════════════════════════
 function buildContext() {
   const char1 = document.getElementById('char1').value.trim();
@@ -1352,34 +2468,31 @@ function buildContext() {
   const includeHistory = document.getElementById('includeHistory').checked;
 
   let ctx = '';
-  if (char1) ctx += `## PROTAGONIST\n${char1}\n\n`;
-  if (char2) ctx += `## LOVE INTEREST\n${char2}\n\n`;
-  if (charSupport) ctx += `## SUPPORTING CHARACTERS\n${charSupport}\n\n`;
-  if (worldLore) ctx += `## WORLD & SETTING\n${worldLore}\n\n`;
-  if (toneStyle) ctx += `## TONE & STYLE\n${toneStyle}\n\n`;
-  if (storyState) ctx += `## CURRENT STORY STATE\n${storyState}\n\n`;
+  if (char1) ctx += '## PROTAGONIST\n' + char1 + '\n\n';
+  if (char2) ctx += '## LOVE INTEREST\n' + char2 + '\n\n';
+  if (charSupport) ctx += '## SUPPORTING CHARACTERS\n' + charSupport + '\n\n';
+  if (worldLore) ctx += '## WORLD & SETTING\n' + worldLore + '\n\n';
+  if (toneStyle) ctx += '## TONE & STYLE\n' + toneStyle + '\n\n';
+  if (storyState) ctx += '## CURRENT STORY STATE\n' + storyState + '\n\n';
 
-  // Current chapter context
   if (activeChIdx !== null && chapters[activeChIdx]) {
     const ch = chapters[activeChIdx];
-    ctx += `## CURRENT CHAPTER\nTitle: ${ch.title}\n${ch.summary ? 'Summary: ' + ch.summary : ''}\n\n`;
+    ctx += '## CURRENT CHAPTER\nTitle: ' + ch.title + '\n' + (ch.summary ? 'Summary: ' + ch.summary : '') + '\n\n';
   }
 
   if (includeHistory) {
-    // Collect all previous written scenes across all chapters in order
     const prev = [];
     chapters.forEach((ch, ci) => {
       ch.beats.forEach((beat, bi) => {
         const key = ci + '-' + bi;
         if (writtenScenes[key]) {
-          // Stop before current beat
           if (ci < activeChIdx || (ci === activeChIdx && bi < activeBeatIdx)) {
-            prev.push(`### Ch.${ci+1} Beat ${bi+1}: ${beat.title}\n${writtenScenes[key]}`);
+            prev.push('### Ch.' + (ci+1) + ' Beat ' + (bi+1) + ': ' + beat.title + '\n' + writtenScenes[key]);
           }
         }
       });
     });
-    if (prev.length) ctx += `## PREVIOUS SCENES\n\n${prev.slice(-2).join('\n\n---\n\n')}\n\n`;
+    if (prev.length) ctx += '## PREVIOUS SCENES\n\n' + prev.slice(-2).join('\n\n---\n\n') + '\n\n';
   }
   return ctx;
 }
@@ -1388,6 +2501,9 @@ function getLengthInstruction() {
   return { short: '~300 words', medium: '~600 words', long: '~1000 words', chapter: '~1500 words' }[document.getElementById('lengthTarget').value] || '~600 words';
 }
 
+// ══════════════════════════════
+// WRITE SCENE
+// ══════════════════════════════
 function writeScene() {
   dbg('writeScene called');
   const apiKey = document.getElementById('apiKey').value.trim();
@@ -1428,7 +2544,7 @@ function writeScene() {
   proseDiv.appendChild(cursor);
 
   document.getElementById('btnWrite').disabled = true;
-  document.getElementById('btnWrite').textContent = 'Writing…';
+  document.getElementById('btnWrite').textContent = 'Writing\u2026';
   document.getElementById('btnCopy').style.display = 'none';
   document.getElementById('btnRewrite').style.display = 'none';
 
@@ -1444,8 +2560,7 @@ function writeScene() {
       'X-Title': 'Novella Studio'
     },
     body: JSON.stringify({
-      model: model,
-      stream: true,
+      model: model, stream: true,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -1461,7 +2576,6 @@ function writeScene() {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
-
     function readChunk() {
       return reader.read().then(function(result) {
         if (result.done) {
@@ -1469,17 +2583,17 @@ function writeScene() {
           cursor.remove();
           writtenScenes[key] = fullText;
           renderChapters();
-          saveAll();
+          saveCurrentStory();
           document.getElementById('btnCopy').style.display = '';
           document.getElementById('btnRewrite').style.display = '';
           updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
           if (document.getElementById('autoUpdateState').checked) {
-            showToast('Updating story state…');
+            showToast('Updating story state\u2026');
             updateStoryState(apiKey, model, beat, fullText);
           }
-          showToast('✓ Scene written — ' + fullText.split(/\s+/).length + ' words');
+          showToast('\u2713 Scene written \u2014 ' + fullText.split(/\s+/).length + ' words');
           document.getElementById('btnWrite').disabled = false;
-          document.getElementById('btnWrite').textContent = '✦ Write Scene';
+          document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
           return;
         }
         buf += decoder.decode(result.value, { stream: true });
@@ -1508,10 +2622,9 @@ function writeScene() {
     proseDiv.innerHTML = '<div style="color:#c0392b;padding:16px;font-size:0.9rem;line-height:1.6;"><strong>Error:</strong> ' + err.message + '</div>';
     showToast('Error: ' + err.message.slice(0, 60));
     document.getElementById('btnWrite').disabled = false;
-    document.getElementById('btnWrite').textContent = '✦ Write Scene';
+    document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
   });
 }
-
 
 function rewriteScene() {
   delete writtenScenes[activeChIdx + '-' + activeBeatIdx];
@@ -1525,277 +2638,82 @@ function copyProse() {
 }
 
 // ══════════════════════════════
-// STATE UPDATE
+// UPDATE STORY STATE
 // ══════════════════════════════
-async function updateStoryState(apiKey, model, beat, sceneText) {
+function updateStoryState(apiKey, model, beat, sceneText) {
   const currentState = document.getElementById('storyState').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
+  const prompt = 'Update this story state based on the scene just written.\n\nCurrent state:\n' + (currentState || '(none yet)') + '\n\nScene just written for beat "' + beat.title + '":\n' + sceneText.slice(0, 800) + '\n\nWrite a brief updated story state (3-5 sentences) describing where the story now stands. Focus on: character emotional states, what has changed, what tension remains.';
 
-  const prompt = `Track story continuity for a romance novella.
-${currentState ? `CURRENT STATE:\n${currentState}\n\n` : ''}CHARACTERS: ${char1 ? `Protagonist: ${char1.slice(0,150)}` : ''} ${char2 ? `| Love Interest: ${char2.slice(0,150)}` : ''}
-
-BEAT JUST WRITTEN: "${beat.title}"
-${beat.desc}
-
-SCENE (excerpt):
-${sceneText.slice(0, 1200)}
-
-Update the Story State concisely. Cover:
-1. What just happened (2-3 sentences)
-2. Emotional status of each main character
-3. Unresolved tensions / open threads
-4. Romance arc position
-5. Key details now established
-
-Output only the updated state, no headings.`;
-
-  try {
-    dbg('model=' + model + ' key starts=' + apiKey.slice(0,8));
-    dbg('fetching from OpenRouter...');
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://novella-studio.local',
-        'X-Title': 'Novella Studio'
-      },
-      body: JSON.stringify({
-        model, max_tokens: 500,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    const newState = data.choices?.[0]?.message?.content?.trim();
-    if (newState) { document.getElementById('storyState').value = newState; saveAll(); }
-  } catch (e) { console.warn('State update failed:', e); }
-}
-
-// ══════════════════════════════
-// SCENE LOG
-// ══════════════════════════════
-function updateSceneLog(ci, bi, title, text) {
-  const log = document.getElementById('sceneLog');
-  if (log.querySelector('[style*="italic"]')) log.innerHTML = '';
-  const item = document.createElement('div');
-  item.className = 'scene-log-item';
-  item.innerHTML = `<strong>Ch.${ci+1} Beat ${bi+1}: ${escapeHtml(title)}</strong><span style="color:var(--muted)">${text.split(/\s+/).length} words</span>`;
-  log.appendChild(item);
-}
-
-function clearState() {
-  if (confirm('Reset story state?')) {
-    document.getElementById('storyState').value = '';
-    document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
-    showToast('State reset');
-  }
-}
-
-// ══════════════════════════════
-// TOAST
-// ══════════════════════════════
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// ══════════════════════════════
-// PERSISTENCE (localStorage)
-// ══════════════════════════════
-const SAVE_KEY = 'novella_studio_v3';
-
-function saveAll() {
-  try {
-    const data = {
-      chapters,
-      writtenScenes,
-      activeChIdx,
-      activeBeatIdx,
-      lore: {
-        char1: document.getElementById('char1').value,
-        char2: document.getElementById('char2').value,
-        charSupport: document.getElementById('charSupport').value,
-        worldLore: document.getElementById('worldLore').value,
-        toneStyle: document.getElementById('toneStyle').value,
-      },
-      settings: {
-        apiKey: document.getElementById('apiKey').value,
-        model: document.getElementById('modelSelect').value,
-        length: document.getElementById('lengthTarget').value,
-        autoUpdate: document.getElementById('autoUpdateState').checked,
-        includeHistory: document.getElementById('includeHistory').checked,
-        systemPrefix: document.getElementById('systemPrefix').value,
-      },
-      storyState: document.getElementById('storyState').value,
-      savedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-  } catch(e) { console.warn('Save failed:', e); }
-}
-
-function loadAll() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const data = JSON.parse(raw);
-
-    // Chapters & scenes
-    if (data.chapters) chapters = data.chapters;
-    if (data.writtenScenes) writtenScenes = data.writtenScenes;
-
-    // Lore
-    if (data.lore) {
-      if (data.lore.char1)       document.getElementById('char1').value = data.lore.char1;
-      if (data.lore.char2)       document.getElementById('char2').value = data.lore.char2;
-      if (data.lore.charSupport) document.getElementById('charSupport').value = data.lore.charSupport;
-      if (data.lore.worldLore)   document.getElementById('worldLore').value = data.lore.worldLore;
-      if (data.lore.toneStyle)   document.getElementById('toneStyle').value = data.lore.toneStyle;
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({
+      model: model, stream: false,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    const newState = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+    if (newState) {
+      document.getElementById('storyState').value = newState;
+      saveCurrentStory();
+      showToast('Story state updated');
     }
-
-    // Settings
-    if (data.settings) {
-      if (data.settings.apiKey)       document.getElementById('apiKey').value = data.settings.apiKey;
-      if (data.settings.model)        document.getElementById('modelSelect').value = data.settings.model;
-      if (data.settings.length)       document.getElementById('lengthTarget').value = data.settings.length;
-      if (data.settings.systemPrefix) document.getElementById('systemPrefix').value = data.settings.systemPrefix;
-      document.getElementById('autoUpdateState').checked  = data.settings.autoUpdate !== false;
-      document.getElementById('includeHistory').checked   = data.settings.includeHistory !== false;
-    }
-
-    // Story state
-    if (data.storyState) document.getElementById('storyState').value = data.storyState;
-
-    // Restore active selection
-    if (data.activeChIdx !== null && data.activeBeatIdx !== null) {
-      activeChIdx = data.activeChIdx;
-      activeBeatIdx = data.activeBeatIdx;
-    }
-
-    renderChapters();
-
-    // Rebuild scene log
-    const log = document.getElementById('sceneLog');
-    log.innerHTML = '';
-    let hasLog = false;
-    chapters.forEach((ch, chIdx) => {
-      ch.beats.forEach((beat, bIdx) => {
-        const key = chIdx + '-' + bIdx;
-        if (writtenScenes[key]) {
-          hasLog = true;
-          const item = document.createElement('div');
-          item.className = 'scene-log-item';
-          item.innerHTML = `<strong>${escapeHtml(ch.title)} · Beat ${bIdx+1}: ${escapeHtml(beat.title)}</strong><span style="color:var(--muted)">${writtenScenes[key].split(/\s+/).length} words</span>`;
-          log.appendChild(item);
-        }
-      });
-    });
-    if (!hasLog) log.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
-
-    // Restore editor view
-    if (activeChIdx !== null && activeBeatIdx !== null && chapters[activeChIdx] && chapters[activeChIdx].beats[activeBeatIdx]) {
-      const beat = chapters[activeChIdx].beats[activeBeatIdx];
-      const key = activeChIdx + '-' + activeBeatIdx;
-      document.getElementById('editorNoBeat').style.display = 'none';
-      document.getElementById('editorContent').style.display = 'flex';
-      document.getElementById('edBeatLabel').textContent = `${chapters[activeChIdx].title} · Beat ${activeBeatIdx + 1}`;
-      document.getElementById('edBeatTitle').textContent = beat.title || 'Untitled';
-      document.getElementById('edBeatDesc').textContent = beat.desc || '';
-      document.getElementById('btnWrite').disabled = false;
-      const proseOut = document.getElementById('proseOutput');
-      if (writtenScenes[key]) {
-        proseOut.innerHTML = `<div class="prose-area">${escapeHtml(writtenScenes[key])}</div>`;
-        document.getElementById('btnCopy').style.display = '';
-        document.getElementById('btnRewrite').style.display = '';
-      }
-    }
-
-    if (data.savedAt) {
-      const d = new Date(data.savedAt);
-      showToast(`Loaded save from ${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`);
-    }
-    return true;
-  } catch(e) {
-    console.warn('Load failed:', e);
-    return false;
-  }
+  }).catch(function(e) { dbg('State update error: ' + e.message); });
 }
 
-function clearAllData() {
-  if (confirm('Delete ALL saved data? This cannot be undone.\n\nBeats, lore, scenes, settings — everything will be cleared.')) {
-    localStorage.removeItem(SAVE_KEY);
-    chapters = [];
-    writtenScenes = {};
-    activeChIdx = null;
-    activeBeatIdx = null;
-    ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
-    document.getElementById('editorNoBeat').style.display = 'flex';
-    document.getElementById('editorContent').style.display = 'none';
-    renderChapters();
-    showToast('All data cleared');
-  }
-}
-
-// Auto-save whenever inputs change (debounced)
+// ══════════════════════════════
+// AUTO-SAVE on input changes
+// ══════════════════════════════
 let saveTimer;
 function debouncedSave() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { saveAll(); }, 800);
+  saveTimer = setTimeout(() => { if (activeStoryId) saveCurrentStory(); }, 800);
 }
 
-// Hook auto-save onto all persistent inputs
-const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','apiKey','modelSelect','lengthTarget','autoUpdateState','includeHistory'];
-document.addEventListener('DOMContentLoaded', () => {
-  watchIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', debouncedSave);
-    if (el) el.addEventListener('change', debouncedSave);
-  });
+// ══════════════════════════════
+// PWA INSTALL
+// ══════════════════════════════
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'flex';
 });
-
-// ══════════════════════════════
-// INIT — load or seed
-// ══════════════════════════════
-const loaded = loadAll();
-if (!loaded) {
-  // First time — seed example chapter + beats
-  chapters = [
-    {
-      title: 'Chapter One — The Encounter',
-      summary: 'The protagonists meet and the tension begins.',
-      collapsed: false,
-      beats: [
-        { title: 'The Chance Meeting', desc: 'Protagonists meet unexpectedly — instant friction or fascination. Establish their contrasting worlds and the spark.', pov: '', loc: '' },
-        { title: 'Forced Together', desc: 'Circumstances throw them together again. Tension builds. A small moment of unexpected vulnerability.', pov: '', loc: '' },
-      ]
-    },
-    {
-      title: 'Chapter Two — The Pull',
-      summary: 'The attraction deepens and the barrier is revealed.',
-      collapsed: false,
-      beats: [
-        { title: 'The Barrier Revealed', desc: 'The central obstacle to their romance becomes clear — a secret, a wound, a misunderstanding to overcome.', pov: '', loc: '' },
-      ]
-    }
-  ];
-  renderChapters();
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; document.getElementById('installBtn').style.display = 'none'; });
 }
 
 // ══════════════════════════════
-// WIRE MODAL BUTTONS (DOM already ready at script execution)
+// INIT
 // ══════════════════════════════
+loadStories();
+renderStoriesList();
+
+// Wire modal buttons
 document.getElementById('chCancelBtn').addEventListener('click', closeChapterModal);
 document.getElementById('chSaveBtn').addEventListener('click', saveChapter);
 document.getElementById('beatCancelBtn').addEventListener('click', closeBeatModal);
 document.getElementById('beatSaveBtn').addEventListener('click', saveBeat);
+document.getElementById('addStoryBtn').addEventListener('click', openNewStoryModal);
+document.getElementById('storyCancelBtn').addEventListener('click', closeStoryModal);
+document.getElementById('storySaveBtn').addEventListener('click', saveStoryModal);
+document.getElementById('backToStoriesBtn').addEventListener('click', goHome);
+
+// Auto-save inputs
+const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','apiKey','veniceApiKey','veniceImageModel','modelSelect','lengthTarget','autoUpdateState','includeHistory','planSynopsis'];
+watchIds.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) { el.addEventListener('input', debouncedSave); el.addEventListener('change', debouncedSave); }
+});
 
 // ══════════════════════════════
-// SERVICE WORKER REGISTRATION
+// SERVICE WORKER
 // ══════════════════════════════
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1803,34 +2721,6 @@ if ('serviceWorker' in navigator) {
       .then(() => console.log('SW registered'))
       .catch(e => console.warn('SW failed:', e));
   });
-}
-
-// ══════════════════════════════
-// PWA INSTALL PROMPT
-// ══════════════════════════════
-let deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  const btn = document.getElementById('installBtn');
-  if (btn) btn.style.display = 'flex';
-});
-
-window.addEventListener('appinstalled', () => {
-  showToast('\u2713 Novella Studio installed!');
-  deferredInstallPrompt = null;
-  const btn = document.getElementById('installBtn');
-  if (btn) btn.style.display = 'none';
-});
-
-function installApp() {
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    deferredInstallPrompt.userChoice.then((choice) => {
-      if (choice.outcome === 'accepted') showToast('Installing\u2026');
-      deferredInstallPrompt = null;
-    });
-  }
 }
 </script>
 </body>
