@@ -1109,7 +1109,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v27</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v28</span>
     </div>
   </div>
 
@@ -1141,7 +1141,7 @@
   <div class="settings-group">
     <div class="settings-group-title">GitHub Gist Sync</div>
     <div style="padding:0 14px 4px;">
-      <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;margin-bottom:12px;">Saves the active story to a private GitHub Gist. Requires a <strong style="color:var(--ink)">Personal Access Token</strong> with <code style="font-size:0.7rem;background:var(--border);padding:1px 4px;border-radius:3px;">gist</code> scope — create one at github.com → Settings → Developer settings → Personal access tokens.</div>
+      <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;margin-bottom:12px;">Saves the active story to a private GitHub Gist. Requires a <strong style="color:var(--ink)">Personal Access Token</strong> with <code style="font-size:0.7rem;background:var(--border);padding:1px 4px;border-radius:3px;">gist</code> scope — create one at github.com → Settings → Developer settings → Personal access tokens → Classic. Your PAT is stored only in this browser and is <strong style="color:var(--ink)">never written to the Gist itself</strong>.</div>
       <label class="field-label">GitHub PAT</label>
       <input type="password" id="githubPAT" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
         style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Jost',sans-serif;font-size:0.85rem;background:var(--parchment);color:var(--ink);box-sizing:border-box;margin-bottom:8px;" />
@@ -2876,7 +2876,10 @@ async function gistPush() {
   btn.disabled = true; btn.textContent = 'Pushing…';
 
   const filename = 'novella-studio-' + story.id + '.json';
-  const content = JSON.stringify({ exportedAt: new Date().toISOString(), version: 1, story }, null, 2);
+  // Deep-clone and strip the PAT before it touches Gist content
+  const safeStory = JSON.parse(JSON.stringify(story));
+  if (safeStory.data && safeStory.data.settings) delete safeStory.data.settings.githubPAT;
+  const content = JSON.stringify({ exportedAt: new Date().toISOString(), version: 1, story: safeStory }, null, 2);
   const existingId = getGistId();
 
   try {
