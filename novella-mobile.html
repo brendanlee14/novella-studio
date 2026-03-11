@@ -665,6 +665,54 @@
     animation: pulse 1.4s infinite;
   }
 
+  /* ── PERSONA SELECTOR ── */
+  .persona-bar {
+    padding: 10px 14px 6px;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+  }
+  .persona-bar-label {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--muted); margin-bottom: 7px;
+  }
+  .persona-chips {
+    display: flex; gap: 7px; flex-wrap: wrap;
+  }
+  .persona-chip {
+    padding: 5px 11px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: 'Jost', sans-serif; font-size: 0.72rem;
+    color: var(--muted); background: var(--surface);
+    cursor: pointer; transition: all 0.15s;
+    white-space: nowrap; max-width: 120px;
+    overflow: hidden; text-overflow: ellipsis;
+    user-select: none; -webkit-user-select: none;
+  }
+  .persona-chip.active {
+    border-color: var(--rose); color: var(--rose-deep);
+    background: #f9edef;
+  }
+  .persona-chip.empty {
+    opacity: 0.38; border-style: dashed;
+  }
+  .persona-chip.empty.active {
+    opacity: 1; border-style: solid;
+    border-color: var(--gold); color: var(--gold); background: #fdf8f0;
+  }
+
+  /* ── PERSONA EDIT MODAL ── */
+  #personaModal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(24,18,14,0.72); z-index: 600;
+    align-items: flex-end; justify-content: center;
+  }
+  #personaModal.open { display: flex; }
+  .persona-sheet {
+    background: var(--cream); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px; padding: 20px 16px 48px;
+  }
+
   /* ── READING MODE OVERLAY ── */
   #readingMode {
     display: none;
@@ -816,6 +864,11 @@
       <div class="beat-label" id="edBeatLabel">Beat 1</div>
       <h2 id="edBeatTitle">—</h2>
       <div class="beat-desc-preview" id="edBeatDesc"></div>
+    </div>
+    <!-- Persona selector -->
+    <div class="persona-bar">
+      <div class="persona-bar-label">Writing Persona</div>
+      <div class="persona-chips" id="personaChips"></div>
     </div>
     <div class="editor-actions">
       <button class="btn-write" id="btnWrite" onclick="writeScene()">✦ Write Scene</button>
@@ -1056,7 +1109,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v25</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v27</span>
     </div>
   </div>
 
@@ -1082,6 +1135,35 @@
     <div class="setting-row">
       <div><div class="setting-label" style="color:#c0392b">Clear This Story</div><div class="setting-sub">Clears chapters, lore & scenes</div></div>
       <button onclick="clearStoryData()" style="padding:8px 12px;background:none;border:1px solid #e74c3c;border-radius:8px;color:#c0392b;font-size:0.8rem;cursor:pointer;">Clear</button>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-title">GitHub Gist Sync</div>
+    <div style="padding:0 14px 4px;">
+      <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;margin-bottom:12px;">Saves the active story to a private GitHub Gist. Requires a <strong style="color:var(--ink)">Personal Access Token</strong> with <code style="font-size:0.7rem;background:var(--border);padding:1px 4px;border-radius:3px;">gist</code> scope — create one at github.com → Settings → Developer settings → Personal access tokens.</div>
+      <label class="field-label">GitHub PAT</label>
+      <input type="password" id="githubPAT" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+        style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Jost',sans-serif;font-size:0.85rem;background:var(--parchment);color:var(--ink);box-sizing:border-box;margin-bottom:8px;" />
+      <div style="font-size:0.68rem;color:var(--muted);margin-bottom:12px;" id="gistIdStatus">No Gist linked yet</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" onclick="gistPush()" style="flex:1;min-width:100px;padding:11px;background:var(--rose);color:white;border:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;" id="btnGistPush">↑ Push to Gist</button>
+        <button type="button" onclick="gistPull()" style="flex:1;min-width:100px;padding:11px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;" id="btnGistPull">↓ Pull from Gist</button>
+      </div>
+      <button type="button" onclick="gistUnlink()" style="width:100%;margin-top:8px;padding:9px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Jost',sans-serif;font-size:0.75rem;cursor:pointer;">Unlink Gist</button>
+    </div>
+  </div>
+
+  <div class="settings-group">
+    <div class="settings-group-title">JSON Backup</div>
+    <div style="padding:0 14px 14px;">
+      <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;margin-bottom:12px;">Download all stories as a single JSON file. Restore from a previous backup.</div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" onclick="backupAllStories()" style="flex:1;padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;">⬇ Download Backup</button>
+        <button type="button" onclick="document.getElementById('restoreFileInput').click()" style="flex:1;padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;">⬆ Restore Backup</button>
+      </div>
+      <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="restoreFromBackup(this)" />
+      <div style="font-size:0.68rem;color:var(--muted);margin-top:8px;">Restore merges stories by ID — existing stories with the same ID are overwritten.</div>
     </div>
   </div>
 
@@ -1133,6 +1215,24 @@
     <div class="sheet-actions">
       <button class="btn-cancel" type="button" id="beatCancelBtn">Cancel</button>
       <button class="btn-save" type="button" id="beatSaveBtn">Save Beat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PERSONA EDIT MODAL ── -->
+<div id="personaModal">
+  <div class="persona-sheet">
+    <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--rose-deep);font-style:italic;margin-bottom:4px;" id="personaModalTitle">Edit Persona</div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;">Tap a chip to activate · Long-press to edit</div>
+    <label class="field-label">Preset Name</label>
+    <input class="sheet-input" id="personaNameInput" type="text" placeholder="e.g. Explicit Smut" maxlength="28" style="margin-bottom:12px;" />
+    <label class="field-label">System Persona</label>
+    <textarea class="sheet-textarea" id="personaTextInput" rows="6" placeholder="Describe the writing style, POV, heat level, what to do and avoid…" style="height:140px;"></textarea>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button type="button" id="personaCancelBtn" class="btn-cancel" style="flex:1;">Cancel</button>
+      <button type="button" id="personaClearBtn" class="btn-cancel" style="flex:1;color:#c0392b;border-color:#e74c3c;">Clear Slot</button>
+      <button type="button" id="personaSaveBtn" class="btn-save" style="flex:2;">Save</button>
     </div>
   </div>
 </div>
@@ -1233,6 +1333,7 @@ function saveCurrentStory() {
       autoUpdate: document.getElementById('autoUpdateState').checked,
       includeHistory: document.getElementById('includeHistory').checked,
       systemPrefix: document.getElementById('systemPrefix').value,
+      githubPAT: document.getElementById('githubPAT').value,
     },
     portraits: {
       char1: story.data && story.data.portraits ? story.data.portraits.char1 : null,
@@ -1273,6 +1374,8 @@ function loadStoryIntoApp(story) {
   document.getElementById('autoUpdateState').checked = s.autoUpdate !== false;
   document.getElementById('includeHistory').checked = s.includeHistory !== false;
   document.getElementById('systemPrefix').value = s.systemPrefix || 'You are a skilled romance novelist. Write in third-person limited POV. Focus on emotional interiority, sensory detail, and romantic tension. Avoid clichés. Each scene should advance either the plot or the relationship. End scenes at a compelling moment.';
+  document.getElementById('githubPAT').value = s.githubPAT || '';
+  updateGistStatus();
 
   renderChapters();
   rebuildSceneLog();
@@ -2520,7 +2623,8 @@ function writeScene() {
   const key = activeChIdx + '-' + activeBeatIdx;
   const model = document.getElementById('modelSelect').value;
   dbg('model=' + model);
-  const systemPrefix = document.getElementById('systemPrefix').value.trim();
+  const systemPrefix = getActivePersonaText();
+  dbg('persona=' + (activePersonaIdx === null ? 'Setup' : (personas[activePersonaIdx].name || 'Slot ' + (activePersonaIdx+1))));
   dbg('calling buildContext...');
   const context = buildContext();
   dbg('context len=' + context.length);
@@ -2706,7 +2810,7 @@ document.getElementById('storySaveBtn').addEventListener('click', saveStoryModal
 document.getElementById('backToStoriesBtn').addEventListener('click', goHome);
 
 // Auto-save inputs
-const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','apiKey','veniceApiKey','veniceImageModel','modelSelect','lengthTarget','autoUpdateState','includeHistory','planSynopsis'];
+const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','apiKey','veniceApiKey','veniceImageModel','modelSelect','lengthTarget','autoUpdateState','includeHistory','planSynopsis','githubPAT'];
 watchIds.forEach(id => {
   const el = document.getElementById(id);
   if (el) { el.addEventListener('input', debouncedSave); el.addEventListener('change', debouncedSave); }
@@ -2716,12 +2820,369 @@ watchIds.forEach(id => {
 // SERVICE WORKER
 // ══════════════════════════════
 if ('serviceWorker' in navigator) {
+
+
+// ══════════════════════════════
+// GITHUB GIST SYNC
+// ══════════════════════════════
+// Gist ID stored per story in a separate localStorage key: novella_gist_{storyId}
+function getGistKey() {
+  const story = getActiveStory();
+  return story ? 'novella_gist_' + story.id : null;
+}
+
+function getGistId() {
+  const key = getGistKey();
+  return key ? localStorage.getItem(key) : null;
+}
+
+function setGistId(id) {
+  const key = getGistKey();
+  if (key) localStorage.setItem(key, id);
+}
+
+function clearGistId() {
+  const key = getGistKey();
+  if (key) localStorage.removeItem(key);
+}
+
+function updateGistStatus() {
+  const el = document.getElementById('gistIdStatus');
+  if (!el) return;
+  const id = getGistId();
+  if (id) {
+    el.textContent = 'Linked: gist.github.com/' + id;
+    el.style.color = '#2e7d32';
+  } else {
+    el.textContent = 'No Gist linked yet — Push to create one';
+    el.style.color = '';
+  }
+}
+
+async function gistPush() {
+  const pat = document.getElementById('githubPAT').value.trim();
+  if (!pat) { showToast('Enter your GitHub PAT first'); return; }
+
+  saveCurrentStory();
+  const story = getActiveStory();
+  if (!story) { showToast('No active story'); return; }
+
+  const btn = document.getElementById('btnGistPush');
+  btn.disabled = true; btn.textContent = 'Pushing…';
+
+  const filename = 'novella-studio-' + story.id + '.json';
+  const content = JSON.stringify({ exportedAt: new Date().toISOString(), version: 1, story }, null, 2);
+  const existingId = getGistId();
+
+  try {
+    let url = 'https://api.github.com/gists';
+    let method = 'POST';
+    if (existingId) { url += '/' + existingId; method = 'PATCH'; }
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': 'Bearer ' + pat,
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      },
+      body: JSON.stringify({
+        description: 'Novella Studio — ' + story.title,
+        public: false,
+        files: { [filename]: { content } }
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || res.status);
+    }
+
+    const data = await res.json();
+    setGistId(data.id);
+    updateGistStatus();
+    showToast('Pushed to Gist ✓');
+    dbg('Gist push OK: ' + data.id);
+  } catch(e) {
+    showToast('Gist push failed: ' + e.message);
+    dbg('Gist push error: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '↑ Push to Gist';
+  }
+}
+
+async function gistPull() {
+  const pat = document.getElementById('githubPAT').value.trim();
+  if (!pat) { showToast('Enter your GitHub PAT first'); return; }
+
+  const existingId = getGistId();
+  if (!existingId) { showToast('No Gist linked — Push first to create one'); return; }
+
+  const btn = document.getElementById('btnGistPull');
+  btn.disabled = true; btn.textContent = 'Pulling…';
+
+  try {
+    const res = await fetch('https://api.github.com/gists/' + existingId, {
+      headers: {
+        'Authorization': 'Bearer ' + pat,
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    const data = await res.json();
+    const files = Object.values(data.files);
+    if (!files.length) throw new Error('Gist is empty');
+
+    const raw = files[0].content;
+    const parsed = JSON.parse(raw);
+    const incoming = parsed.story;
+    if (!incoming || !incoming.id) throw new Error('Invalid Novella Studio Gist format');
+
+    // Merge into stories array
+    const idx = stories.findIndex(s => s.id === incoming.id);
+    if (idx >= 0) {
+      stories[idx] = incoming;
+    } else {
+      stories.unshift(incoming);
+    }
+    saveStories();
+
+    // Reload if this is the active story
+    const active = getActiveStory();
+    if (active && active.id === incoming.id) {
+      loadStoryIntoApp(incoming);
+      renderChapters();
+    }
+    renderStoriesList();
+    updateGistStatus();
+    showToast('Pulled from Gist ✓');
+    dbg('Gist pull OK: ' + incoming.title);
+  } catch(e) {
+    showToast('Gist pull failed: ' + e.message);
+    dbg('Gist pull error: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = '↓ Pull from Gist';
+  }
+}
+
+function gistUnlink() {
+  if (!getGistId()) { showToast('No Gist linked'); return; }
+  if (!confirm('Unlink this story from its Gist? The Gist itself is not deleted.')) return;
+  clearGistId();
+  updateGistStatus();
+  showToast('Gist unlinked');
+}
+
+// ══════════════════════════════
+// JSON BACKUP / RESTORE
+// ══════════════════════════════
+function backupAllStories() {
+  saveCurrentStory();
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    appVersion: 'v27',
+    stories
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const date = new Date().toISOString().slice(0,10);
+  a.download = 'novella-studio-backup-' + date + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded ✓');
+}
+
+function restoreFromBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (!payload.stories || !Array.isArray(payload.stories)) throw new Error('Not a valid Novella Studio backup');
+
+      let added = 0, updated = 0;
+      payload.stories.forEach(incoming => {
+        const idx = stories.findIndex(s => s.id === incoming.id);
+        if (idx >= 0) { stories[idx] = incoming; updated++; }
+        else { stories.unshift(incoming); added++; }
+      });
+      saveStories();
+      renderStoriesList();
+      showToast(added + ' added, ' + updated + ' updated ✓');
+      dbg('Restore: ' + added + ' added, ' + updated + ' updated');
+    } catch(err) {
+      showToast('Restore failed: ' + err.message);
+      dbg('Restore error: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+
+const PERSONA_STORAGE_KEY = 'novella_studio_personas_v1';
+const PERSONA_SLOTS = 5;
+const DEFAULT_PERSONAS = [
+  { name: 'Explicit Smut', text: 'You are a skilled erotic fiction author. Write in third-person limited POV anchored to the male protagonist. Use explicit, direct language — no euphemisms, no fade-to-black. Describe physical sensation, desire, and action in unhurried, sensory detail. Every scene should feel present-tense urgent.' },
+  { name: 'Slow Burn', text: 'You are a skilled romance novelist. Write in third-person limited POV. Prioritise longing, restraint, and charged subtext over explicit content. Let desire simmer beneath the surface — in a held gaze, a brushed hand, unspoken words. Deny the reader and the characters what they want for as long as possible.' },
+  { name: 'Emotional Aftermath', text: 'You are a literary fiction writer. Write in third-person limited POV. Focus on interior emotional processing — how the protagonist makes sense of what just happened. Slow the prose down. Use memory, physical sensation, and quiet observation to show emotional state without stating it directly.' },
+  { name: '', text: '' },
+  { name: '', text: '' }
+];
+
+let personas = [];
+let activePersonaIdx = null; // null = use Setup persona
+
+function loadPersonas() {
+  try {
+    const raw = localStorage.getItem(PERSONA_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Ensure exactly 5 slots
+      personas = [];
+      for (let i = 0; i < PERSONA_SLOTS; i++) {
+        personas.push(parsed[i] || { name: '', text: '' });
+      }
+    } else {
+      personas = DEFAULT_PERSONAS.map(p => ({ name: p.name, text: p.text }));
+      savePersonas();
+    }
+  } catch(e) {
+    personas = DEFAULT_PERSONAS.map(p => ({ name: p.name, text: p.text }));
+  }
+}
+
+function savePersonas() {
+  try { localStorage.setItem(PERSONA_STORAGE_KEY, JSON.stringify(personas)); } catch(e) {}
+}
+
+function renderPersonaChips() {
+  const container = document.getElementById('personaChips');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Slot 0 = "Setup" (use systemPrefix from Setup tab)
+  const setupChip = document.createElement('div');
+  setupChip.className = 'persona-chip' + (activePersonaIdx === null ? ' active' : '');
+  setupChip.textContent = 'Setup';
+  setupChip.title = 'Use the AI Persona from Setup';
+  setupChip.onclick = function() { setActivePersona(null); };
+  container.appendChild(setupChip);
+
+  personas.forEach(function(p, i) {
+    const chip = document.createElement('div');
+    const isEmpty = !p.name.trim() && !p.text.trim();
+    chip.className = 'persona-chip' + (activePersonaIdx === i ? ' active' : '') + (isEmpty ? ' empty' : '');
+    chip.textContent = isEmpty ? ('Slot ' + (i + 1)) : p.name || ('Preset ' + (i + 1));
+    chip.title = isEmpty ? 'Long-press to set up this persona slot' : p.text;
+    chip.dataset.idx = i;
+
+    // Tap = activate (if not empty), long-press = edit
+    let pressTimer;
+    chip.addEventListener('pointerdown', function() {
+      pressTimer = setTimeout(function() { pressTimer = null; openPersonaModal(i); }, 600);
+    });
+    chip.addEventListener('pointerup', function() {
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+        if (isEmpty) {
+          openPersonaModal(i);
+        } else {
+          setActivePersona(i);
+        }
+      }
+    });
+    chip.addEventListener('pointercancel', function() { clearTimeout(pressTimer); pressTimer = null; });
+    container.appendChild(chip);
+  });
+}
+
+function setActivePersona(idx) {
+  activePersonaIdx = idx;
+  renderPersonaChips();
+  if (idx === null) {
+    showToast('Using Setup persona');
+  } else {
+    showToast('Persona: ' + (personas[idx].name || 'Preset ' + (idx + 1)));
+  }
+}
+
+function getActivePersonaText() {
+  if (activePersonaIdx === null) {
+    return document.getElementById('systemPrefix').value.trim();
+  }
+  const p = personas[activePersonaIdx];
+  return p.text.trim() || document.getElementById('systemPrefix').value.trim();
+}
+
+// Persona modal
+let editingPersonaIdx = null;
+
+function openPersonaModal(idx) {
+  editingPersonaIdx = idx;
+  const p = personas[idx];
+  document.getElementById('personaModalTitle').textContent = 'Persona Slot ' + (idx + 1);
+  document.getElementById('personaNameInput').value = p.name || '';
+  document.getElementById('personaTextInput').value = p.text || '';
+  document.getElementById('personaModal').classList.add('open');
+}
+
+function closePersonaModal() {
+  document.getElementById('personaModal').classList.remove('open');
+  editingPersonaIdx = null;
+}
+
+document.getElementById('personaSaveBtn').addEventListener('click', function() {
+  if (editingPersonaIdx === null) return;
+  personas[editingPersonaIdx] = {
+    name: document.getElementById('personaNameInput').value.trim(),
+    text: document.getElementById('personaTextInput').value.trim()
+  };
+  savePersonas();
+  // Auto-activate after save if non-empty
+  if (personas[editingPersonaIdx].name || personas[editingPersonaIdx].text) {
+    activePersonaIdx = editingPersonaIdx;
+  }
+  renderPersonaChips();
+  closePersonaModal();
+  showToast('Persona saved');
+});
+
+document.getElementById('personaClearBtn').addEventListener('click', function() {
+  if (editingPersonaIdx === null) return;
+  personas[editingPersonaIdx] = { name: '', text: '' };
+  savePersonas();
+  if (activePersonaIdx === editingPersonaIdx) activePersonaIdx = null;
+  renderPersonaChips();
+  closePersonaModal();
+  showToast('Slot cleared');
+});
+
+document.getElementById('personaCancelBtn').addEventListener('click', closePersonaModal);
+
+// Close on backdrop tap
+document.getElementById('personaModal').addEventListener('click', function(e) {
+  if (e.target === this) closePersonaModal();
+});
+
   window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
       .then(() => console.log('SW registered'))
       .catch(e => console.warn('SW failed:', e));
+  }
+    loadPersonas();
+    renderPersonaChips();
   });
-}
 </script>
 </body>
 </html>
