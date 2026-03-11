@@ -2820,7 +2820,12 @@ watchIds.forEach(id => {
 // SERVICE WORKER
 // ══════════════════════════════
 if ('serviceWorker' in navigator) {
-
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.warn('SW failed:', e));
+  });
+}
 
 // ══════════════════════════════
 // GITHUB GIST SYNC
@@ -3174,15 +3179,9 @@ document.getElementById('personaModal').addEventListener('click', function(e) {
   if (e.target === this) closePersonaModal();
 });
 
-  window.addEventListener('load', () => {
-    if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log('SW registered'))
-      .catch(e => console.warn('SW failed:', e));
-  }
-    loadPersonas();
-    renderPersonaChips();
-  });
+// Init personas on load
+loadPersonas();
+renderPersonaChips();
 </script>
 </body>
 </html>
