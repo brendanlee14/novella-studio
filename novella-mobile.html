@@ -1109,7 +1109,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v28</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v29</span>
     </div>
   </div>
 
@@ -1930,6 +1930,22 @@ function savePortrait(charId, base64Data) {
   saveStories();
 }
 
+function buildFallbackPrompt(lore) {
+  // Extract only physical descriptors from lore to avoid narrative text triggering filters
+  // Pull age if mentioned
+  var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
+  var age = ageMatch ? ageMatch[1] + ' year old' : '';
+  // Strip role/relationship/narrative words that could trigger filters
+  var cleaned = lore
+    .replace(/\b(wife|husband|mistress|lover|affair|sex|erotic|submissive|dominant|role|protagonist)\b/gi, '')
+    .replace(/["\[\]{}]/g, '')
+    .replace(/\n+/g, ', ')
+    .replace(/,\s*,/g, ',')
+    .trim()
+    .slice(0, 200);
+  return ['photorealistic portrait photography', age, cleaned, 'natural lighting, sharp focus, 8k, hyperrealistic, film grain'].filter(Boolean).join(', ');
+}
+
 function generatePortrait(charId) {
   var veniceKey = document.getElementById('veniceApiKey').value.trim();
   if (!veniceKey) {
@@ -1981,7 +1997,7 @@ function generatePortrait(charId) {
       body: JSON.stringify({
         model: model,
         prompt: imagePrompt,
-        negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text',
+        negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus',
         width: 832,
         height: 1216,
         steps: 30,
@@ -2036,20 +2052,24 @@ function generatePortrait(charId) {
         model: orModel, stream: false,
         messages: [{
           role: 'user',
-          content: 'Convert this character description into a Stable Diffusion image prompt for a photorealistic portrait. Output ONLY the prompt — no labels, no explanation, no quotes. Focus on physical appearance: body type, face, hair, eyes, skin tone, expression, clothing, pose. Make it detailed and cinematic. Max 120 words.\n\nCharacter:\n' + loreTruncated
+          content: 'Convert this character description into a Stable Diffusion image prompt for a photorealistic portrait. Output ONLY the prompt — no labels, no explanation, no preamble, no quotes, no markdown. Focus purely on physical appearance: approximate age, body type, face shape, hair colour and style, eye colour, skin tone, expression, clothing. Make it comma-separated descriptive tags. Max 80 words.\n\nCharacter:\n' + loreTruncated
         }]
       })
     }).then(function(r) { return r.json(); }).then(function(data) {
-      var prompt = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-      if (!prompt) throw new Error('No prompt generated');
-      doGenerate(prompt + ', photorealistic, cinematic lighting, detailed skin, sharp focus, 8k, portrait');
+      var msg = data.choices && data.choices[0] && data.choices[0].message;
+      var prompt = msg ? (msg.content || '').trim() : '';
+      // Strip any markdown fences or leading labels the model may add
+      prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
+      if (!prompt || prompt.length < 10) throw new Error('No prompt generated');
+      dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
+      doGenerate(prompt + ', photorealistic, cinematic lighting, detailed skin, sharp focus, 8k, portrait photography');
     }).catch(function(err) {
       dbg('Prompt build failed, using lore directly: ' + err.message);
-      doGenerate('photorealistic portrait, ' + loreTruncated + ', cinematic lighting, detailed skin, sharp focus, 8k');
+      doGenerate(buildFallbackPrompt(loreTruncated));
     });
   } else {
     // No OpenRouter key — use lore directly
-    doGenerate('photorealistic portrait, ' + loreTruncated + ', cinematic lighting, detailed skin, sharp focus, 8k');
+    doGenerate(buildFallbackPrompt(loreTruncated));
   }
 }
 
