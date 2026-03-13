@@ -828,6 +828,62 @@
     opacity: 1; transition: opacity 0.4s;
   }
   .reading-header.hidden { opacity: 0; pointer-events: none; }
+
+  /* Sticky chapter bar — sits below main header */
+  .reading-chapter-bar {
+    position: absolute; top: 52px; left: 0; right: 0;
+    height: 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    background: rgba(250,246,240,0.96);
+    border-bottom: 1px solid var(--border);
+    z-index: 9;
+    opacity: 1; transition: opacity 0.4s;
+  }
+  .reading-chapter-bar.hidden { opacity: 0; pointer-events: none; }
+  .reading-chapter-bar-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 0.82rem;
+    color: var(--rose-deep); font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 60%;
+  }
+  .reading-scene-counter {
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* Chapter jump menu */
+  .reading-jump-btn {
+    background: none; border: none; font-size: 1rem;
+    color: var(--muted); cursor: pointer; padding: 6px 0 6px 8px;
+    flex-shrink: 0;
+  }
+  #readingJumpMenu {
+    display: none; position: absolute; top: 84px; right: 16px;
+    background: white; border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: 0 4px 24px rgba(24,18,14,0.15);
+    z-index: 20; min-width: 220px; max-width: 80vw;
+    max-height: 60vh; overflow-y: auto;
+  }
+  #readingJumpMenu.open { display: block; }
+  .jump-menu-title {
+    padding: 12px 16px 8px;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  .jump-menu-item {
+    padding: 11px 16px; cursor: pointer;
+    font-family: 'Cormorant Garamond', serif; font-size: 0.95rem;
+    color: var(--ink); font-style: italic;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .jump-menu-item:last-child { border-bottom: none; }
+  .jump-menu-item:active { background: var(--parchment); }
+  .jump-menu-item-num {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); font-style: normal; flex-shrink: 0;
+  }
   .reading-close {
     background: none; border: none;
     font-family: 'Jost', sans-serif; font-size: 0.78rem;
@@ -844,7 +900,7 @@
   }
   .reading-scroll {
     flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-    padding: 64px 24px 80px;
+    padding: 96px 24px 80px;
     max-width: 680px; margin: 0 auto; width: 100%;
   }
   .reading-story-title {
@@ -1223,7 +1279,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v30</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v31</span>
     </div>
   </div>
 
@@ -1375,7 +1431,18 @@
     <span class="reading-title" id="readingStoryLabel">—</span>
     <button class="reading-export-btn" type="button" onclick="closeReadingMode();openExportSheet()">Export ↗</button>
   </div>
-  <div class="reading-scroll" id="readingScroll" onclick="toggleReadingHeader()"></div>
+  <div class="reading-chapter-bar" id="readingChapterBar">
+    <span class="reading-chapter-bar-title" id="readingChapterBarTitle">—</span>
+    <div style="display:flex;align-items:center;gap:4px;">
+      <span class="reading-scene-counter" id="readingSceneCounter"></span>
+      <button class="reading-jump-btn" type="button" onclick="toggleJumpMenu(event)" title="Jump to chapter">≡</button>
+    </div>
+  </div>
+  <div id="readingJumpMenu">
+    <div class="jump-menu-title">Jump to Chapter</div>
+    <div id="readingJumpList"></div>
+  </div>
+  <div class="reading-scroll" id="readingScroll" onclick="onReadingScrollClick(event)"></div>
 </div>
 
 <!-- ── EXPORT SHEET ── -->
@@ -2529,7 +2596,8 @@ function getTotalWordCount() {
 }
 
 let readingHeaderVisible = true;
-let readingHeaderTimer;
+let readingScrollPosition = 0; // position memory
+let readingChapterOffsets = []; // [{chapterNum, title, sceneIndex, offset}] for scroll tracking
 
 function openReadingMode() {
   const story = getActiveStory();
@@ -2541,33 +2609,145 @@ function openReadingMode() {
 
   if (!data.length) {
     scroll.innerHTML = '<div class="reading-empty">No scenes written yet.<br><br>Write some scenes first,<br>then return here to read your story.</div>';
+    document.getElementById('readingChapterBar').style.display = 'none';
   } else {
+    document.getElementById('readingChapterBar').style.display = 'flex';
     let html = '<div class="reading-story-title">' + escapeHtml(storyTitle) + '</div>';
     html += '<div class="reading-story-divider">✦ ✦ ✦</div>';
+    let totalScenes = 0;
     data.forEach(ch => {
+      html += '<div class="reading-chapter-anchor" data-ch="' + ch.chapterNum + '" data-title="' + escapeHtml(ch.chapterTitle) + '" data-scene-start="' + totalScenes + '" data-scene-count="' + ch.scenes.length + '"></div>';
       html += '<div class="reading-chapter-num">Chapter ' + ch.chapterNum + '</div>';
       html += '<div class="reading-chapter-heading">' + escapeHtml(ch.chapterTitle) + '</div>';
       ch.scenes.forEach((scene, si) => {
         if (si > 0) html += '<div class="reading-scene-divider">· · ·</div>';
         html += '<div class="reading-prose">' + escapeHtml(scene.text) + '</div>';
+        totalScenes++;
       });
     });
     scroll.innerHTML = html;
+
+    // Build jump menu
+    const jumpList = document.getElementById('readingJumpList');
+    jumpList.innerHTML = '';
+    data.forEach(ch => {
+      const item = document.createElement('div');
+      item.className = 'jump-menu-item';
+      item.innerHTML = '<span class="jump-menu-item-num">Ch ' + ch.chapterNum + '</span><span>' + escapeHtml(ch.chapterTitle) + '</span>';
+      item.addEventListener('click', function() {
+        jumpToChapter(ch.chapterNum);
+        closeJumpMenu();
+      });
+      jumpList.appendChild(item);
+    });
+
+    // Wire scroll listener
+    scroll.removeEventListener('scroll', onReadingScroll);
+    scroll.addEventListener('scroll', onReadingScroll, { passive: true });
+
+    // Restore saved scroll position
+    if (readingScrollPosition > 0) {
+      scroll.scrollTop = readingScrollPosition;
+    } else {
+      scroll.scrollTop = 0;
+    }
+
+    // Initial chapter bar update
+    setTimeout(updateReadingChapterBar, 100);
   }
 
-  scroll.scrollTop = 0;
   readingHeaderVisible = true;
   document.getElementById('readingHeader').classList.remove('hidden');
+  document.getElementById('readingChapterBar').classList.remove('hidden');
   document.getElementById('readingMode').classList.add('open');
 }
 
 function closeReadingMode() {
+  // Save scroll position before closing
+  const scroll = document.getElementById('readingScroll');
+  if (scroll) readingScrollPosition = scroll.scrollTop;
+  closeJumpMenu();
   document.getElementById('readingMode').classList.remove('open');
+}
+
+function onReadingScrollClick(e) {
+  // Close jump menu if open, otherwise toggle header
+  if (document.getElementById('readingJumpMenu').classList.contains('open')) {
+    closeJumpMenu();
+  } else {
+    toggleReadingHeader();
+  }
 }
 
 function toggleReadingHeader() {
   readingHeaderVisible = !readingHeaderVisible;
   document.getElementById('readingHeader').classList.toggle('hidden', !readingHeaderVisible);
+  document.getElementById('readingChapterBar').classList.toggle('hidden', !readingHeaderVisible);
+  if (!readingHeaderVisible) closeJumpMenu();
+}
+
+function onReadingScroll() {
+  updateReadingChapterBar();
+  // Save position
+  const scroll = document.getElementById('readingScroll');
+  if (scroll) readingScrollPosition = scroll.scrollTop;
+}
+
+function updateReadingChapterBar() {
+  const scroll = document.getElementById('readingScroll');
+  if (!scroll) return;
+  const anchors = scroll.querySelectorAll('.reading-chapter-anchor');
+  if (!anchors.length) return;
+
+  const scrollTop = scroll.scrollTop;
+  const viewportMid = scrollTop + 120; // look a bit ahead of top edge
+
+  let currentAnchor = anchors[0];
+  anchors.forEach(function(anchor) {
+    if (anchor.offsetTop <= viewportMid) currentAnchor = anchor;
+  });
+
+  const chNum = currentAnchor.dataset.ch;
+  const chTitle = currentAnchor.dataset.title;
+  const sceneStart = parseInt(currentAnchor.dataset.sceneStart) || 0;
+  const sceneCount = parseInt(currentAnchor.dataset.sceneCount) || 0;
+  const totalScenes = scroll.querySelectorAll('.reading-prose').length;
+
+  document.getElementById('readingChapterBarTitle').textContent = 'Ch ' + chNum + ' — ' + chTitle;
+
+  // Scene counter — figure out which scene within chapter is visible
+  const proses = scroll.querySelectorAll('.reading-prose');
+  let currentSceneInChapter = 1;
+  proses.forEach(function(prose, idx) {
+    if (prose.offsetTop <= viewportMid && idx >= sceneStart && idx < sceneStart + sceneCount) {
+      currentSceneInChapter = idx - sceneStart + 1;
+    }
+  });
+  if (sceneCount > 1) {
+    document.getElementById('readingSceneCounter').textContent = 'Scene ' + currentSceneInChapter + '/' + sceneCount;
+  } else {
+    document.getElementById('readingSceneCounter').textContent = '';
+  }
+}
+
+function jumpToChapter(chNum) {
+  const scroll = document.getElementById('readingScroll');
+  if (!scroll) return;
+  const anchor = scroll.querySelector('.reading-chapter-anchor[data-ch="' + chNum + '"]');
+  if (anchor) {
+    scroll.scrollTop = anchor.offsetTop - 20;
+    setTimeout(updateReadingChapterBar, 100);
+  }
+}
+
+function toggleJumpMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('readingJumpMenu');
+  menu.classList.toggle('open');
+}
+
+function closeJumpMenu() {
+  document.getElementById('readingJumpMenu').classList.remove('open');
 }
 
 // ══════════════════════════════
