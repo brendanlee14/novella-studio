@@ -713,6 +713,100 @@
     width: 100%; max-width: 600px; padding: 20px 16px 48px;
   }
 
+  /* ── LORE WIZARD ── */
+  .wizard-trigger-btn {
+    padding: 4px 10px; border: 1px solid var(--gold);
+    border-radius: 12px; background: none;
+    color: var(--gold); font-family: 'Jost', sans-serif;
+    font-size: 0.68rem; letter-spacing: 0.06em; cursor: pointer;
+    white-space: nowrap;
+  }
+  .wizard-trigger-btn:active { background: var(--gold); color: white; }
+
+  #wizardOverlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(24,18,14,0.82); z-index: 700;
+    align-items: flex-end; justify-content: center;
+  }
+  #wizardOverlay.open { display: flex; }
+
+  .wizard-sheet {
+    background: var(--cream); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px;
+    max-height: 92vh; display: flex; flex-direction: column;
+  }
+  .wizard-header {
+    padding: 16px 20px 0; flex-shrink: 0;
+  }
+  .wizard-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+  .wizard-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.3rem;
+    color: var(--rose-deep); font-style: italic; margin-bottom: 4px;
+  }
+  .wizard-step-label {
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .wizard-progress {
+    display: flex; gap: 4px; margin-bottom: 16px;
+  }
+  .wizard-progress-pip {
+    flex: 1; height: 3px; border-radius: 2px; background: var(--border);
+    transition: background 0.2s;
+  }
+  .wizard-progress-pip.done { background: var(--rose); }
+  .wizard-progress-pip.active { background: var(--gold); }
+
+  .wizard-body {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 0 20px 16px;
+  }
+
+  .wiz-field { margin-bottom: 14px; }
+  .wiz-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--gold); display: block; margin-bottom: 5px;
+  }
+  .wiz-select, .wiz-input, .wiz-textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-family: 'Jost', sans-serif; font-size: 0.88rem;
+    background: var(--parchment); color: var(--ink);
+    appearance: none; -webkit-appearance: none;
+  }
+  .wiz-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a7b72' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+  .wiz-textarea { resize: none; line-height: 1.5; font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; }
+  .wiz-row { display: flex; gap: 10px; }
+  .wiz-row .wiz-field { flex: 1; }
+
+  .wiz-multiselect { display: flex; flex-wrap: wrap; gap: 7px; }
+  .wiz-chip {
+    padding: 6px 12px; border: 1px solid var(--border);
+    border-radius: 16px; font-size: 0.72rem; color: var(--muted);
+    background: var(--surface); cursor: pointer;
+    user-select: none; -webkit-user-select: none;
+    transition: all 0.12s;
+  }
+  .wiz-chip.selected {
+    border-color: var(--rose); color: var(--rose-deep);
+    background: #f9edef;
+  }
+
+  .wizard-footer {
+    padding: 12px 20px 36px; display: flex; gap: 10px; flex-shrink: 0;
+    border-top: 1px solid var(--border);
+  }
+  .wiz-btn-back {
+    flex: 1; padding: 13px; background: none; border: 1px solid var(--border);
+    border-radius: 10px; font-family: 'Jost', sans-serif; font-size: 0.88rem;
+    color: var(--muted); cursor: pointer;
+  }
+  .wiz-btn-next {
+    flex: 2; padding: 13px; background: var(--rose); border: none;
+    border-radius: 10px; font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; font-style: italic; color: white; cursor: pointer;
+  }
+  .wiz-btn-next:disabled { opacity: 0.5; }
+
   /* ── READING MODE OVERLAY ── */
   #readingMode {
     display: none;
@@ -883,7 +977,11 @@
 <div class="screen lore-screen" id="screen-lore">
   <div class="lore-section open">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🌸 Protagonist</span><span class="lore-chevron">▼</span>
+      <span class="lore-title">🌸 Protagonist</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('char1')">✦ Wizard</button>
+        <span class="lore-chevron">▼</span>
+      </div>
     </div>
     <div class="lore-body">
       <div class="portrait-card" id="portrait-char1">
@@ -904,7 +1002,11 @@
   </div>
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">💫 Love Interest</span><span class="lore-chevron">▼</span>
+      <span class="lore-title">💫 Love Interest</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('char2')">✦ Wizard</button>
+        <span class="lore-chevron">▼</span>
+      </div>
     </div>
     <div class="lore-body">
       <div class="portrait-card" id="portrait-char2">
@@ -925,7 +1027,11 @@
   </div>
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">👥 Supporting Cast</span><span class="lore-chevron">▼</span>
+      <span class="lore-title">👥 Supporting Cast</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('charSupport')">✦ Wizard</button>
+        <span class="lore-chevron">▼</span>
+      </div>
     </div>
     <div class="lore-body">
       <div class="portrait-card" id="portrait-charSupport">
@@ -946,13 +1052,21 @@
   </div>
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🏛 World & Setting</span><span class="lore-chevron">▼</span>
+      <span class="lore-title">🏛 World & Setting</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('world')">✦ Wizard</button>
+        <span class="lore-chevron">▼</span>
+      </div>
     </div>
     <div class="lore-body"><textarea id="worldLore" rows="5" placeholder="Time period, location, atmosphere, rules of the world…"></textarea></div>
   </div>
   <div class="lore-section">
     <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🎭 Tone & Style</span><span class="lore-chevron">▼</span>
+      <span class="lore-title">🎭 Tone & Style</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('tone')">✦ Wizard</button>
+        <span class="lore-chevron">▼</span>
+      </div>
     </div>
     <div class="lore-body"><textarea id="toneStyle" rows="4" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea></div>
   </div>
@@ -1109,7 +1223,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v29</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v30</span>
     </div>
   </div>
 
@@ -1215,6 +1329,23 @@
     <div class="sheet-actions">
       <button class="btn-cancel" type="button" id="beatCancelBtn">Cancel</button>
       <button class="btn-save" type="button" id="beatSaveBtn">Save Beat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LORE WIZARD OVERLAY ── -->
+<div id="wizardOverlay">
+  <div class="wizard-sheet">
+    <div class="wizard-header">
+      <div class="wizard-handle"></div>
+      <div class="wizard-title" id="wizardTitle">Character Wizard</div>
+      <div class="wizard-step-label" id="wizardStepLabel">Step 1 of 4</div>
+      <div class="wizard-progress" id="wizardProgress"></div>
+    </div>
+    <div class="wizard-body" id="wizardBody"></div>
+    <div class="wizard-footer">
+      <button class="wiz-btn-back" type="button" id="wizBtnBack">Back</button>
+      <button class="wiz-btn-next" type="button" id="wizBtnNext">Next →</button>
     </div>
   </div>
 </div>
@@ -2847,9 +2978,633 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+
 // ══════════════════════════════
-// GITHUB GIST SYNC
+// LORE WIZARD
 // ══════════════════════════════
+const ACCENT_PHRASES = {
+  'French': 'putain, merde, oh là là, c\'est bon, encore, plus fort, ne t\'arrête pas',
+  'Italian': 'cazzo, dio, così, ancora, non fermarti, oddio, bello',
+  'Spanish': 'dios mío, joder, así, más, no pares, hostia, ay, coño',
+  'Portuguese (European)': 'caralho, meu deus, assim, mais, não pares, foda-se',
+  'Brazilian Portuguese': 'porra, meu deus, gostoso, assim, não para, vai, caramba',
+  'German': 'scheiße, gott, ja, so gut, hör nicht auf, verdammt, genau',
+  'Dutch': 'godverdomme, ja, zo goed, stop niet, lekker',
+  'Swedish': 'helvete, ja, så bra, sluta inte, gud',
+  'Norwegian': 'faen, ja, så godt, ikke stopp, herregud',
+  'Danish': 'for helvede, ja, så godt, stop ikke, gud',
+  'Finnish': 'vittu, jumalauta, kyllä, niin hyvää, älä lopeta',
+  'Polish': 'kurwa, boże, tak, nie przestawaj, jeszcze, cholera',
+  'Czech': 'kurva, bože, ano, nepřestávej, tak dobře',
+  'Romanian': 'doamne, da, aşa, nu te opri, futut',
+  'Hungarian': 'basszus, istenem, igen, ne állj meg, olyan jó',
+  'Greek': 'θεέ μου (thee mou), ναι (nai), έτσι (etsi), μη σταματάς (mi stamatas)',
+  'Russian': 'blyad (блядь), bozhe moy (боже мой), da (да), eshchyo (ещё), ne ostanovaysya (не останавливайся)',
+  'Ukrainian': 'blyad (блядь), bozhe (боже), tak (так), ne zupynyaysya (не зупиняйся)',
+  'Japanese': 'iya (いや), dame (ダメ), sugoi (すごい), kimochi ii (気持ちいい), motto (もっと)',
+  'Korean': 'aish (아이씨), oppa (오빠), joha (좋아), deo (더), hajima (하지마 — don\'t stop)',
+  'Mandarin Chinese': 'tiān a (天啊), hǎo (好), bù yào tíng (不要停), wǒ yào (我要), shòu bù liǎo (受不了)',
+  'Cantonese': 'aiya (哎呀), hou (好), m̀h hóu tìng (唔好停), ngóh yiu (我要)',
+  'Thai': 'โอ้โห (oh ho), ใช่ (chai — yes), อย่าหยุด (yaa yut — don\'t stop), ดีมาก (dee mak)',
+  'Vietnamese': 'trời ơi, có, đừng dừng lại, hay quá',
+  'Filipino': 'putangina, oo, huwag huminto, ang sarap, ay',
+  'Indian (Hindi)': 'arré (अरे), hai ram (हाय राम), achha (अच्छा), bas (बस), aur (और), bhagwan',
+  'Indian (Tamil)': 'ayyayo, aamaa, niruthaadhe, romba nalla irukku',
+  'Pakistani': 'arré yaar, hay allah, haan, ruko mat, bas',
+  'Arabic': 'ya ilahi (يا إلهي), habibi (حبيبي), ah (آه), la tawaqqaf (لا تتوقف), allah (الله)',
+  'Turkish': 'tanrım, evet, daha, dur gitme, Allah\'ım, of',
+  'Persian': 'khodaya, ari, bishtar, va naysti, ay joon',
+  'Nigerian': 'chai, omo, e don do me, abeg, ah ah, ha',
+  'Kenyan': 'mungu wangu, ndiyo, usisimame, pole pole, aah',
+  'South African': 'jissis, fok, lekker, ag nee, bliksem, eish',
+  'Ghanaian': 'ei, awurade, yoo, enti, ah',
+  'Ethiopian': 'egziabher, awo, atenager, betam tiru new',
+  'Moroccan': 'ya rabbi, iyeh, zid, ma tewqefsh, baraka',
+  'Mexican': 'dios mío, chingao, así, más, no pares, ay cabrón',
+  'Colombian': 'dios mío, jueputa, así, más, no pares, ay',
+  'Argentine': 'la puta madre, dios, así, más, no pares, boludo',
+  'British (RP)': '',
+  'British (Northern)': '',
+  'British (Scottish)': '',
+  'British (Irish)': '',
+  'American': '',
+  'Australian': '',
+  'New Zealand': '',
+  'South African (English)': '',
+  'Caribbean': 'lawd, yes, don\'t stop, sweet, oh god'
+};
+
+const ACCENTS_BY_REGION = {
+  'European': ['French','Italian','Spanish','Portuguese (European)','Brazilian Portuguese','German','Dutch','Swedish','Norwegian','Danish','Finnish','Polish','Czech','Romanian','Hungarian','Greek','Russian','Ukrainian'],
+  'Asian': ['Japanese','Korean','Mandarin Chinese','Cantonese','Thai','Vietnamese','Filipino','Indian (Hindi)','Indian (Tamil)','Pakistani'],
+  'African': ['Nigerian','Kenyan','South African','Ghanaian','Ethiopian','Moroccan','Tanzanian','Senegalese','Congolese','Egyptian'],
+  'Middle Eastern': ['Arabic','Turkish','Persian','Israeli','Lebanese'],
+  'Latin American': ['Mexican','Colombian','Argentine','Chilean','Cuban','Venezuelan'],
+  'English Variants': ['British (RP)','British (Northern)','British (Scottish)','British (Irish)','American','Australian','New Zealand','South African (English)','Caribbean']
+};
+
+const ETHNICITIES = ['White','Black','Latina','South Asian','East Asian','Middle Eastern','Mixed','Other'];
+const ETHNICITIES_DETAIL = ['White','Black','Latino/a','South Asian','East Asian','Middle Eastern','Indigenous','North African','Mixed Race'];
+
+// Wizard state
+let wizardTarget = null; // 'char1','char2','charSupport','world','tone'
+let wizardStep = 0;
+let wizardSteps = [];
+let wizardData = {};
+
+function openWizard(target) {
+  wizardTarget = target;
+  wizardStep = 0;
+  wizardData = {};
+  wizardSteps = buildWizardSteps(target);
+  document.getElementById('wizardOverlay').classList.add('open');
+  renderWizardStep();
+}
+
+function closeWizard() {
+  document.getElementById('wizardOverlay').classList.remove('open');
+  wizardTarget = null;
+}
+
+function buildWizardSteps(target) {
+  if (target === 'char1') return ['identity','build','penis','personality'];
+  if (target === 'char2') return ['identity_f','face','body','dynamic','relationship'];
+  if (target === 'charSupport') return ['identity_f','face','body','dynamic','relationship','cast_diff'];
+  if (target === 'world') return ['world'];
+  if (target === 'tone') return ['tone'];
+  return [];
+}
+
+function wizardStepTitle(step) {
+  const map = {
+    identity: 'Protagonist — Identity',
+    build: 'Protagonist — Build & Physique',
+    penis: 'Protagonist — Physical Detail',
+    personality: 'Protagonist — Personality',
+    identity_f: 'Character — Identity',
+    face: 'Character — Face',
+    body: 'Character — Body',
+    dynamic: 'Character — Dynamic & Voice',
+    relationship: 'Character — Relationship History',
+    cast_diff: 'Supporting — Story Role',
+    world: 'World & Setting',
+    tone: 'Tone & Style'
+  };
+  return map[step] || step;
+}
+
+function sel(id) { return document.getElementById(id); }
+
+function wField(label, id, type, options, placeholder, note) {
+  var extra = note ? '<div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">' + note + '</div>' : '';
+  if (type === 'select') {
+    var opts = options.map(function(o) { return '<option value="' + o + '">' + o + '</option>'; }).join('');
+    return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><select class="wiz-select" id="' + id + '"><option value="">— select —</option>' + opts + '</select>' + extra + '</div>';
+  }
+  if (type === 'text') {
+    return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><input class="wiz-input" id="' + id + '" type="text" placeholder="' + (placeholder||'') + '" /></div>';
+  }
+  if (type === 'textarea') {
+    return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><textarea class="wiz-textarea" id="' + id + '" rows="3" placeholder="' + (placeholder||'') + '"></textarea>' + extra + '</div>';
+  }
+  if (type === 'multiselect') {
+    var chips = options.map(function(o) { return '<div class="wiz-chip" data-val="' + o + '" onclick="toggleWizChip(this)">' + o + '</div>'; }).join('');
+    return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><div class="wiz-multiselect" id="' + id + '">' + chips + '</div>' + extra + '</div>';
+  }
+  return '';
+}
+
+function getSelectedChips(containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return [];
+  return Array.from(el.querySelectorAll('.wiz-chip.selected')).map(function(c) { return c.dataset.val; });
+}
+
+function toggleWizChip(el) { el.classList.toggle('selected'); }
+
+function accentGroupOptions() {
+  var html = '<option value="">— select —</option>';
+  Object.keys(ACCENTS_BY_REGION).forEach(function(region) {
+    html += '<optgroup label="' + region + '">';
+    ACCENTS_BY_REGION[region].forEach(function(a) { html += '<option value="' + a + '">' + a + '</option>'; });
+    html += '</optgroup>';
+  });
+  return html;
+}
+
+function renderWizardStep() {
+  var stepKey = wizardSteps[wizardStep];
+  var total = wizardSteps.length;
+
+  document.getElementById('wizardTitle').textContent = wizardStepTitle(stepKey);
+  document.getElementById('wizardStepLabel').textContent = 'Step ' + (wizardStep + 1) + ' of ' + total;
+
+  // Progress pips
+  var pips = '';
+  for (var i = 0; i < total; i++) {
+    var cls = i < wizardStep ? 'done' : (i === wizardStep ? 'active' : '');
+    pips += '<div class="wizard-progress-pip ' + cls + '"></div>';
+  }
+  document.getElementById('wizardProgress').innerHTML = pips;
+
+  // Back button
+  sel('wizBtnBack').textContent = wizardStep === 0 ? '✕ Cancel' : '← Back';
+  sel('wizBtnNext').textContent = wizardStep === total - 1 ? '✦ Generate Lore' : 'Next →';
+
+  // Restore saved values if any
+  var saved = wizardData[stepKey] || {};
+
+  var body = '';
+
+  if (stepKey === 'identity') {
+    body += wField('Name', 'wiz_name', 'text', null, 'e.g. Marcus');
+    body += wField('Age', 'wiz_age', 'text', null, 'e.g. 38');
+    body += wField('Ethnicity', 'wiz_ethnicity', 'select', ETHNICITIES);
+    body += '<div class="wiz-field" id="wiz_mixed_row" style="display:none">';
+    body += '<label class="wiz-label">Mixed — First Ethnicity</label><select class="wiz-select" id="wiz_eth1"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += '<label class="wiz-label" style="margin-top:8px;">Mixed — Second Ethnicity</label><select class="wiz-select" id="wiz_eth2"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += wField('Additional ethnicity detail', 'wiz_eth_detail', 'text', null, 'e.g. half Brazilian half Japanese');
+    body += '</div>';
+  }
+
+  if (stepKey === 'build') {
+    body += wField('Body Type', 'wiz_bodytype', 'select', ['Slim','Athletic','Muscular','Stocky','Broad','Heavyset']);
+    body += wField('Height', 'wiz_height', 'select', ['Short (5\'5" and under)','Average (5\'6"–5\'10")','Tall (5\'11"–6\'2")','Very tall (6\'3"+)']);
+    body += wField('Chest', 'wiz_chest', 'select', ['Lean','Defined','Broad','Barrel']);
+    body += wField('Hands', 'wiz_hands', 'select', ['Slim and long','Average','Large','Rough and working','Refined']);
+    body += wField('Additional build detail', 'wiz_build_extra', 'text', null, 'Any other physical detail…');
+  }
+
+  if (stepKey === 'penis') {
+    body += wField('Length', 'wiz_pen_length', 'select', ['Average','Above average','Large','Very large']);
+    body += wField('Girth', 'wiz_pen_girth', 'select', ['Slim','Average','Thick','Very thick']);
+    body += wField('Cut', 'wiz_pen_cut', 'select', ['Cut','Uncut']);
+    body += wField('Additional detail', 'wiz_pen_extra', 'text', null, 'Any distinguishing characteristic…');
+  }
+
+  if (stepKey === 'personality') {
+    body += wField('Dominant Mode in Intimate Situations', 'wiz_dommode', 'select', ['Voyeur','Slow seducer','Controller','Worshipper','Loses control','Switches']);
+    body += wField('His Specific Weakness', 'wiz_weakness', 'text', null, 'What undoes him — e.g. a woman who holds eye contact');
+    body += wField('What He Notices First', 'wiz_notices', 'text', null, 'e.g. how she moves, her neck, the way she laughs');
+    body += wField('His Tell When Close to the Edge', 'wiz_tell', 'text', null, 'e.g. jaw tightens, goes very still, grip tightens');
+    body += wField('Additional personality notes', 'wiz_pers_extra', 'textarea', null, 'Backstory, desires, contradictions…');
+  }
+
+  if (stepKey === 'identity_f') {
+    body += wField('Name', 'wiz_name', 'text', null, 'e.g. Sofia');
+    body += wField('Age', 'wiz_age', 'text', null, 'e.g. 29');
+    body += wField('Role in Story', 'wiz_role', 'select', ['Wife','Girlfriend','Affair','Stranger','Colleague','Friend\'s partner','Escort','Neighbour','Other']);
+    body += wField('Ethnicity', 'wiz_ethnicity', 'select', ETHNICITIES);
+    body += '<div class="wiz-field" id="wiz_mixed_row" style="display:none">';
+    body += '<label class="wiz-label">Mixed — First Ethnicity</label><select class="wiz-select" id="wiz_eth1"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += '<label class="wiz-label" style="margin-top:8px;">Mixed — Second Ethnicity</label><select class="wiz-select" id="wiz_eth2"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += wField('Additional ethnicity detail', 'wiz_eth_detail', 'text', null, 'e.g. half Brazilian half Japanese, raised in London');
+    body += '</div>';
+  }
+
+  if (stepKey === 'face') {
+    body += '<div class="wiz-row">';
+    body += wField('Face Shape', 'wiz_face_shape', 'select', ['Oval','Round','Heart','Square','Angular','Diamond']);
+    body += wField('Eye Colour', 'wiz_eye_colour', 'select', ['Brown','Dark brown','Blue','Green','Hazel','Grey','Amber','Other']);
+    body += '</div>';
+    body += '<div class="wiz-row">';
+    body += wField('Hair Colour', 'wiz_hair_colour', 'select', ['Black','Dark brown','Brown','Dirty blonde','Blonde','Red','Auburn','Grey','Platinum','Other']);
+    body += wField('Hair Length', 'wiz_hair_length', 'select', ['Cropped','Short','Shoulder','Long','Very long']);
+    body += '</div>';
+    body += wField('Most Striking Facial Feature', 'wiz_face_feature', 'text', null, 'e.g. full lips, strong jaw, heavy-lidded eyes');
+  }
+
+  if (stepKey === 'body') {
+    body += '<div class="wiz-row">';
+    body += wField('Body Type', 'wiz_bodytype', 'select', ['Petite','Slim','Athletic','Curvy','Full-figured','Voluptuous','Slender with curves']);
+    body += wField('Ass', 'wiz_ass', 'select', ['Flat','Proportionate','Round','Full','Large and round']);
+    body += '</div>';
+    body += '<div class="wiz-row">';
+    body += wField('Breast Size', 'wiz_breast_size', 'select', ['Small (A)','Medium (B)','Full (C)','Large (D)','Very large (DD+)','Huge (E+)']);
+    body += wField('Breast Shape', 'wiz_breast_shape', 'select', ['Natural — perky','Natural — full and heavy','Natural — soft','Implants — round and firm','Implants — full','High and close set','Wide set']);
+    body += '</div>';
+    body += '<div class="wiz-row">';
+    body += wField('Nipples', 'wiz_nipples', 'select', ['Small and pale','Small and dark','Medium','Large','Very prominent','Inverted']);
+    body += wField('Breast Movement', 'wiz_breast_move', 'select', ['Barely moves','Subtle bounce','Natural sway','Full bounce','Heavy swing']);
+    body += '</div>';
+    body += wField('Bra Tendency', 'wiz_bra', 'select', ['Rarely wears one','Goes braless at home','Wears occasionally','Always wears one','Only wears lingerie']);
+    body += '<div class="wiz-row">';
+    body += wField('Pubic Hair', 'wiz_pubic', 'select', ['Bare','Trimmed short','Landing strip','Triangle','Full natural','Shaped']);
+    body += wField('Pussy Style', 'wiz_pussy', 'select', ['Neat and closed','Small inner lips','Prominent inner lips','Full','Puffy','Other']);
+    body += '</div>';
+    body += wField('Additional body detail', 'wiz_body_extra', 'text', null, 'Tattoos, piercings, scars, birthmarks…');
+  }
+
+  if (stepKey === 'dynamic') {
+    body += wField('Voice Quality', 'wiz_voice', 'select', ['Soft','Husky','Breathy','Low and controlled','High and light','Raspy','Melodic','Quiet and precise']);
+    body += '<div class="wiz-field"><label class="wiz-label">Accent</label><select class="wiz-select" id="wiz_accent" onchange="onWizAccentChange()">' + accentGroupOptions() + '</select></div>';
+    body += wField('Accent Strength', 'wiz_accent_strength', 'select', ['Subtle','Moderate','Strong']);
+    body += '<div class="wiz-field" id="wiz_exclaim_row" style="display:none"><label class="wiz-label">Native Exclamations During Sex</label><select class="wiz-select" id="wiz_exclaim_freq" onchange="onWizExclaimFreqChange()"><option value="">— select —</option><option>Off</option><option>Occasional — one or two words at peak moments</option><option>Regular — woven throughout arousal</option><option>Slips into native language when she loses control</option></select></div>';
+    body += '<div class="wiz-field" id="wiz_phrases_row" style="display:none"><label class="wiz-label">Seed Phrases <span style="font-weight:300;font-style:italic;color:var(--muted)">— edit freely</span></label><textarea class="wiz-textarea" id="wiz_phrases" rows="3" placeholder="Native words and exclamations…"></textarea><div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">Pre-filled from accent — edit or add your own</div></div>';
+    body += wField('Carries Herself', 'wiz_carries', 'select', ['Unaware of her effect','Quietly confident','Deliberately teasing','Exhibitionist','Demure and restrained','Controlled with hidden heat']);
+    body += wField('Power Dynamic', 'wiz_power', 'select', ['Submissive','Dominant','Equal','Shifts with context','Submissive in private only']);
+    body += wField('Her Kink or Defining Behaviour', 'wiz_kink', 'text', null, 'e.g. needs to be watched, responds to praise, loses control when…');
+    body += wField('Physical Tell When Aroused', 'wiz_arousal_tell', 'text', null, 'e.g. flush spreads from neck, breathing slows, bites lower lip');
+    body += wField('Signature Gesture', 'wiz_gesture', 'select', ['Holds eye contact too long','Touches her own neck','Bites lip when thinking','Tucks hair when nervous','Mirrors his body language','Tilts chin up when challenged','Trails fingers when she walks past','Other']);
+    body += wField('Signature Scent', 'wiz_scent', 'select', ['Warm vanilla','Jasmine','Sandalwood','Citrus and clean','Floral and soft','Musk','Clean skin, barely there','Dark rose','Coconut and warm skin','Other']);
+  }
+
+  if (stepKey === 'relationship') {
+    body += wField('How Long Have They Known Each Other', 'wiz_hist_length', 'select', ['Just met','A few days','Weeks','Several months','A year or more','Years']);
+    body += wField('Prior Physical Contact', 'wiz_hist_contact', 'select', ['Nothing has happened','Charged moments only','They\'ve kissed','More has happened — unspoken','A full encounter, never repeated']);
+    body += wField('Who Else Knows About Them', 'wiz_hist_who', 'select', ['Nobody','One person knows','Several people know','Open secret','Complicated — select below']);
+    body += wField('The Unspoken Thing Between Them', 'wiz_unspoken', 'select', ['She knows he wants her','He doesn\'t know she wants him','Mutual unspoken desire','Past incident neither mentions','Power imbalance neither acknowledges','She holds something back deliberately']);
+    body += wField('What She Withholds', 'wiz_withholds', 'text', null, 'What the protagonist can\'t quite have yet…');
+  }
+
+  if (stepKey === 'cast_diff') {
+    body += wField('Her Relationship to the Love Interest', 'wiz_cast_li', 'select', ['Doesn\'t know her','Close friends','Acquaintances','Rivals','Works together','Family connection','Unaware of each other']);
+    body += wField('Protagonist\'s Prior History With Her', 'wiz_cast_hist', 'select', ['Never met','Aware of her but distant','Had a charged moment','History he hasn\'t disclosed']);
+    body += wField('Her Role in the Story', 'wiz_cast_role', 'select', ['One-off scene only','Recurring presence','Slow burn subplot','Parallel to main dynamic','Catalyst — changes something']);
+    body += wField('Does the Love Interest Know About Her?', 'wiz_cast_li_knows', 'select', ['No','Suspects','Knows and accepts','Knows and doesn\'t know he knows','N/A — no love interest']);
+  }
+
+  if (stepKey === 'world') {
+    body += wField('Setting Type', 'wiz_setting', 'select', ['Domestic — home life','Holiday','Hotel','Workplace','Urban apartment','Rural retreat','Exotic travel','Multiple locations']);
+    body += wField('Location / Country', 'wiz_location', 'text', null, 'e.g. Singapore, Maldives, Paris…');
+    body += wField('Time Period', 'wiz_timeperiod', 'select', ['Contemporary','Near future','1990s','1980s','Earlier — add detail below']);
+    body += wField('Atmosphere', 'wiz_atmosphere', 'select', ['Hot and humid — tropical','Cool and grey — northern','Luxury and excess','Quiet suburban','Transient — hotels and airports','Intimate and domestic']);
+    body += wField('Additional world detail', 'wiz_world_extra', 'textarea', null, 'Any other setting context, rules, atmosphere…');
+  }
+
+  if (stepKey === 'tone') {
+    body += wField('Heat Level', 'wiz_heat', 'select', ['Sensual and suggestive — no explicit acts','Explicit — sex described but tasteful','Fully explicit — graphic detail, nothing skipped','No ceiling — follow the scene wherever it goes']);
+    body += wField('POV Rules', 'wiz_pov', 'select', ['Strictly his gaze — never leaves his head','Occasionally her POV','His gaze with her interiority allowed','Dual POV']);
+    body += wField('Pacing', 'wiz_pacing', 'select', ['Unhurried and deeply detailed','Brisk and urgent','Mix of both','Slow build then explicit release']);
+    body += wField('Dialogue Ratio', 'wiz_dialogue', 'select', ['Mostly action and description','Light dialogue only','Balanced — equal action and dialogue','Dialogue-driven','Heavy internal monologue']);
+    body += wField('Dialogue Style', 'wiz_dialogue_style', 'select', ['Sparse and loaded','Natural and realistic','Teasing and playful','Direct and explicit','Formal with undercurrent']);
+    body += '<div class="wiz-field"><label class="wiz-label">Active Kinks <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_kinks">' +
+      ['Voyeurism','Exhibitionism','Power exchange','Dominance / submission','Cuckolding','Threesome / group','Public / semi-public','Roleplay','Light bondage','Blindfolds','Dirty talk','Edging / denial','Size difference','Age gap','Forbidden / taboo context','First time / initiation','Slow seduction over multiple scenes','Overpowered / overwhelmed','Watching her with another','Being watched'].map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
+    body += wField('Escalation Ceiling', 'wiz_ceiling', 'select', ['Sensual — no explicit acts','Explicit but tasteful','Fully explicit, graphic','No ceiling']);
+    body += '<div class="wiz-field"><label class="wiz-label">Hard Limits — Never Appears <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_limits">' +
+      ['Fade to black','Euphemisms for anatomy','Cutting away at moment of contact','Emotional deflection instead of physical description','Purple prose / over-metaphored writing','Male protagonist loses composure entirely','She is fully in control at all times','Pain without consent','Degradation','Anything non-consensual framed approvingly'].map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
+    body += wField('Additional tone notes', 'wiz_tone_extra', 'textarea', null, 'Anything else about voice, style, what to avoid…');
+  }
+
+  sel('wizardBody').innerHTML = body;
+
+  // Restore saved values
+  Object.keys(saved).forEach(function(k) {
+    var el = document.getElementById(k);
+    if (!el) return;
+    if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.value = saved[k];
+    }
+  });
+  // Restore multiselects
+  if (saved._chips) {
+    Object.keys(saved._chips).forEach(function(containerId) {
+      var container = document.getElementById(containerId);
+      if (!container) return;
+      saved._chips[containerId].forEach(function(val) {
+        var chip = container.querySelector('[data-val="' + val + '"]');
+        if (chip) chip.classList.add('selected');
+      });
+    });
+  }
+
+  // Wire mixed ethnicity show/hide
+  var ethSel = document.getElementById('wiz_ethnicity');
+  if (ethSel) {
+    ethSel.addEventListener('change', function() {
+      var row = document.getElementById('wiz_mixed_row');
+      if (row) row.style.display = this.value === 'Mixed' ? 'block' : 'none';
+    });
+    if (ethSel.value === 'Mixed') {
+      var row = document.getElementById('wiz_mixed_row');
+      if (row) row.style.display = 'block';
+    }
+  }
+
+  // Wire accent show/hide on restore
+  var accentEl = document.getElementById('wiz_accent');
+  if (accentEl && accentEl.value) onWizAccentChange();
+
+  sel('wizardBody').scrollTop = 0;
+}
+
+function onWizAccentChange() {
+  var accent = sel('wiz_accent') ? sel('wiz_accent').value : '';
+  var exclaimRow = sel('wiz_exclaim_row');
+  var phrasesRow = sel('wiz_phrases_row');
+  var englishOnly = ['British (RP)','British (Northern)','British (Scottish)','British (Irish)','American','Australian','New Zealand','South African (English)',''].indexOf(accent) > -1;
+  if (exclaimRow) exclaimRow.style.display = englishOnly ? 'none' : 'block';
+  if (phrasesRow) phrasesRow.style.display = 'none';
+  // Pre-fill phrases
+  if (!englishOnly && ACCENT_PHRASES[accent]) {
+    var phrasesEl = sel('wiz_phrases');
+    if (phrasesEl) phrasesEl.value = ACCENT_PHRASES[accent];
+  }
+}
+
+function onWizExclaimFreqChange() {
+  var freq = sel('wiz_exclaim_freq') ? sel('wiz_exclaim_freq').value : '';
+  var phrasesRow = sel('wiz_phrases_row');
+  if (phrasesRow) phrasesRow.style.display = (freq && freq !== 'Off') ? 'block' : 'none';
+}
+
+function saveWizardStepData() {
+  var stepKey = wizardSteps[wizardStep];
+  var data = {};
+  // Collect all inputs
+  sel('wizardBody').querySelectorAll('input,select,textarea').forEach(function(el) {
+    if (el.id) data[el.id] = el.value;
+  });
+  // Collect multiselects
+  var chips = {};
+  sel('wizardBody').querySelectorAll('.wiz-multiselect').forEach(function(container) {
+    if (container.id) {
+      chips[container.id] = Array.from(container.querySelectorAll('.wiz-chip.selected')).map(function(c){ return c.dataset.val; });
+    }
+  });
+  if (Object.keys(chips).length) data._chips = chips;
+  wizardData[stepKey] = data;
+}
+
+function wizardNext() {
+  saveWizardStepData();
+  if (wizardStep < wizardSteps.length - 1) {
+    wizardStep++;
+    renderWizardStep();
+  } else {
+    generateLoreFromWizard();
+  }
+}
+
+function wizardBack() {
+  if (wizardStep === 0) {
+    closeWizard();
+  } else {
+    saveWizardStepData();
+    wizardStep--;
+    renderWizardStep();
+  }
+}
+
+function collectWizardValue(stepKey, fieldId) {
+  return (wizardData[stepKey] && wizardData[stepKey][fieldId]) ? wizardData[stepKey][fieldId] : '';
+}
+
+function collectWizardChips(stepKey, containerId) {
+  return (wizardData[stepKey] && wizardData[stepKey]._chips && wizardData[stepKey]._chips[containerId]) ? wizardData[stepKey]._chips[containerId] : [];
+}
+
+function buildLorePrompt() {
+  var lines = [];
+  var target = wizardTarget;
+
+  if (target === 'char1') {
+    var name = collectWizardValue('identity','wiz_name');
+    var age = collectWizardValue('identity','wiz_age');
+    var eth = collectWizardValue('identity','wiz_ethnicity');
+    if (eth === 'Mixed') {
+      var e1 = collectWizardValue('identity','wiz_eth1');
+      var e2 = collectWizardValue('identity','wiz_eth2');
+      var ed = collectWizardValue('identity','wiz_eth_detail');
+      eth = 'Mixed (' + [e1,e2,ed].filter(Boolean).join(', ') + ')';
+    }
+    lines.push('PROTAGONIST');
+    lines.push('Name: ' + (name||'unnamed') + ', Age: ' + (age||'unspecified') + ', Ethnicity: ' + (eth||'unspecified'));
+    var bodytype = collectWizardValue('build','wiz_bodytype');
+    var height = collectWizardValue('build','wiz_height');
+    var chest = collectWizardValue('build','wiz_chest');
+    var hands = collectWizardValue('build','wiz_hands');
+    var buildExtra = collectWizardValue('build','wiz_build_extra');
+    lines.push('Build: ' + [bodytype,height,chest,hands,buildExtra].filter(Boolean).join(', '));
+    var penLen = collectWizardValue('penis','wiz_pen_length');
+    var penGirth = collectWizardValue('penis','wiz_pen_girth');
+    var penCut = collectWizardValue('penis','wiz_pen_cut');
+    var penExtra = collectWizardValue('penis','wiz_pen_extra');
+    lines.push('Penis: ' + [penLen,penGirth,penCut,penExtra].filter(Boolean).join(', '));
+    var domMode = collectWizardValue('personality','wiz_dommode');
+    var weakness = collectWizardValue('personality','wiz_weakness');
+    var notices = collectWizardValue('personality','wiz_notices');
+    var tell = collectWizardValue('personality','wiz_tell');
+    var persExtra = collectWizardValue('personality','wiz_pers_extra');
+    lines.push('Intimate mode: ' + (domMode||'unspecified'));
+    if (weakness) lines.push('His weakness: ' + weakness);
+    if (notices) lines.push('Notices first: ' + notices);
+    if (tell) lines.push('Tell when close to edge: ' + tell);
+    if (persExtra) lines.push('Additional: ' + persExtra);
+  }
+
+  if (target === 'char2' || target === 'charSupport') {
+    var label = target === 'char2' ? 'LOVE INTEREST' : 'SUPPORTING CHARACTER';
+    var name = collectWizardValue('identity_f','wiz_name');
+    var age = collectWizardValue('identity_f','wiz_age');
+    var role = collectWizardValue('identity_f','wiz_role');
+    var eth = collectWizardValue('identity_f','wiz_ethnicity');
+    if (eth === 'Mixed') {
+      var e1 = collectWizardValue('identity_f','wiz_eth1');
+      var e2 = collectWizardValue('identity_f','wiz_eth2');
+      var ed = collectWizardValue('identity_f','wiz_eth_detail');
+      eth = 'Mixed (' + [e1,e2,ed].filter(Boolean).join(', ') + ')';
+    }
+    lines.push(label);
+    lines.push('Name: ' + (name||'unnamed') + ', Age: ' + (age||'unspecified') + ', Role: ' + (role||'unspecified') + ', Ethnicity: ' + (eth||'unspecified'));
+    // Face
+    lines.push('Face: ' + [collectWizardValue('face','wiz_face_shape'),collectWizardValue('face','wiz_eye_colour') + ' eyes',collectWizardValue('face','wiz_hair_colour') + ' hair (' + collectWizardValue('face','wiz_hair_length') + ')',collectWizardValue('face','wiz_face_feature')].filter(Boolean).join(', '));
+    // Body
+    var bodyParts = [
+      collectWizardValue('body','wiz_bodytype'),
+      'breasts: ' + collectWizardValue('body','wiz_breast_size') + ' ' + collectWizardValue('body','wiz_breast_shape'),
+      'nipples: ' + collectWizardValue('body','wiz_nipples'),
+      'breast movement: ' + collectWizardValue('body','wiz_breast_move'),
+      'bra tendency: ' + collectWizardValue('body','wiz_bra'),
+      'ass: ' + collectWizardValue('body','wiz_ass'),
+      'pubic hair: ' + collectWizardValue('body','wiz_pubic'),
+      'pussy: ' + collectWizardValue('body','wiz_pussy'),
+      collectWizardValue('body','wiz_body_extra')
+    ].filter(function(v){ return v && v.trim() && v.trim() !== ':' && v.trim() !== ': '; });
+    lines.push('Body: ' + bodyParts.join(', '));
+    // Dynamic
+    var voice = collectWizardValue('dynamic','wiz_voice');
+    var accent = collectWizardValue('dynamic','wiz_accent');
+    var accentStr = collectWizardValue('dynamic','wiz_accent_strength');
+    var exclaimFreq = collectWizardValue('dynamic','wiz_exclaim_freq');
+    var phrases = collectWizardValue('dynamic','wiz_phrases');
+    var carries = collectWizardValue('dynamic','wiz_carries');
+    var power = collectWizardValue('dynamic','wiz_power');
+    var kink = collectWizardValue('dynamic','wiz_kink');
+    var arousalTell = collectWizardValue('dynamic','wiz_arousal_tell');
+    var gesture = collectWizardValue('dynamic','wiz_gesture');
+    var scent = collectWizardValue('dynamic','wiz_scent');
+    if (voice) lines.push('Voice: ' + voice + (accent && accent !== '' ? ', ' + accentStr + ' ' + accent + ' accent' : ''));
+    if (exclaimFreq && exclaimFreq !== 'Off' && phrases) lines.push('Native exclamations: ' + exclaimFreq + ' — phrases: ' + phrases);
+    if (carries) lines.push('Carries herself: ' + carries);
+    if (power) lines.push('Power dynamic: ' + power);
+    if (kink) lines.push('Her kink / defining behaviour: ' + kink);
+    if (arousalTell) lines.push('Physical tell when aroused: ' + arousalTell);
+    if (gesture) lines.push('Signature gesture: ' + gesture);
+    if (scent) lines.push('Signature scent: ' + scent);
+    // Relationship
+    var histLen = collectWizardValue('relationship','wiz_hist_length');
+    var histContact = collectWizardValue('relationship','wiz_hist_contact');
+    var histWho = collectWizardValue('relationship','wiz_hist_who');
+    var unspoken = collectWizardValue('relationship','wiz_unspoken');
+    var withholds = collectWizardValue('relationship','wiz_withholds');
+    if (histLen) lines.push('History: ' + histLen + (histContact ? ', ' + histContact : ''));
+    if (histWho) lines.push('Who knows: ' + histWho);
+    if (unspoken) lines.push('Unspoken tension: ' + unspoken);
+    if (withholds) lines.push('What she withholds: ' + withholds);
+    // Cast differentiation
+    if (target === 'charSupport') {
+      var castLI = collectWizardValue('cast_diff','wiz_cast_li');
+      var castHist = collectWizardValue('cast_diff','wiz_cast_hist');
+      var castRole = collectWizardValue('cast_diff','wiz_cast_role');
+      var castLiKnows = collectWizardValue('cast_diff','wiz_cast_li_knows');
+      if (castLI) lines.push('Relationship to love interest: ' + castLI);
+      if (castHist) lines.push('Protagonist\'s history with her: ' + castHist);
+      if (castRole) lines.push('Her story role: ' + castRole);
+      if (castLiKnows) lines.push('Love interest aware of her: ' + castLiKnows);
+    }
+  }
+
+  if (target === 'world') {
+    lines.push('WORLD & SETTING');
+    lines.push('Setting: ' + collectWizardValue('world','wiz_setting'));
+    lines.push('Location: ' + collectWizardValue('world','wiz_location'));
+    lines.push('Period: ' + collectWizardValue('world','wiz_timeperiod'));
+    lines.push('Atmosphere: ' + collectWizardValue('world','wiz_atmosphere'));
+    var worldExtra = collectWizardValue('world','wiz_world_extra');
+    if (worldExtra) lines.push('Additional: ' + worldExtra);
+  }
+
+  if (target === 'tone') {
+    lines.push('TONE & STYLE');
+    lines.push('Heat level: ' + collectWizardValue('tone','wiz_heat'));
+    lines.push('POV: ' + collectWizardValue('tone','wiz_pov'));
+    lines.push('Pacing: ' + collectWizardValue('tone','wiz_pacing'));
+    lines.push('Dialogue: ' + collectWizardValue('tone','wiz_dialogue') + ' — ' + collectWizardValue('tone','wiz_dialogue_style'));
+    var kinks = collectWizardChips('tone','wiz_kinks');
+    if (kinks.length) lines.push('Active kinks: ' + kinks.join(', '));
+    lines.push('Escalation ceiling: ' + collectWizardValue('tone','wiz_ceiling'));
+    var limits = collectWizardChips('tone','wiz_limits');
+    if (limits.length) lines.push('Hard limits — never appears: ' + limits.join(', '));
+    var toneExtra = collectWizardValue('tone','wiz_tone_extra');
+    if (toneExtra) lines.push('Additional: ' + toneExtra);
+  }
+
+  return lines.join('\n');
+}
+
+function generateLoreFromWizard() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) {
+    // No OpenRouter key — build lore from data directly and fill
+    var rawLore = buildLorePrompt();
+    fillLoreTarget(rawLore);
+    closeWizard();
+    showToast('Lore filled from wizard ✓');
+    return;
+  }
+
+  var model = document.getElementById('modelSelect').value;
+  var dataPrompt = buildLorePrompt();
+
+  sel('wizBtnNext').disabled = true;
+  sel('wizBtnNext').textContent = 'Generating…';
+
+  var systemMsg = 'You are a writing assistant for explicit adult fiction. Your job is to convert character data into rich, detailed lore text for an AI writing assistant. Write in flowing prose — not bullet points. Be specific, physical, and direct. Do not sanitise. Do not fade to black. Write the lore as a reference document the AI will use to write explicit erotica.';
+
+  var userMsg = 'Convert the following character/setting data into detailed lore text for an AI erotica writing assistant. Write in prose paragraphs. Be specific about physical details. Include all the information provided. Do not add warnings or caveats.\n\n' + dataPrompt;
+
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({
+      model: model, stream: false,
+      messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: userMsg }
+      ]
+    })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var msg = data.choices && data.choices[0] && data.choices[0].message;
+    var lore = msg ? (msg.content || '').trim() : '';
+    if (!lore) throw new Error('No lore generated');
+    fillLoreTarget(lore);
+    closeWizard();
+    showToast('Lore generated ✓');
+    saveCurrentStory();
+  }).catch(function(err) {
+    // Fallback to raw data
+    fillLoreTarget(buildLorePrompt());
+    closeWizard();
+    showToast('AI unavailable — raw data filled');
+    saveCurrentStory();
+  }).finally(function() {
+    sel('wizBtnNext').disabled = false;
+    sel('wizBtnNext').textContent = '✦ Generate Lore';
+  });
+}
+
+function fillLoreTarget(text) {
+  var fieldMap = { char1: 'char1', char2: 'char2', charSupport: 'charSupport', world: 'worldLore', tone: 'toneStyle' };
+  var fieldId = fieldMap[wizardTarget];
+  if (fieldId) {
+    var el = document.getElementById(fieldId);
+    if (el) el.value = text;
+  }
+}
+
+document.getElementById('wizBtnNext').addEventListener('click', wizardNext);
+document.getElementById('wizBtnBack').addEventListener('click', wizardBack);
+document.getElementById('wizardOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeWizard();
+});
+
+
 // Gist ID stored per story in a separate localStorage key: novella_gist_{storyId}
 function getGistKey() {
   const story = getActiveStory();
