@@ -1213,7 +1213,7 @@
 <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:24px;">
 
   <div class="settings-group">
-    <div class="settings-group-title">API</div>
+    <div class="settings-group-title">API Keys <span style="font-weight:300;font-size:0.7rem;color:var(--muted);letter-spacing:0.04em;">— shared across all stories</span></div>
     <div class="setting-row">
       <div><div class="setting-label">OpenRouter Key</div><div class="setting-sub">sk-or-v1-… (for writing)</div></div>
       <input type="password" id="apiKey" placeholder="Paste key" style="width:140px;" />
@@ -1279,7 +1279,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v31</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v32</span>
     </div>
   </div>
 
@@ -1523,15 +1523,12 @@ function saveCurrentStory() {
       toneStyle: document.getElementById('toneStyle').value,
     },
     settings: {
-      apiKey: document.getElementById('apiKey').value,
-      veniceApiKey: document.getElementById('veniceApiKey').value,
       veniceImageModel: document.getElementById('veniceImageModel').value,
       model: document.getElementById('modelSelect').value,
       length: document.getElementById('lengthTarget').value,
       autoUpdate: document.getElementById('autoUpdateState').checked,
       includeHistory: document.getElementById('includeHistory').checked,
       systemPrefix: document.getElementById('systemPrefix').value,
-      githubPAT: document.getElementById('githubPAT').value,
     },
     portraits: {
       char1: story.data && story.data.portraits ? story.data.portraits.char1 : null,
@@ -1564,15 +1561,14 @@ function loadStoryIntoApp(story) {
   document.getElementById('storyState').value = d.storyState || '';
 
   const s = d.settings || {};
-  document.getElementById('apiKey').value = s.apiKey || '';
-  document.getElementById('veniceApiKey').value = s.veniceApiKey || '';
   document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream-i1-full';
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
   document.getElementById('lengthTarget').value = s.length || 'medium';
   document.getElementById('autoUpdateState').checked = s.autoUpdate !== false;
   document.getElementById('includeHistory').checked = s.includeHistory !== false;
   document.getElementById('systemPrefix').value = s.systemPrefix || 'You are a skilled romance novelist. Write in third-person limited POV. Focus on emotional interiority, sensory detail, and romantic tension. Avoid clichés. Each scene should advance either the plot or the relationship. End scenes at a compelling moment.';
-  document.getElementById('githubPAT').value = s.githubPAT || '';
+  // API keys come from global storage — load them fresh
+  loadGlobalKeys();
   updateGistStatus();
 
   renderChapters();
@@ -3141,7 +3137,7 @@ document.getElementById('storySaveBtn').addEventListener('click', saveStoryModal
 document.getElementById('backToStoriesBtn').addEventListener('click', goHome);
 
 // Auto-save inputs
-const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','apiKey','veniceApiKey','veniceImageModel','modelSelect','lengthTarget','autoUpdateState','includeHistory','planSynopsis','githubPAT'];
+const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','veniceImageModel','modelSelect','lengthTarget','autoUpdateState','includeHistory','planSynopsis'];
 watchIds.forEach(id => {
   const el = document.getElementById(id);
   if (el) { el.addEventListener('input', debouncedSave); el.addEventListener('change', debouncedSave); }
@@ -3784,6 +3780,36 @@ document.getElementById('wizardOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeWizard();
 });
 
+// ══════════════════════════════
+// GLOBAL API KEY STORAGE
+// ══════════════════════════════
+const GLOBAL_KEYS_KEY = 'novella_studio_global_keys_v1';
+
+function loadGlobalKeys() {
+  try {
+    const raw = localStorage.getItem(GLOBAL_KEYS_KEY);
+    const keys = raw ? JSON.parse(raw) : {};
+    document.getElementById('apiKey').value = keys.apiKey || '';
+    document.getElementById('veniceApiKey').value = keys.veniceApiKey || '';
+    document.getElementById('githubPAT').value = keys.githubPAT || '';
+  } catch(e) {}
+}
+
+function saveGlobalKeys() {
+  try {
+    const keys = {
+      apiKey: document.getElementById('apiKey').value,
+      veniceApiKey: document.getElementById('veniceApiKey').value,
+      githubPAT: document.getElementById('githubPAT').value,
+    };
+    localStorage.setItem(GLOBAL_KEYS_KEY, JSON.stringify(keys));
+  } catch(e) {}
+}
+
+['apiKey','veniceApiKey','githubPAT'].forEach(function(id) {
+  const el = document.getElementById(id);
+  if (el) { el.addEventListener('input', saveGlobalKeys); el.addEventListener('change', saveGlobalKeys); }
+});
 
 // Gist ID stored per story in a separate localStorage key: novella_gist_{storyId}
 function getGistKey() {
@@ -3831,10 +3857,7 @@ async function gistPush() {
   btn.disabled = true; btn.textContent = 'Pushing…';
 
   const filename = 'novella-studio-' + story.id + '.json';
-  // Deep-clone and strip the PAT before it touches Gist content
-  const safeStory = JSON.parse(JSON.stringify(story));
-  if (safeStory.data && safeStory.data.settings) delete safeStory.data.settings.githubPAT;
-  const content = JSON.stringify({ exportedAt: new Date().toISOString(), version: 1, story: safeStory }, null, 2);
+  const content = JSON.stringify({ exportedAt: new Date().toISOString(), version: 1, story }, null, 2);
   const existingId = getGistId();
 
   try {
@@ -4138,6 +4161,7 @@ document.getElementById('personaModal').addEventListener('click', function(e) {
 });
 
 // Init personas on load
+loadGlobalKeys();
 loadPersonas();
 renderPersonaChips();
 </script>
