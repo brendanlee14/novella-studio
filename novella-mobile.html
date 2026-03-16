@@ -1381,7 +1381,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v43</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v44</span>
     </div>
   </div>
 
@@ -2428,21 +2428,12 @@ function renderPortraitCarousel(charId, images) {
       im.src = 'data:image/jpeg;base64,' + (img.b64 || img);
       im.alt = 'Portrait ' + (i + 1);
       im.draggable = false;
-
-      // Long-press to open popup
-      var pressTimer;
-      im.addEventListener('pointerdown', function(e) {
-        pressTimer = setTimeout(function() { pressTimer = null; openPortraitPopup(charId, i); }, 500);
-      });
-      im.addEventListener('pointerup', function() { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
-      im.addEventListener('pointercancel', function() { clearTimeout(pressTimer); pressTimer = null; });
-
       slide.appendChild(im);
       track.appendChild(slide);
     });
 
-    // Swipe handling
-    setupCarouselSwipe(charId, track);
+    // Swipe handling — wire on carousel container, not track
+    setupCarouselSwipe(charId);
     setCarouselPosition(charId, false);
   }
 
@@ -2483,36 +2474,68 @@ function updatePortraitDots(charId) {
   });
 }
 
-function setupCarouselSwipe(charId, track) {
-  // Remove old listeners by cloning
-  var newTrack = track.cloneNode(true);
-  track.parentNode.replaceChild(newTrack, track);
-  track = newTrack;
+function setupCarouselSwipe(charId) {
+  var carousel = document.getElementById('portrait-' + charId + '-carousel');
+  if (!carousel) return;
 
-  var startX = 0, startY = 0, isDragging = false, isVertical = null;
-  track.addEventListener('pointerdown', function(e) {
-    startX = e.clientX; startY = e.clientY;
-    isDragging = true; isVertical = null;
-  });
-  track.addEventListener('pointermove', function(e) {
-    if (!isDragging) return;
-    var dx = e.clientX - startX, dy = e.clientY - startY;
-    if (isVertical === null) isVertical = Math.abs(dy) > Math.abs(dx);
-    if (!isVertical) e.preventDefault();
-  }, { passive: false });
-  track.addEventListener('pointerup', function(e) {
-    if (!isDragging) return;
-    isDragging = false;
-    if (isVertical) return;
-    var dx = e.clientX - startX;
+  // Remove old swipe listeners
+  var old = carousel._swipeHandler;
+  if (old) {
+    carousel.removeEventListener('touchstart', old.start);
+    carousel.removeEventListener('touchmove', old.move);
+    carousel.removeEventListener('touchend', old.end);
+  }
+
+  var startX = 0, startY = 0, isHorizontal = null;
+  var pressTimer = null, pressIdx = null;
+
+  var onStart = function(e) {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isHorizontal = null;
+
+    // Long-press detection — find which slide was touched
+    var touch = e.touches[0];
+    var slides = carousel.querySelectorAll('.portrait-carousel-slide');
+    var state = portraitState[charId];
+    pressIdx = state.currentIdx;
+    pressTimer = setTimeout(function() {
+      pressTimer = null;
+      openPortraitPopup(charId, pressIdx);
+    }, 600);
+  };
+
+  var onMove = function(e) {
+    if (e.touches.length !== 1) return;
+    var dx = e.touches[0].clientX - startX;
+    var dy = e.touches[0].clientY - startY;
+    if (isHorizontal === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+      isHorizontal = Math.abs(dx) > Math.abs(dy);
+    }
+    if (isHorizontal) {
+      e.preventDefault(); // prevent page scroll only for horizontal swipe
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    }
+  };
+
+  var onEnd = function(e) {
+    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    if (!isHorizontal) return;
+    var dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : startX) - startX;
     var state = portraitState[charId];
     if (Math.abs(dx) > 40) {
       if (dx < 0 && state.currentIdx < state.images.length - 1) state.currentIdx++;
       else if (dx > 0 && state.currentIdx > 0) state.currentIdx--;
     }
     setCarouselPosition(charId, true);
-  });
-  track.addEventListener('pointercancel', function() { isDragging = false; });
+  };
+
+  carousel.addEventListener('touchstart', onStart, { passive: true });
+  carousel.addEventListener('touchmove', onMove, { passive: false });
+  carousel.addEventListener('touchend', onEnd, { passive: true });
+
+  carousel._swipeHandler = { start: onStart, move: onMove, end: onEnd };
 }
 
 function savePortraitToStory(charId) {
