@@ -1279,7 +1279,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v32</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v33</span>
     </div>
   </div>
 
@@ -2124,20 +2124,47 @@ function savePortrait(charId, base64Data) {
   saveStories();
 }
 
-function buildFallbackPrompt(lore) {
-  // Extract only physical descriptors from lore to avoid narrative text triggering filters
-  // Pull age if mentioned
+function buildFallbackPrompt(lore, charId) {
+  // Try to build from wizard data first if available for this charId
+  var wizTarget = charId === 'char1' ? null : charId; // char1 has no explicit fields for this
+  var parts = [];
+
+  // Framing — always upper body, face and chest
+  parts.push('upper body portrait, from mid-torso up');
+
+  // Exposure — explicit for lustify
+  if (charId !== 'char1') {
+    parts.push('topless, bare breasts exposed, nude upper body');
+  }
+
+  // Pull age if mentioned in lore
   var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
-  var age = ageMatch ? ageMatch[1] + ' year old' : '';
-  // Strip role/relationship/narrative words that could trigger filters
+  if (ageMatch) parts.push(ageMatch[1] + ' year old');
+
+  // Strip narrative/relationship words that trigger filters, keep physical descriptors
   var cleaned = lore
-    .replace(/\b(wife|husband|mistress|lover|affair|sex|erotic|submissive|dominant|role|protagonist)\b/gi, '')
-    .replace(/["\[\]{}]/g, '')
+    .replace(/\b(wife|husband|mistress|lover|affair|sex|erotic|submissive|dominant|role|protagonist|story|chapter|scene|narrative|relationship)\b/gi, '')
+    .replace(/["\[\]{}()]/g, '')
     .replace(/\n+/g, ', ')
-    .replace(/,\s*,/g, ',')
+    .replace(/[.!?]+/g, ',')
+    .replace(/,\s*,+/g, ',')
     .trim()
-    .slice(0, 200);
-  return ['photorealistic portrait photography', age, cleaned, 'natural lighting, sharp focus, 8k, hyperrealistic, film grain'].filter(Boolean).join(', ');
+    .slice(0, 180);
+  if (cleaned) parts.push(cleaned);
+
+  // Quality tags for lustify
+  parts.push('photorealistic, sharp focus, studio lighting, detailed skin texture, 8k, hyperrealistic');
+
+  return parts.filter(Boolean).join(', ');
+}
+
+function buildPortraitPromptFromOR(loreTruncated, charId) {
+  var isProtagonist = charId === 'char1';
+  var exposureInstruction = isProtagonist
+    ? 'upper body portrait from mid-torso up, face and chest visible, clothed'
+    : 'upper body portrait from mid-torso up, topless, bare breasts exposed, face clearly visible';
+
+  return 'Convert this character description into a Stable Diffusion image prompt for lustify-sdxl, an explicit photorealistic image model. Output ONLY the prompt — no labels, no explanation, no preamble, no quotes, no markdown. The prompt must be comma-separated descriptive tags.\n\nRequired framing: ' + exposureInstruction + '\n\nFocus on: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape (if applicable). Be direct and specific about physical appearance. Max 90 words.\n\nCharacter:\n' + loreTruncated;
 }
 
 function generatePortrait(charId) {
@@ -2246,7 +2273,7 @@ function generatePortrait(charId) {
         model: orModel, stream: false,
         messages: [{
           role: 'user',
-          content: 'Convert this character description into a Stable Diffusion image prompt for a photorealistic portrait. Output ONLY the prompt — no labels, no explanation, no preamble, no quotes, no markdown. Focus purely on physical appearance: approximate age, body type, face shape, hair colour and style, eye colour, skin tone, expression, clothing. Make it comma-separated descriptive tags. Max 80 words.\n\nCharacter:\n' + loreTruncated
+          content: buildPortraitPromptFromOR(loreTruncated, charId)
         }]
       })
     }).then(function(r) { return r.json(); }).then(function(data) {
@@ -2256,14 +2283,14 @@ function generatePortrait(charId) {
       prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
       if (!prompt || prompt.length < 10) throw new Error('No prompt generated');
       dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
-      doGenerate(prompt + ', photorealistic, cinematic lighting, detailed skin, sharp focus, 8k, portrait photography');
+      doGenerate(prompt + ', photorealistic, sharp focus, studio lighting, detailed skin, 8k');
     }).catch(function(err) {
       dbg('Prompt build failed, using lore directly: ' + err.message);
-      doGenerate(buildFallbackPrompt(loreTruncated));
+      doGenerate(buildFallbackPrompt(loreTruncated, charId));
     });
   } else {
     // No OpenRouter key — use lore directly
-    doGenerate(buildFallbackPrompt(loreTruncated));
+    doGenerate(buildFallbackPrompt(loreTruncated, charId));
   }
 }
 
@@ -3712,7 +3739,6 @@ function buildLorePrompt() {
 function generateLoreFromWizard() {
   var apiKey = document.getElementById('apiKey').value.trim();
   if (!apiKey) {
-    // No OpenRouter key — build lore from data directly and fill
     var rawLore = buildLorePrompt();
     fillLoreTarget(rawLore);
     closeWizard();
@@ -3726,9 +3752,22 @@ function generateLoreFromWizard() {
   sel('wizBtnNext').disabled = true;
   sel('wizBtnNext').textContent = 'Generating…';
 
-  var systemMsg = 'You are a writing assistant for explicit adult fiction. Your job is to convert character data into rich, detailed lore text for an AI writing assistant. Write in flowing prose — not bullet points. Be specific, physical, and direct. Do not sanitise. Do not fade to black. Write the lore as a reference document the AI will use to write explicit erotica.';
+  // Section-aware system and user prompts
+  var systemMsg, userMsg;
 
-  var userMsg = 'Convert the following character/setting data into detailed lore text for an AI erotica writing assistant. Write in prose paragraphs. Be specific about physical details. Include all the information provided. Do not add warnings or caveats.\n\n' + dataPrompt;
+  if (wizardTarget === 'tone') {
+    systemMsg = 'You are a writing configuration assistant for an AI erotica writing tool. Your job is to convert tone and style settings into a structured set of writing directives. Output ONLY writing instructions — rules, guidelines, and directives for how the AI should write. Do NOT write any fiction, scenes, examples, or creative prose. Do NOT invent characters or scenarios. Output a reference document of instructions only.';
+    userMsg = 'Convert the following tone and style settings into a structured set of writing directives for an AI erotica writing assistant. Output writing rules and instructions only — no fiction, no scenes, no examples, no invented scenarios or characters. Format as clear directives: POV rules, heat level, pacing instructions, dialogue guidance, what to include, what to avoid. Be specific and direct.\n\n' + dataPrompt;
+
+  } else if (wizardTarget === 'world') {
+    systemMsg = 'You are a setting description writer for an AI erotica writing tool. Your job is to convert setting data into a rich atmospheric description of the location and world. Output ONLY setting and atmosphere description — no characters, no plot, no invented people, no scenes. Do NOT invent any characters, names, or people not explicitly provided in the data. Do NOT ask follow-up questions. Do NOT write fiction or scenes.';
+    userMsg = 'Convert the following world and setting data into a rich atmospheric description for an AI erotica writing assistant. Describe only the location, atmosphere, sensory details, and physical environment. Do NOT invent any characters or people. Do NOT write any scenes or fiction. Do NOT ask for more information. Only describe what is explicitly provided.\n\n' + dataPrompt;
+
+  } else {
+    // char1, char2, charSupport — character reference sheet
+    systemMsg = 'You are a character reference writer for an AI erotica writing tool. Your job is to convert character data into a detailed physical and psychological reference sheet. Write in flowing prose. Be specific, physical, and direct about all details provided. Do NOT invent any details, names, ages, occupations, or characteristics not explicitly given in the data. Do NOT add characters that are not in the data. Do NOT ask follow-up questions. Do NOT write scenes or fiction — this is a reference document only.';
+    userMsg = 'Convert the following character data into a detailed reference sheet for an AI erotica writing assistant. Write in prose paragraphs covering physical appearance, personality, and dynamic exactly as specified. Use ONLY the information provided — do not invent any details not explicitly given. Do not add extra characters. Do not write scenes or fiction. Do not ask for more information. Do not add caveats or warnings.\n\n' + dataPrompt;
+  }
 
   fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -3754,7 +3793,6 @@ function generateLoreFromWizard() {
     showToast('Lore generated ✓');
     saveCurrentStory();
   }).catch(function(err) {
-    // Fallback to raw data
     fillLoreTarget(buildLorePrompt());
     closeWizard();
     showToast('AI unavailable — raw data filled');
