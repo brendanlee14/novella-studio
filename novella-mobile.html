@@ -1299,7 +1299,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v38</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v40</span>
     </div>
   </div>
 
@@ -2290,11 +2290,30 @@ function savePortrait(charId, base64Data) {
   saveStories();
 }
 
+function sanitiseVenicePrompt(prompt) {
+  // Replace terms known to trigger Venice free-tier filter
+  return prompt
+    .replace(/\bfemale\b/gi, 'woman')
+    .replace(/\bmale\b/gi, 'man')
+    .replace(/\bcaucasian\b/gi, 'light complexion')
+    .replace(/\bwhite woman\b/gi, 'light skin woman')
+    .replace(/\bwhite female\b/gi, 'light skin woman')
+    .replace(/\bsexy\b/gi, 'attractive')
+    .replace(/\bsensual\b/gi, 'elegant')
+    .replace(/\berotic\b/gi, '')
+    .replace(/\bnsfw\b/gi, '')
+    .replace(/\bnude\b/gi, '')
+    .replace(/\bnaked\b/gi, '')
+    .replace(/\btopless\b/gi, '')
+    .replace(/,\s*,+/g, ',')
+    .trim();
+}
+
 function buildFallbackPrompt(lore, charId) {
   var parts = [];
 
-  // Framing — face and upper body, clothed
-  parts.push('portrait, upper body, face clearly visible, clothed');
+  // Framing — waist up, clothed
+  parts.push('half body shot, from waist up, face and torso visible, clothed');
 
   // Pull age if mentioned in lore
   var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
@@ -2318,7 +2337,7 @@ function buildFallbackPrompt(lore, charId) {
 }
 
 function buildPortraitPromptFromOR(loreTruncated, charId) {
-  return 'Convert this character description into a Stable Diffusion prompt for a photorealistic portrait. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: upper body portrait, face clearly visible, clothed, elegant\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, expression, clothing style. Physical descriptors only — no narrative, no relationship words. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+  return 'Convert this character description into a Stable Diffusion prompt for a photorealistic portrait. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: half body shot, from waist up, face and torso visible, clothed, elegant\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, expression, clothing style. Physical descriptors only — no narrative, no relationship words. Max 80 words.\n\nCharacter:\n' + loreTruncated;
 }
 
 function generatePortrait(charId) {
@@ -2440,15 +2459,17 @@ function generatePortrait(charId) {
       // Strip any markdown fences or leading labels the model may add
       prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
       if (!prompt || prompt.length < 10) throw new Error('No prompt generated');
+      // Sanitise terms known to trigger Venice free tier filter
+      prompt = sanitiseVenicePrompt(prompt);
       dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
       doGenerate(prompt + ', photorealistic, sharp focus, studio lighting, detailed skin, 8k');
     }).catch(function(err) {
       dbg('Prompt build failed, using lore directly: ' + err.message);
-      doGenerate(buildFallbackPrompt(loreTruncated, charId));
+      doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId)));
     });
   } else {
     // No OpenRouter key — use lore directly
-    doGenerate(buildFallbackPrompt(loreTruncated, charId));
+    doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId)));
   }
 }
 
