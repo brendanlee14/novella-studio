@@ -580,7 +580,14 @@
   }
   .portrait-icon { font-size: 1.8rem; opacity: 0.4; }
   .portrait-hint { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
-  .portrait-actions {
+  .portrait-expand-btn {
+    position: absolute; top: 8px; right: 8px;
+    width: 30px; height: 30px;
+    background: rgba(0,0,0,0.45); border: none; border-radius: 6px;
+    color: white; font-size: 0.85rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 5; backdrop-filter: blur(2px);
+  }
     display: flex; gap: 8px; padding: 10px 12px;
     border-top: 1px solid #2e2420; background: #1a120d;
   }
@@ -1381,7 +1388,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v44</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v45</span>
     </div>
   </div>
 
@@ -2429,6 +2436,17 @@ function renderPortraitCarousel(charId, images) {
       im.alt = 'Portrait ' + (i + 1);
       im.draggable = false;
       slide.appendChild(im);
+
+      // Expand button overlay
+      var expandBtn = document.createElement('button');
+      expandBtn.type = 'button';
+      expandBtn.className = 'portrait-expand-btn';
+      expandBtn.innerHTML = '⤢';
+      expandBtn.title = 'Expand';
+      (function(idx) {
+        expandBtn.onclick = function(e) { e.stopPropagation(); openPortraitPopup(charId, idx); };
+      })(i);
+      slide.appendChild(expandBtn);
       track.appendChild(slide);
     });
 
@@ -2487,23 +2505,12 @@ function setupCarouselSwipe(charId) {
   }
 
   var startX = 0, startY = 0, isHorizontal = null;
-  var pressTimer = null, pressIdx = null;
 
   var onStart = function(e) {
     if (e.touches.length !== 1) return;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
     isHorizontal = null;
-
-    // Long-press detection — find which slide was touched
-    var touch = e.touches[0];
-    var slides = carousel.querySelectorAll('.portrait-carousel-slide');
-    var state = portraitState[charId];
-    pressIdx = state.currentIdx;
-    pressTimer = setTimeout(function() {
-      pressTimer = null;
-      openPortraitPopup(charId, pressIdx);
-    }, 600);
   };
 
   var onMove = function(e) {
@@ -2513,14 +2520,10 @@ function setupCarouselSwipe(charId) {
     if (isHorizontal === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
       isHorizontal = Math.abs(dx) > Math.abs(dy);
     }
-    if (isHorizontal) {
-      e.preventDefault(); // prevent page scroll only for horizontal swipe
-      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
-    }
+    if (isHorizontal) e.preventDefault();
   };
 
   var onEnd = function(e) {
-    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
     if (!isHorizontal) return;
     var dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : startX) - startX;
     var state = portraitState[charId];
