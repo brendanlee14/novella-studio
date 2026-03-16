@@ -478,50 +478,123 @@
   .status-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   /* ── PORTRAIT CARDS ── */
+  /* ── PORTRAIT CAROUSEL ── */
+  .portrait-carousel {
+    position: relative; overflow: hidden;
+    background: var(--ink); min-height: 120px;
+  }
+  .portrait-carousel-track {
+    display: flex; transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    will-change: transform;
+  }
+  .portrait-carousel-slide {
+    flex: 0 0 100%; position: relative;
+  }
+  .portrait-carousel-slide img {
+    width: 100%; display: block;
+    max-height: 360px; object-fit: cover; object-position: top;
+  }
+  .portrait-dots {
+    display: flex; justify-content: center; gap: 5px;
+    padding: 6px 0 2px; background: var(--ink);
+  }
+  .portrait-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #4a3f35; transition: background 0.2s;
+  }
+  .portrait-dot.active { background: var(--gold); }
+  .portrait-pose-bar {
+    padding: 8px 12px 4px;
+    display: flex; gap: 6px; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; background: #1a120d;
+  }
+  .portrait-pose-bar::-webkit-scrollbar { display: none; }
+  .pose-chip {
+    flex: 0 0 auto; padding: 5px 10px;
+    border: 1px solid #4a3f35; border-radius: 12px;
+    font-family: 'Jost', sans-serif; font-size: 0.68rem;
+    color: #8a7b72; background: none; cursor: pointer;
+    white-space: nowrap; transition: all 0.12s;
+  }
+  .pose-chip.selected {
+    border-color: var(--rose); color: var(--rose-deep);
+    background: #2a1218;
+  }
+
+  /* ── PORTRAIT FULLSCREEN POPUP ── */
+  #portraitPopup {
+    display: none; position: fixed; inset: 0;
+    background: #000; z-index: 800;
+    flex-direction: column; align-items: center; justify-content: center;
+    touch-action: none;
+  }
+  #portraitPopup.open { display: flex; }
+  .popup-img-wrap {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  #popupImg {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    transform-origin: center center;
+    transition: transform 0.05s linear;
+    user-select: none; -webkit-user-select: none;
+  }
+  .popup-toolbar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 16px 20px 40px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 10;
+  }
+  .popup-close-btn {
+    background: none; border: none; color: white;
+    font-family: 'Jost', sans-serif; font-size: 0.8rem;
+    letter-spacing: 0.06em; cursor: pointer; padding: 8px;
+  }
+  .popup-counter {
+    font-family: 'Jost', sans-serif; font-size: 0.75rem;
+    color: rgba(255,255,255,0.6); letter-spacing: 0.08em;
+  }
+  .popup-actions { display: flex; gap: 12px; }
+  .popup-action-btn {
+    background: rgba(255,255,255,0.15); border: none;
+    border-radius: 20px; padding: 8px 14px;
+    color: white; font-family: 'Jost', sans-serif;
+    font-size: 0.78rem; cursor: pointer; letter-spacing: 0.04em;
+  }
+  .popup-action-btn.danger { background: rgba(192,57,43,0.6); }
+
+  /* Portrait card shell */
   .portrait-card {
-    background: var(--ink);
-    border-radius: 14px;
-    overflow: hidden;
-    margin-bottom: 12px;
+    background: var(--ink); border-radius: 14px;
+    overflow: hidden; margin-bottom: 12px;
     border: 1px solid #2e2420;
   }
   .portrait-placeholder {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    height: 120px; gap: 8px;
-    color: #5a4e48;
+    height: 120px; gap: 8px; color: #5a4e48;
   }
   .portrait-icon { font-size: 1.8rem; opacity: 0.4; }
   .portrait-hint { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
-  .portrait-img {
-    width: 100%; display: block;
-    max-height: 360px; object-fit: cover;
-    object-position: top;
-  }
   .portrait-actions {
-    display: flex; gap: 8px;
-    padding: 10px 12px;
-    border-top: 1px solid #2e2420;
-    background: #1a120d;
+    display: flex; gap: 8px; padding: 10px 12px;
+    border-top: 1px solid #2e2420; background: #1a120d;
   }
   .portrait-btn {
-    flex: 1; padding: 10px;
-    background: var(--rose); color: white;
+    flex: 1; padding: 10px; background: var(--rose); color: white;
     border: none; border-radius: 8px;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.95rem; font-style: italic;
-    cursor: pointer;
+    font-size: 0.95rem; font-style: italic; cursor: pointer;
   }
   .portrait-btn:disabled { opacity: 0.5; }
   .portrait-btn-subtle {
-    flex: 0 0 auto;
-    background: none;
-    border: 1px solid #4a3f35;
-    color: var(--muted);
-    font-family: 'Jost', sans-serif;
-    font-size: 0.8rem;
-    font-style: normal;
-    padding: 10px 14px;
+    flex: 0 0 auto; background: none; border: 1px solid #4a3f35;
+    color: var(--muted); font-family: 'Jost', sans-serif;
+    font-size: 0.8rem; font-style: normal; padding: 10px 14px;
   }
   .portrait-generating {
     display: flex; align-items: center; justify-content: center;
@@ -1064,12 +1137,15 @@
           <span class="portrait-icon">🌸</span>
           <span class="portrait-hint">Generate Portrait</span>
         </div>
-        <img id="portrait-char1-img" class="portrait-img" style="display:none" alt="Protagonist portrait" />
+        <div class="portrait-carousel" id="portrait-char1-carousel" style="display:none">
+          <div class="portrait-carousel-track" id="portrait-char1-track"></div>
+        </div>
+        <div class="portrait-dots" id="portrait-char1-dots" style="display:none"></div>
+        <div class="portrait-pose-bar" id="portrait-char1-poses"></div>
         <div class="portrait-actions">
-          <button type="button" class="portrait-btn" onclick="generatePortrait('char1')">
+          <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
             <span id="portrait-char1-label">✦ Generate Portrait</span>
           </button>
-          <button type="button" class="portrait-btn portrait-btn-subtle" id="portrait-char1-regen" style="display:none" onclick="generatePortrait('char1')">↺ Regenerate</button>
         </div>
       </div>
       <textarea id="char1" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
@@ -1089,12 +1165,15 @@
           <span class="portrait-icon">💫</span>
           <span class="portrait-hint">Generate Portrait</span>
         </div>
-        <img id="portrait-char2-img" class="portrait-img" style="display:none" alt="Love Interest portrait" />
+        <div class="portrait-carousel" id="portrait-char2-carousel" style="display:none">
+          <div class="portrait-carousel-track" id="portrait-char2-track"></div>
+        </div>
+        <div class="portrait-dots" id="portrait-char2-dots" style="display:none"></div>
+        <div class="portrait-pose-bar" id="portrait-char2-poses"></div>
         <div class="portrait-actions">
-          <button type="button" class="portrait-btn" onclick="generatePortrait('char2')">
+          <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
             <span id="portrait-char2-label">✦ Generate Portrait</span>
           </button>
-          <button type="button" class="portrait-btn portrait-btn-subtle" id="portrait-char2-regen" style="display:none" onclick="generatePortrait('char2')">↺ Regenerate</button>
         </div>
       </div>
       <textarea id="char2" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
@@ -1114,12 +1193,15 @@
           <span class="portrait-icon">👥</span>
           <span class="portrait-hint">Generate Portrait</span>
         </div>
-        <img id="portrait-charSupport-img" class="portrait-img" style="display:none" alt="Supporting cast portrait" />
+        <div class="portrait-carousel" id="portrait-charSupport-carousel" style="display:none">
+          <div class="portrait-carousel-track" id="portrait-charSupport-track"></div>
+        </div>
+        <div class="portrait-dots" id="portrait-charSupport-dots" style="display:none"></div>
+        <div class="portrait-pose-bar" id="portrait-charSupport-poses"></div>
         <div class="portrait-actions">
-          <button type="button" class="portrait-btn" onclick="generatePortrait('charSupport')">
+          <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
             <span id="portrait-charSupport-label">✦ Generate Portrait</span>
           </button>
-          <button type="button" class="portrait-btn portrait-btn-subtle" id="portrait-charSupport-regen" style="display:none" onclick="generatePortrait('charSupport')">↺ Regenerate</button>
         </div>
       </div>
       <textarea id="charSupport" rows="4" placeholder="Secondary characters, their roles and relationships…"></textarea>
@@ -1299,7 +1381,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v42</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v43</span>
     </div>
   </div>
 
@@ -1444,6 +1526,21 @@
   </div>
 </div>
 
+<!-- ── PORTRAIT FULLSCREEN POPUP ── -->
+<div id="portraitPopup">
+  <div class="popup-img-wrap" id="popupImgWrap">
+    <img id="popupImg" src="" alt="Portrait" draggable="false" />
+  </div>
+  <div class="popup-toolbar">
+    <button class="popup-close-btn" type="button" onclick="closePortraitPopup()">✕ Close</button>
+    <span class="popup-counter" id="popupCounter"></span>
+    <div class="popup-actions">
+      <button class="popup-action-btn" type="button" onclick="downloadPortraitFromPopup()">⬇ Save</button>
+      <button class="popup-action-btn danger" type="button" onclick="deletePortraitFromPopup()">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── READING MODE OVERLAY ── -->
 <div id="readingMode">
   <div class="reading-header" id="readingHeader">
@@ -1551,9 +1648,9 @@ function saveCurrentStory() {
       systemPrefix: document.getElementById('systemPrefix').value,
     },
     portraits: {
-      char1: story.data && story.data.portraits ? story.data.portraits.char1 : null,
-      char2: story.data && story.data.portraits ? story.data.portraits.char2 : null,
-      charSupport: story.data && story.data.portraits ? story.data.portraits.charSupport : null,
+      char1: story.data && story.data.portraits ? story.data.portraits.char1 : [],
+      char2: story.data && story.data.portraits ? story.data.portraits.char2 : [],
+      charSupport: story.data && story.data.portraits ? story.data.portraits.charSupport : [],
     },
     plan: {
       synopsis: document.getElementById('planSynopsis').value,
@@ -1597,11 +1694,11 @@ function loadStoryIntoApp(story) {
   // Restore portraits
   const portraits = d.portraits || {};
   ['char1', 'char2', 'charSupport'].forEach(function(id) {
-    if (portraits[id]) {
-      setPortraitImage(id, portraits[id]);
-    } else {
-      clearPortraitImage(id);
-    }
+    // Migrate legacy single-image format to array
+    var arr = portraits[id];
+    if (!arr) arr = [];
+    if (typeof arr === 'string') arr = [{ b64: arr, pose: 'Half body front', createdAt: Date.now() }];
+    renderPortraitCarousel(id, arr);
   });
 
   // Restore plan
@@ -2255,39 +2352,308 @@ function escapeAttr(str) {
 }
 
 // ══════════════════════════════
-// PORTRAIT GENERATION (Venice API)
+// PORTRAIT CAROUSEL
 // ══════════════════════════════
-function setPortraitImage(charId, base64Data) {
-  var img = document.getElementById('portrait-' + charId + '-img');
+const PORTRAIT_MAX = 10;
+const PORTRAIT_POSES = [
+  'Half body front',
+  'Three-quarter angle',
+  'Looking over shoulder',
+  'Close-up face',
+  'Full body front',
+  'Full body side',
+  'Leaning against wall',
+  'Seated',
+  'Lying on bed',
+  'Reclining on sofa',
+  'Standing in doorway',
+  'At a bar',
+  'Getting dressed'
+];
+
+// Per-character state
+var portraitState = {
+  char1: { images: [], currentIdx: 0, pose: 'Half body front' },
+  char2: { images: [], currentIdx: 0, pose: 'Half body front' },
+  charSupport: { images: [], currentIdx: 0, pose: 'Half body front' }
+};
+
+function renderPortraitCarousel(charId, images) {
+  var state = portraitState[charId];
+  state.images = images || [];
+  state.currentIdx = Math.max(0, Math.min(state.currentIdx, state.images.length - 1));
+
   var empty = document.getElementById('portrait-' + charId + '-empty');
-  var regen = document.getElementById('portrait-' + charId + '-regen');
+  var carousel = document.getElementById('portrait-' + charId + '-carousel');
+  var track = document.getElementById('portrait-' + charId + '-track');
+  var dots = document.getElementById('portrait-' + charId + '-dots');
   var label = document.getElementById('portrait-' + charId + '-label');
-  if (!img) return;
-  img.src = 'data:image/jpeg;base64,' + base64Data;
-  img.style.display = 'block';
+  var posesBar = document.getElementById('portrait-' + charId + '-poses');
+
+  // Render pose chips
+  if (posesBar) {
+    posesBar.innerHTML = '';
+    PORTRAIT_POSES.forEach(function(pose) {
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'pose-chip' + (pose === state.pose ? ' selected' : '');
+      chip.textContent = pose;
+      chip.onclick = function() {
+        state.pose = pose;
+        posesBar.querySelectorAll('.pose-chip').forEach(function(c) { c.classList.remove('selected'); });
+        chip.classList.add('selected');
+      };
+      posesBar.appendChild(chip);
+    });
+  }
+
+  if (!state.images.length) {
+    if (empty) empty.style.display = 'flex';
+    if (carousel) carousel.style.display = 'none';
+    if (dots) dots.style.display = 'none';
+    if (label) label.textContent = '✦ Generate Portrait';
+    return;
+  }
+
   if (empty) empty.style.display = 'none';
-  if (regen) regen.style.display = '';
-  if (label) label.textContent = '✦ New Portrait';
+  if (carousel) carousel.style.display = 'block';
+
+  // Build slides
+  if (track) {
+    track.innerHTML = '';
+    state.images.forEach(function(img, i) {
+      var slide = document.createElement('div');
+      slide.className = 'portrait-carousel-slide';
+      var im = document.createElement('img');
+      im.src = 'data:image/jpeg;base64,' + (img.b64 || img);
+      im.alt = 'Portrait ' + (i + 1);
+      im.draggable = false;
+
+      // Long-press to open popup
+      var pressTimer;
+      im.addEventListener('pointerdown', function(e) {
+        pressTimer = setTimeout(function() { pressTimer = null; openPortraitPopup(charId, i); }, 500);
+      });
+      im.addEventListener('pointerup', function() { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+      im.addEventListener('pointercancel', function() { clearTimeout(pressTimer); pressTimer = null; });
+
+      slide.appendChild(im);
+      track.appendChild(slide);
+    });
+
+    // Swipe handling
+    setupCarouselSwipe(charId, track);
+    setCarouselPosition(charId, false);
+  }
+
+  // Dots
+  if (dots) {
+    if (state.images.length > 1) {
+      dots.style.display = 'flex';
+      dots.innerHTML = '';
+      state.images.forEach(function(_, i) {
+        var dot = document.createElement('div');
+        dot.className = 'portrait-dot' + (i === state.currentIdx ? ' active' : '');
+        dot.onclick = function() { state.currentIdx = i; setCarouselPosition(charId, true); updatePortraitDots(charId); };
+        dots.appendChild(dot);
+      });
+    } else {
+      dots.style.display = 'none';
+    }
+  }
+
+  if (label) label.textContent = state.images.length >= PORTRAIT_MAX ? '✦ Gallery Full (10)' : '✦ Add Portrait';
 }
 
-function clearPortraitImage(charId) {
-  var img = document.getElementById('portrait-' + charId + '-img');
-  var empty = document.getElementById('portrait-' + charId + '-empty');
-  var regen = document.getElementById('portrait-' + charId + '-regen');
-  var label = document.getElementById('portrait-' + charId + '-label');
-  if (img) { img.src = ''; img.style.display = 'none'; }
-  if (empty) empty.style.display = 'flex';
-  if (regen) regen.style.display = 'none';
-  if (label) label.textContent = '✦ Generate Portrait';
+function setCarouselPosition(charId, animate) {
+  var track = document.getElementById('portrait-' + charId + '-track');
+  if (!track) return;
+  var idx = portraitState[charId].currentIdx;
+  track.style.transition = animate ? 'transform 0.28s cubic-bezier(.4,0,.2,1)' : 'none';
+  track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+  updatePortraitDots(charId);
 }
 
-function savePortrait(charId, base64Data) {
+function updatePortraitDots(charId) {
+  var dots = document.getElementById('portrait-' + charId + '-dots');
+  if (!dots) return;
+  var idx = portraitState[charId].currentIdx;
+  dots.querySelectorAll('.portrait-dot').forEach(function(d, i) {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+function setupCarouselSwipe(charId, track) {
+  // Remove old listeners by cloning
+  var newTrack = track.cloneNode(true);
+  track.parentNode.replaceChild(newTrack, track);
+  track = newTrack;
+
+  var startX = 0, startY = 0, isDragging = false, isVertical = null;
+  track.addEventListener('pointerdown', function(e) {
+    startX = e.clientX; startY = e.clientY;
+    isDragging = true; isVertical = null;
+  });
+  track.addEventListener('pointermove', function(e) {
+    if (!isDragging) return;
+    var dx = e.clientX - startX, dy = e.clientY - startY;
+    if (isVertical === null) isVertical = Math.abs(dy) > Math.abs(dx);
+    if (!isVertical) e.preventDefault();
+  }, { passive: false });
+  track.addEventListener('pointerup', function(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    if (isVertical) return;
+    var dx = e.clientX - startX;
+    var state = portraitState[charId];
+    if (Math.abs(dx) > 40) {
+      if (dx < 0 && state.currentIdx < state.images.length - 1) state.currentIdx++;
+      else if (dx > 0 && state.currentIdx > 0) state.currentIdx--;
+    }
+    setCarouselPosition(charId, true);
+  });
+  track.addEventListener('pointercancel', function() { isDragging = false; });
+}
+
+function savePortraitToStory(charId) {
   var story = getActiveStory();
   if (!story) return;
   if (!story.data) story.data = {};
   if (!story.data.portraits) story.data.portraits = {};
-  story.data.portraits[charId] = base64Data;
+  story.data.portraits[charId] = portraitState[charId].images;
   saveStories();
+}
+
+function addPortraitImage(charId, b64, pose) {
+  var state = portraitState[charId];
+  if (state.images.length >= PORTRAIT_MAX) {
+    showToast('Gallery full — delete an image first');
+    return;
+  }
+  state.images.push({ b64: b64, pose: pose || 'Half body front', createdAt: Date.now() });
+  state.currentIdx = state.images.length - 1;
+  renderPortraitCarousel(charId, state.images);
+  savePortraitToStory(charId);
+}
+
+function clearPortraitImage(charId) {
+  portraitState[charId].images = [];
+  portraitState[charId].currentIdx = 0;
+  renderPortraitCarousel(charId, []);
+}
+
+// Legacy compatibility — kept for clearStoryData
+function setPortraitImage(charId, b64) {
+  addPortraitImage(charId, b64, 'Half body front');
+}
+
+// ══════════════════════════════
+// PORTRAIT FULLSCREEN POPUP
+// ══════════════════════════════
+var popupCharId = null;
+var popupImgIdx = null;
+var popupScale = 1;
+var popupLastDist = 0;
+
+function openPortraitPopup(charId, idx) {
+  var state = portraitState[charId];
+  if (!state.images[idx]) return;
+  popupCharId = charId;
+  popupImgIdx = idx;
+  popupScale = 1;
+
+  var img = document.getElementById('popupImg');
+  img.src = 'data:image/jpeg;base64,' + (state.images[idx].b64 || state.images[idx]);
+  img.style.transform = 'scale(1)';
+
+  var counter = document.getElementById('popupCounter');
+  counter.textContent = (idx + 1) + ' / ' + state.images.length + (state.images[idx].pose ? '  ·  ' + state.images[idx].pose : '');
+
+  var popup = document.getElementById('portraitPopup');
+  popup.classList.add('open');
+
+  // Pinch to zoom
+  var wrap = document.getElementById('popupImgWrap');
+  wrap.addEventListener('touchstart', onPopupTouchStart, { passive: false });
+  wrap.addEventListener('touchmove', onPopupTouchMove, { passive: false });
+  wrap.addEventListener('touchend', onPopupTouchEnd);
+
+  // Swipe down to dismiss
+  popup.addEventListener('touchstart', onPopupSwipeStart, { passive: true });
+  popup.addEventListener('touchmove', onPopupSwipeMove, { passive: false });
+  popup.addEventListener('touchend', onPopupSwipeEnd);
+}
+
+function closePortraitPopup() {
+  document.getElementById('portraitPopup').classList.remove('open');
+  var wrap = document.getElementById('popupImgWrap');
+  wrap.removeEventListener('touchstart', onPopupTouchStart);
+  wrap.removeEventListener('touchmove', onPopupTouchMove);
+  wrap.removeEventListener('touchend', onPopupTouchEnd);
+  var popup = document.getElementById('portraitPopup');
+  popup.removeEventListener('touchstart', onPopupSwipeStart);
+  popup.removeEventListener('touchmove', onPopupSwipeMove);
+  popup.removeEventListener('touchend', onPopupSwipeEnd);
+  popupCharId = null; popupImgIdx = null;
+}
+
+function onPopupTouchStart(e) {
+  if (e.touches.length === 2) {
+    popupLastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  }
+}
+function onPopupTouchMove(e) {
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    var dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    popupScale = Math.max(1, Math.min(5, popupScale * (dist / popupLastDist)));
+    popupLastDist = dist;
+    document.getElementById('popupImg').style.transform = 'scale(' + popupScale + ')';
+  }
+}
+function onPopupTouchEnd(e) {
+  if (e.touches.length < 2 && popupScale < 1.1) {
+    popupScale = 1;
+    document.getElementById('popupImg').style.transform = 'scale(1)';
+  }
+}
+
+var swipeStartY = 0;
+function onPopupSwipeStart(e) { if (e.touches.length === 1 && popupScale <= 1) swipeStartY = e.touches[0].clientY; }
+function onPopupSwipeMove(e) {
+  if (e.touches.length === 1 && popupScale <= 1) {
+    var dy = e.touches[0].clientY - swipeStartY;
+    if (dy > 0) { e.preventDefault(); document.getElementById('popupImg').style.transform = 'translateY(' + dy + 'px) scale(' + (1 - dy / 600) + ')'; }
+  }
+}
+function onPopupSwipeEnd(e) {
+  var dy = (e.changedTouches[0] ? e.changedTouches[0].clientY : swipeStartY) - swipeStartY;
+  document.getElementById('popupImg').style.transform = 'scale(1)';
+  if (dy > 80) closePortraitPopup();
+}
+
+function downloadPortraitFromPopup() {
+  if (popupCharId === null || popupImgIdx === null) return;
+  var img = portraitState[popupCharId].images[popupImgIdx];
+  if (!img) return;
+  var b64 = img.b64 || img;
+  var a = document.createElement('a');
+  a.href = 'data:image/jpeg;base64,' + b64;
+  a.download = 'portrait-' + popupCharId + '-' + (popupImgIdx + 1) + '.jpg';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('Portrait saved ✓');
+}
+
+function deletePortraitFromPopup() {
+  if (popupCharId === null || popupImgIdx === null) return;
+  if (!confirm('Delete this portrait? This cannot be undone.')) return;
+  var state = portraitState[popupCharId];
+  state.images.splice(popupImgIdx, 1);
+  state.currentIdx = Math.max(0, Math.min(state.currentIdx, state.images.length - 1));
+  closePortraitPopup();
+  renderPortraitCarousel(popupCharId, state.images);
+  savePortraitToStory(popupCharId);
+  showToast('Portrait deleted');
 }
 
 function sanitiseVenicePrompt(prompt) {
@@ -2298,24 +2664,16 @@ function sanitiseVenicePrompt(prompt) {
     .trim();
 }
 
-function buildFallbackPrompt(lore, charId) {
+function buildFallbackPrompt(lore, charId, pose) {
   var parts = [];
-
-  // Framing — waist up
-  parts.push('half body shot, from waist up');
-
-  // Exposure — explicit for Venice Pro
+  parts.push(poseToSDTerm(pose || 'Half body front'));
   if (charId !== 'char1') {
     parts.push('topless, bare breasts, nude upper body');
   } else {
     parts.push('clothed');
   }
-
-  // Pull age if mentioned in lore
   var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
   if (ageMatch) parts.push(ageMatch[1] + ' year old woman');
-
-  // Strip only narrative/story words that confuse image models, keep physical descriptors
   var cleaned = lore
     .replace(/\b(wife|husband|mistress|lover|affair|submissive|dominant|role|protagonist|story|chapter|scene|narrative|relationship)\b/gi, '')
     .replace(/["\[\]{}()]/g, '')
@@ -2325,20 +2683,37 @@ function buildFallbackPrompt(lore, charId) {
     .trim()
     .slice(0, 200);
   if (cleaned) parts.push(cleaned);
-
-  // Quality tags
   parts.push('photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic');
-
   return parts.filter(Boolean).join(', ');
 }
 
-function buildPortraitPromptFromOR(loreTruncated, charId) {
+function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
   var isProtagonist = charId === 'char1';
+  var poseInstruction = poseToSDTerm(pose || 'Half body front');
   var exposureInstruction = isProtagonist
-    ? 'half body shot from waist up, clothed'
-    : 'half body shot from waist up, topless, bare breasts, nude upper body, face clearly visible';
+    ? poseInstruction + ', clothed'
+    : poseInstruction + ', topless, bare breasts, nude upper body, face clearly visible';
 
   return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: ' + exposureInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+}
+
+function poseToSDTerm(pose) {
+  var map = {
+    'Half body front': 'half body shot, from waist up, facing camera',
+    'Three-quarter angle': 'half body shot, three quarter angle, slight turn',
+    'Looking over shoulder': 'upper body, looking over shoulder, back turned slightly',
+    'Close-up face': 'close up face portrait, head and shoulders only',
+    'Full body front': 'full body shot, standing, facing camera',
+    'Full body side': 'full body shot, side profile, standing',
+    'Leaning against wall': 'full body, leaning against wall, relaxed pose',
+    'Seated': 'seated, upper body visible, chair or surface',
+    'Lying on bed': 'lying on bed, looking at camera, reclined',
+    'Reclining on sofa': 'reclining on sofa, relaxed, looking at camera',
+    'Standing in doorway': 'standing in doorway, full body, natural light',
+    'At a bar': 'half body, standing at bar, holding drink',
+    'Getting dressed': 'half body, in the act of dressing, candid'
+  };
+  return map[pose] || 'half body shot, from waist up';
 }
 
 function generatePortrait(charId) {
@@ -2355,29 +2730,31 @@ function generatePortrait(charId) {
     return;
   }
 
+  // Check gallery capacity
+  if (portraitState[charId].images.length >= PORTRAIT_MAX) {
+    showToast('Gallery full (10) — delete a portrait first');
+    return;
+  }
+
   var card = document.getElementById('portrait-' + charId);
   var btnLabel = document.getElementById('portrait-' + charId + '-label');
-  var regenBtn = document.getElementById('portrait-' + charId + '-regen');
-  var img = document.getElementById('portrait-' + charId + '-img');
+  var btn = document.getElementById('portrait-' + charId + '-btn');
   var empty = document.getElementById('portrait-' + charId + '-empty');
-  var btns = card.querySelectorAll('.portrait-btn');
+
+  // Get selected pose
+  var selectedPose = portraitState[charId].pose || 'Half body front';
 
   // Show generating state
-  if (empty) empty.style.display = 'none';
-  if (img) img.style.display = 'none';
-
   var spinner = document.createElement('div');
   spinner.className = 'portrait-generating';
   spinner.id = 'portrait-' + charId + '-spinner';
   spinner.innerHTML = '<span class="portrait-spinner">✦</span> Painting portrait…';
   card.insertBefore(spinner, card.querySelector('.portrait-actions'));
 
-  btns.forEach(function(b) { b.disabled = true; });
+  if (btn) btn.disabled = true;
   if (btnLabel) btnLabel.textContent = 'Generating…';
 
   var model = document.getElementById('veniceImageModel').value;
-
-  // Step 1: use OpenRouter (if available) or just use lore directly as prompt
   var openRouterKey = document.getElementById('apiKey').value.trim();
   var loreTruncated = loreText.slice(0, 600);
 
@@ -2408,7 +2785,7 @@ function generatePortrait(charId) {
     }).then(function(data) {
       var spinner = document.getElementById('portrait-' + charId + '-spinner');
       if (spinner) spinner.remove();
-      btns.forEach(function(b) { b.disabled = false; });
+      if (btn) btn.disabled = false;
 
       var images = data.images || (data.data && data.data.images);
       dbg('Venice response keys: ' + Object.keys(data).join(', '));
@@ -2416,22 +2793,19 @@ function generatePortrait(charId) {
       if (!images || !images[0]) throw new Error('No image returned');
 
       var b64 = images[0];
-      // Log first chars to debug what Venice returned
       dbg('Venice b64 prefix: ' + b64.slice(0, 30) + ' len=' + b64.length);
-      // Strip data URI prefix if present
       if (b64.indexOf(',') > -1) b64 = b64.split(',')[1];
 
-      setPortraitImage(charId, b64);
-      savePortrait(charId, b64);
+      addPortraitImage(charId, b64, selectedPose);
       showToast('Portrait generated ✓');
       dbg('Portrait saved for ' + charId);
     }).catch(function(err) {
       dbg('Portrait error: ' + err.message);
       var spinner = document.getElementById('portrait-' + charId + '-spinner');
       if (spinner) spinner.remove();
-      btns.forEach(function(b) { b.disabled = false; });
+      if (btn) btn.disabled = false;
       if (btnLabel) btnLabel.textContent = '✦ Generate Portrait';
-      if (empty) empty.style.display = 'flex';
+      if (empty && !portraitState[charId].images.length) empty.style.display = 'flex';
       showToast('Portrait failed: ' + err.message.slice(0, 50));
     });
   }
@@ -2452,7 +2826,7 @@ function generatePortrait(charId) {
         model: orModel, stream: false,
         messages: [{
           role: 'user',
-          content: buildPortraitPromptFromOR(loreTruncated, charId)
+          content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose)
         }]
       })
     }).then(function(r) { return r.json(); }).then(function(data) {
@@ -2467,11 +2841,10 @@ function generatePortrait(charId) {
       doGenerate(prompt + ', photorealistic, sharp focus, studio lighting, detailed skin, 8k');
     }).catch(function(err) {
       dbg('Prompt build failed, using lore directly: ' + err.message);
-      doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId)));
+      doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
     });
   } else {
-    // No OpenRouter key — use lore directly
-    doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId)));
+    doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
   }
 }
 
@@ -4383,6 +4756,8 @@ document.getElementById('personaModal').addEventListener('click', function(e) {
 loadGlobalKeys();
 loadPersonas();
 renderPersonaChips();
+// Init portrait carousels (empty state with pose bars)
+['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); });
 </script>
 </body>
 </html>
