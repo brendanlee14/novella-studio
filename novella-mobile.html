@@ -1299,7 +1299,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v36</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v38</span>
     </div>
   </div>
 
@@ -2293,44 +2293,32 @@ function savePortrait(charId, base64Data) {
 function buildFallbackPrompt(lore, charId) {
   var parts = [];
 
-  // Framing — upper body portrait
-  parts.push('portrait, upper body, face and chest');
-
-  // Exposure — filter-safe SD vocabulary for lustify
-  if (charId !== 'char1') {
-    parts.push('nude, undressed, no shirt, no bra, nsfw, décolletage, bare chest');
-  }
+  // Framing — face and upper body, clothed
+  parts.push('portrait, upper body, face clearly visible, clothed');
 
   // Pull age if mentioned in lore
   var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
   if (ageMatch) parts.push(ageMatch[1] + ' year old woman');
 
-  // Strip narrative/relationship words that trigger input filters, keep physical descriptors
+  // Strip narrative/relationship words, keep physical descriptors
   var cleaned = lore
-    .replace(/\b(wife|husband|mistress|lover|affair|erotic|submissive|dominant|role|protagonist|story|chapter|scene|narrative|relationship|explicit|sexual|sex)\b/gi, '')
+    .replace(/\b(wife|husband|mistress|lover|affair|erotic|submissive|dominant|role|protagonist|story|chapter|scene|narrative|relationship|explicit|sexual|sex|nsfw|nude|naked|topless)\b/gi, '')
     .replace(/["\[\]{}()]/g, '')
     .replace(/\n+/g, ', ')
     .replace(/[.!?]+/g, ',')
     .replace(/,\s*,+/g, ',')
     .trim()
-    .slice(0, 180);
+    .slice(0, 200);
   if (cleaned) parts.push(cleaned);
 
-  // Quality tags tuned for lustify
+  // Quality tags
   parts.push('photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic, film photography');
 
   return parts.filter(Boolean).join(', ');
 }
 
 function buildPortraitPromptFromOR(loreTruncated, charId) {
-  var isProtagonist = charId === 'char1';
-
-  // Filter-safe framing instruction — lustify understands SD vocabulary
-  var exposureInstruction = isProtagonist
-    ? 'upper body portrait, face and chest, clothed, shirt on'
-    : 'upper body portrait, nude, undressed, no shirt, no bra, nsfw, décolletage, bare chest, face clearly visible';
-
-  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: ' + exposureInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Physical descriptors only — no narrative, no relationship words, no story context. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+  return 'Convert this character description into a Stable Diffusion prompt for a photorealistic portrait. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: upper body portrait, face clearly visible, clothed, elegant\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, expression, clothing style. Physical descriptors only — no narrative, no relationship words. Max 80 words.\n\nCharacter:\n' + loreTruncated;
 }
 
 function generatePortrait(charId) {
@@ -2389,8 +2377,7 @@ function generatePortrait(charId) {
         height: 1216,
         steps: 30,
         hide_watermark: true,
-        return_binary: false,
-        safe_filter: false
+        return_binary: false
       })
     }).then(function(res) {
       if (!res.ok) {
