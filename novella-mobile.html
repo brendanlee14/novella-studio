@@ -1299,7 +1299,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v40</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v42</span>
     </div>
   </div>
 
@@ -2291,20 +2291,9 @@ function savePortrait(charId, base64Data) {
 }
 
 function sanitiseVenicePrompt(prompt) {
-  // Replace terms known to trigger Venice free-tier filter
+  // Venice Pro — safe_mode: false so minimal sanitisation needed
+  // Just clean up structural issues
   return prompt
-    .replace(/\bfemale\b/gi, 'woman')
-    .replace(/\bmale\b/gi, 'man')
-    .replace(/\bcaucasian\b/gi, 'light complexion')
-    .replace(/\bwhite woman\b/gi, 'light skin woman')
-    .replace(/\bwhite female\b/gi, 'light skin woman')
-    .replace(/\bsexy\b/gi, 'attractive')
-    .replace(/\bsensual\b/gi, 'elegant')
-    .replace(/\berotic\b/gi, '')
-    .replace(/\bnsfw\b/gi, '')
-    .replace(/\bnude\b/gi, '')
-    .replace(/\bnaked\b/gi, '')
-    .replace(/\btopless\b/gi, '')
     .replace(/,\s*,+/g, ',')
     .trim();
 }
@@ -2312,16 +2301,23 @@ function sanitiseVenicePrompt(prompt) {
 function buildFallbackPrompt(lore, charId) {
   var parts = [];
 
-  // Framing — waist up, clothed
-  parts.push('half body shot, from waist up, face and torso visible, clothed');
+  // Framing — waist up
+  parts.push('half body shot, from waist up');
+
+  // Exposure — explicit for Venice Pro
+  if (charId !== 'char1') {
+    parts.push('topless, bare breasts, nude upper body');
+  } else {
+    parts.push('clothed');
+  }
 
   // Pull age if mentioned in lore
   var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
   if (ageMatch) parts.push(ageMatch[1] + ' year old woman');
 
-  // Strip narrative/relationship words, keep physical descriptors
+  // Strip only narrative/story words that confuse image models, keep physical descriptors
   var cleaned = lore
-    .replace(/\b(wife|husband|mistress|lover|affair|erotic|submissive|dominant|role|protagonist|story|chapter|scene|narrative|relationship|explicit|sexual|sex|nsfw|nude|naked|topless)\b/gi, '')
+    .replace(/\b(wife|husband|mistress|lover|affair|submissive|dominant|role|protagonist|story|chapter|scene|narrative|relationship)\b/gi, '')
     .replace(/["\[\]{}()]/g, '')
     .replace(/\n+/g, ', ')
     .replace(/[.!?]+/g, ',')
@@ -2331,13 +2327,18 @@ function buildFallbackPrompt(lore, charId) {
   if (cleaned) parts.push(cleaned);
 
   // Quality tags
-  parts.push('photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic, film photography');
+  parts.push('photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic');
 
   return parts.filter(Boolean).join(', ');
 }
 
 function buildPortraitPromptFromOR(loreTruncated, charId) {
-  return 'Convert this character description into a Stable Diffusion prompt for a photorealistic portrait. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: half body shot, from waist up, face and torso visible, clothed, elegant\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, expression, clothing style. Physical descriptors only — no narrative, no relationship words. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+  var isProtagonist = charId === 'char1';
+  var exposureInstruction = isProtagonist
+    ? 'half body shot from waist up, clothed'
+    : 'half body shot from waist up, topless, bare breasts, nude upper body, face clearly visible';
+
+  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: ' + exposureInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
 }
 
 function generatePortrait(charId) {
@@ -2396,7 +2397,8 @@ function generatePortrait(charId) {
         height: 1216,
         steps: 30,
         hide_watermark: true,
-        return_binary: false
+        return_binary: false,
+        safe_mode: false
       })
     }).then(function(res) {
       if (!res.ok) {
