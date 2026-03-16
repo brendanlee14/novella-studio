@@ -588,6 +588,7 @@
     display: flex; align-items: center; justify-content: center;
     z-index: 5; backdrop-filter: blur(2px);
   }
+  .portrait-actions {
     display: flex; gap: 8px; padding: 10px 12px;
     border-top: 1px solid #2e2420; background: #1a120d;
   }
@@ -1388,7 +1389,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v45</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v46</span>
     </div>
   </div>
 
@@ -3826,8 +3827,34 @@ const ACCENTS_BY_REGION = {
   'English Variants': ['British (RP)','British (Northern)','British (Scottish)','British (Irish)','American','Australian','New Zealand','South African (English)','Caribbean']
 };
 
+// Ethnicity options grouped by region for wizard dropdowns
+const ETHNICITIES_GROUPED = {
+  'British Isles': ['English','Scottish','Welsh','Irish','Northern Irish'],
+  'Western Europe': ['French','German','Italian','Spanish','Portuguese','Dutch','Belgian','Swiss','Austrian','Greek','Scandinavian'],
+  'Eastern Europe': ['Russian','Ukrainian','Polish','Czech','Romanian','Hungarian','Serbian','Croatian','Bulgarian','Slovak','Slovenian'],
+  'Middle East': ['Lebanese','Egyptian','Moroccan','Algerian','Tunisian','Turkish','Iranian','Israeli','Saudi','Emirati','Jordanian','Syrian','Libyan'],
+  'Sub-Saharan Africa': ['Nigerian','Kenyan','South African','Ghanaian','Ethiopian','Congolese','Tanzanian','Zimbabwean','Senegalese','Somali','Ugandan','Rwandan'],
+  'South Asia': ['Indian','Pakistani','Bangladeshi','Sri Lankan','Nepali'],
+  'East Asia': ['Chinese','Japanese','Korean','Taiwanese','Hong Konger'],
+  'Southeast Asia': ['Vietnamese','Thai','Filipino','Indonesian','Malaysian','Singaporean','Cambodian'],
+  'The Americas': ['American','Canadian','Mexican','Brazilian','Colombian','Argentinian','Chilean','Cuban','Venezuelan','Peruvian','Dominican'],
+  'Oceania': ['Australian','New Zealander','Pacific Islander'],
+};
+const ETHNICITIES_FLAT = Object.values(ETHNICITIES_GROUPED).flat();
+
+function ethnicityGroupOptions() {
+  var html = '<option value="">— select —</option><option value="Mixed">Mixed (specify below)</option><option value="Other">Other (free text)</option>';
+  Object.keys(ETHNICITIES_GROUPED).forEach(function(region) {
+    html += '<optgroup label="' + region + '">';
+    ETHNICITIES_GROUPED[region].forEach(function(e) { html += '<option value="' + e + '">' + e + '</option>'; });
+    html += '</optgroup>';
+  });
+  return html;
+}
+
+// Legacy — keep for any remaining references
 const ETHNICITIES = ['White','Black','Latina','South Asian','East Asian','Middle Eastern','Mixed','Other'];
-const ETHNICITIES_DETAIL = ['White','Black','Latino/a','South Asian','East Asian','Middle Eastern','Indigenous','North African','Mixed Race'];
+const ETHNICITIES_DETAIL = ETHNICITIES_FLAT;
 
 // Wizard state
 let wizardTarget = null; // 'char1','char2','charSupport','world','tone'
@@ -3878,11 +3905,92 @@ function wizardStepTitle(step) {
 
 function sel(id) { return document.getElementById(id); }
 
+// Her kink / defining behaviour — 30 options
+const KINK_BEHAVIOURS = [
+  'Responds intensely to being watched',
+  'Performs when she knows he\'s looking',
+  'Loses control when praised',
+  'Needs to feel possessed',
+  'Responds to commands without hesitation',
+  'Initiates without warning',
+  'Teases until he breaks first',
+  'Withholds deliberately to build tension',
+  'Becomes vocal and unguarded at peak',
+  'Responds to dominance with complete surrender',
+  'Takes control when least expected',
+  'Eye contact as a weapon — holds it at the wrong moments',
+  'Touches herself when she thinks he can\'t see',
+  'Dresses for his attention without acknowledging it',
+  'Asks for things she pretends not to want',
+  'Gets competitive — needs to outperform',
+  'Laughs when she\'s close — loses her composure',
+  'Cries after — emotional release not distress',
+  'Bites — leaves marks without thinking',
+  'Pulls him closer when she should push away',
+  'Goes very still and quiet when fully aroused',
+  'Narrates what she wants in explicit detail',
+  'Responds to being described — what he says about her body',
+  'Needs eye contact to finish',
+  'Uses his name at the wrong moments',
+  'Slow to start, impossible to stop',
+  'Pushes limits then punishes him for crossing them',
+  'Remembers everything — references past encounters',
+  'Gets louder with each scene — builds across the story',
+  'Acts indifferent then gives herself away physically'
+];
+
+// Expanded kinks for tone wizard — 30 options
+const STORY_KINKS = [
+  // Voyeurism & Exhibition
+  'Voyeurism — watching without being seen',
+  'Exhibitionism — being watched or performing',
+  'Public / semi-public risk',
+  'Mirror play — watching themselves',
+  // Power & Control
+  'Dominance / submission',
+  'Light bondage — restraints, wrists',
+  'Blindfolds / sensory deprivation',
+  'Orgasm control / edging / denial',
+  'Praise kink — responding to verbal approval',
+  'Humiliation (light) — teasing, power play',
+  'Consensual force / resistance play',
+  // Dynamic & Scenario
+  'Age gap dynamic',
+  'Forbidden / taboo context',
+  'Affair / secrecy',
+  'Stranger / anonymous encounter',
+  'Roleplay / fantasy scenario',
+  'First time / initiation',
+  'Reunion after absence',
+  'Slow seduction over multiple scenes',
+  'Watching her with someone else',
+  'Sharing / being shared',
+  // Physical
+  'Size difference',
+  'Overpowered / overwhelmed physically',
+  'Dirty talk — explicit verbal',
+  'Dirty talk — commanding / instructing',
+  'Body worship — prolonged attention to her body',
+  'Multiple orgasms / relentless stimulation',
+  // Emotional / Psychological
+  'Obsession / possessiveness',
+  'Jealousy as arousal',
+  'Emotional surrender — losing control'
+];
+
 function wField(label, id, type, options, placeholder, note) {
   var extra = note ? '<div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">' + note + '</div>' : '';
   if (type === 'select') {
+    var hasOther = options.indexOf('Other') > -1;
     var opts = options.map(function(o) { return '<option value="' + o + '">' + o + '</option>'; }).join('');
-    return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><select class="wiz-select" id="' + id + '"><option value="">— select —</option>' + opts + '</select>' + extra + '</div>';
+    var otherInput = hasOther ? '<input class="wiz-input" id="' + id + '_other" type="text" placeholder="Specify…" style="margin-top:6px;display:none;" />' : '';
+    var onchange = hasOther ? ' onchange="onWizOtherChange(\'' + id + '\')"' : '';
+    return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><select class="wiz-select" id="' + id + '"' + onchange + '><option value="">— select —</option>' + opts + '</select>' + otherInput + extra + '</div>';
+  }
+  if (type === 'select-grouped') {
+    // options is raw HTML for optgroups
+    var otherInput2 = '<input class="wiz-input" id="' + id + '_other" type="text" placeholder="Specify…" style="margin-top:6px;display:none;" />';
+    return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><select class="wiz-select" id="' + id + '" onchange="onWizOtherChange(\'' + id + '\')">' + options + '</select>' + otherInput2 + extra + '</div>';
   }
   if (type === 'text') {
     return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><input class="wiz-input" id="' + id + '" type="text" placeholder="' + (placeholder||'') + '" /></div>';
@@ -3895,6 +4003,25 @@ function wField(label, id, type, options, placeholder, note) {
     return '<div class="wiz-field"><label class="wiz-label">' + label + '</label><div class="wiz-multiselect" id="' + id + '">' + chips + '</div>' + extra + '</div>';
   }
   return '';
+}
+
+function onWizOtherChange(id) {
+  var sel = document.getElementById(id);
+  var input = document.getElementById(id + '_other');
+  if (!sel || !input) return;
+  input.style.display = (sel.value === 'Other' || sel.value === 'Mixed') ? '' : 'none';
+  if (sel.value !== 'Other' && sel.value !== 'Mixed') input.value = '';
+}
+
+function getWizFieldValue(id) {
+  // Returns either the select value or the _other free text if Other is selected
+  var sel = document.getElementById(id);
+  if (!sel) return '';
+  if (sel.value === 'Other') {
+    var other = document.getElementById(id + '_other');
+    return other && other.value.trim() ? other.value.trim() : 'Other';
+  }
+  return sel.value;
 }
 
 function getSelectedChips(containerId) {
@@ -3942,10 +4069,10 @@ function renderWizardStep() {
   if (stepKey === 'identity') {
     body += wField('Name', 'wiz_name', 'text', null, 'e.g. Marcus');
     body += wField('Age', 'wiz_age', 'text', null, 'e.g. 38');
-    body += wField('Ethnicity', 'wiz_ethnicity', 'select', ETHNICITIES);
+    body += wField('Ethnicity', 'wiz_ethnicity', 'select-grouped', ethnicityGroupOptions());
     body += '<div class="wiz-field" id="wiz_mixed_row" style="display:none">';
-    body += '<label class="wiz-label">Mixed — First Ethnicity</label><select class="wiz-select" id="wiz_eth1"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
-    body += '<label class="wiz-label" style="margin-top:8px;">Mixed — Second Ethnicity</label><select class="wiz-select" id="wiz_eth2"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += '<label class="wiz-label">Mixed — First Ethnicity</label><select class="wiz-select" id="wiz_eth1"><option value="">— select —</option>' + ETHNICITIES_FLAT.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += '<label class="wiz-label" style="margin-top:8px;">Mixed — Second Ethnicity</label><select class="wiz-select" id="wiz_eth2"><option value="">— select —</option>' + ETHNICITIES_FLAT.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
     body += wField('Additional ethnicity detail', 'wiz_eth_detail', 'text', null, 'e.g. half Brazilian half Japanese');
     body += '</div>';
   }
@@ -3977,10 +4104,10 @@ function renderWizardStep() {
     body += wField('Name', 'wiz_name', 'text', null, 'e.g. Sofia');
     body += wField('Age', 'wiz_age', 'text', null, 'e.g. 29');
     body += wField('Role in Story', 'wiz_role', 'select', ['Wife','Girlfriend','Affair','Stranger','Colleague','Friend\'s partner','Escort','Neighbour','Other']);
-    body += wField('Ethnicity', 'wiz_ethnicity', 'select', ETHNICITIES);
+    body += wField('Ethnicity', 'wiz_ethnicity', 'select-grouped', ethnicityGroupOptions());
     body += '<div class="wiz-field" id="wiz_mixed_row" style="display:none">';
-    body += '<label class="wiz-label">Mixed — First Ethnicity</label><select class="wiz-select" id="wiz_eth1"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
-    body += '<label class="wiz-label" style="margin-top:8px;">Mixed — Second Ethnicity</label><select class="wiz-select" id="wiz_eth2"><option value="">— select —</option>' + ETHNICITIES_DETAIL.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += '<label class="wiz-label">Mixed — First Ethnicity</label><select class="wiz-select" id="wiz_eth1"><option value="">— select —</option>' + ETHNICITIES_FLAT.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
+    body += '<label class="wiz-label" style="margin-top:8px;">Mixed — Second Ethnicity</label><select class="wiz-select" id="wiz_eth2"><option value="">— select —</option>' + ETHNICITIES_FLAT.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
     body += wField('Additional ethnicity detail', 'wiz_eth_detail', 'text', null, 'e.g. half Brazilian half Japanese, raised in London');
     body += '</div>';
   }
@@ -4019,14 +4146,15 @@ function renderWizardStep() {
   }
 
   if (stepKey === 'dynamic') {
-    body += wField('Voice Quality', 'wiz_voice', 'select', ['Soft','Husky','Breathy','Low and controlled','High and light','Raspy','Melodic','Quiet and precise']);
+    body += wField('Voice Quality', 'wiz_voice', 'select', ['Soft','Husky','Breathy','Low and controlled','High and light','Raspy','Melodic','Quiet and precise','Other']);
     body += '<div class="wiz-field"><label class="wiz-label">Accent</label><select class="wiz-select" id="wiz_accent" onchange="onWizAccentChange()">' + accentGroupOptions() + '</select></div>';
     body += wField('Accent Strength', 'wiz_accent_strength', 'select', ['Subtle','Moderate','Strong']);
     body += '<div class="wiz-field" id="wiz_exclaim_row" style="display:none"><label class="wiz-label">Native Exclamations During Sex</label><select class="wiz-select" id="wiz_exclaim_freq" onchange="onWizExclaimFreqChange()"><option value="">— select —</option><option>Off</option><option>Occasional — one or two words at peak moments</option><option>Regular — woven throughout arousal</option><option>Slips into native language when she loses control</option></select></div>';
     body += '<div class="wiz-field" id="wiz_phrases_row" style="display:none"><label class="wiz-label">Seed Phrases <span style="font-weight:300;font-style:italic;color:var(--muted)">— edit freely</span></label><textarea class="wiz-textarea" id="wiz_phrases" rows="3" placeholder="Native words and exclamations…"></textarea><div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">Pre-filled from accent — edit or add your own</div></div>';
-    body += wField('Carries Herself', 'wiz_carries', 'select', ['Unaware of her effect','Quietly confident','Deliberately teasing','Exhibitionist','Demure and restrained','Controlled with hidden heat']);
-    body += wField('Power Dynamic', 'wiz_power', 'select', ['Submissive','Dominant','Equal','Shifts with context','Submissive in private only']);
-    body += wField('Her Kink or Defining Behaviour', 'wiz_kink', 'text', null, 'e.g. needs to be watched, responds to praise, loses control when…');
+    body += wField('Carries Herself', 'wiz_carries', 'select', ['Unaware of her effect','Quietly confident','Deliberately teasing','Exhibitionist','Demure and restrained','Controlled with hidden heat','Other']);
+    body += wField('Power Dynamic', 'wiz_power', 'select', ['Submissive','Dominant','Equal','Shifts with context','Submissive in private only','Other']);
+    body += '<div class="wiz-field"><label class="wiz-label">Her Kink or Defining Behaviour <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_kink_multi">' + KINK_BEHAVIOURS.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
+    body += wField('Additional kink detail', 'wiz_kink', 'text', null, 'Any other defining behaviour…');
     body += wField('Physical Tell When Aroused', 'wiz_arousal_tell', 'text', null, 'e.g. flush spreads from neck, breathing slows, bites lower lip');
     body += wField('Signature Gesture', 'wiz_gesture', 'select', ['Holds eye contact too long','Touches her own neck','Bites lip when thinking','Tucks hair when nervous','Mirrors his body language','Tilts chin up when challenged','Trails fingers when she walks past','Other']);
     body += wField('Signature Scent', 'wiz_scent', 'select', ['Warm vanilla','Jasmine','Sandalwood','Citrus and clean','Floral and soft','Musk','Clean skin, barely there','Dark rose','Coconut and warm skin','Other']);
@@ -4041,9 +4169,30 @@ function renderWizardStep() {
   }
 
   if (stepKey === 'cast_diff') {
-    body += wField('Her Relationship to the Love Interest', 'wiz_cast_li', 'select', ['Doesn\'t know her','Close friends','Acquaintances','Rivals','Works together','Family connection','Unaware of each other']);
-    body += wField('Protagonist\'s Prior History With Her', 'wiz_cast_hist', 'select', ['Never met','Aware of her but distant','Had a charged moment','History he hasn\'t disclosed']);
-    body += wField('Her Role in the Story', 'wiz_cast_role', 'select', ['One-off scene only','Recurring presence','Slow burn subplot','Parallel to main dynamic','Catalyst — changes something']);
+    body += wField('Her Relationship to the Love Interest', 'wiz_cast_li', 'select', [
+      'Doesn\'t know her',
+      'Unaware of each other',
+      'She knows of her but they\'ve never met',
+      'Acquaintances',
+      'Friendly acquaintances — warm but not close',
+      'Colleagues who socialise outside work',
+      'Works together',
+      'Competitive professionally',
+      'One is senior to the other — power imbalance',
+      'Neighbours',
+      'Mutual friends through him',
+      'Close friends',
+      'Best friends — very close, no secrets',
+      'Former friends — fell out, unresolved tension',
+      'Rivals',
+      'Family connection',
+      'One introduced the other to him',
+      'She suspects something — never said it aloud',
+      'They\'ve slept with the same man before (him)',
+      'Other'
+    ]);
+    body += wField('Protagonist\'s Prior History With Her', 'wiz_cast_hist', 'select', ['Never met','Aware of her but distant','Had a charged moment','History he hasn\'t disclosed','Other']);
+    body += wField('Her Role in the Story', 'wiz_cast_role', 'select', ['One-off scene only','Recurring presence','Slow burn subplot','Parallel to main dynamic','Catalyst — changes something','Other']);
     body += wField('Does the Love Interest Know About Her?', 'wiz_cast_li_knows', 'select', ['No','Suspects','Knows and accepts','Knows and doesn\'t know he knows','N/A — no love interest']);
   }
 
@@ -4062,7 +4211,7 @@ function renderWizardStep() {
     body += wField('Dialogue Ratio', 'wiz_dialogue', 'select', ['Mostly action and description','Light dialogue only','Balanced — equal action and dialogue','Dialogue-driven','Heavy internal monologue']);
     body += wField('Dialogue Style', 'wiz_dialogue_style', 'select', ['Sparse and loaded','Natural and realistic','Teasing and playful','Direct and explicit','Formal with undercurrent']);
     body += '<div class="wiz-field"><label class="wiz-label">Active Kinks <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_kinks">' +
-      ['Voyeurism','Exhibitionism','Power exchange','Dominance / submission','Cuckolding','Threesome / group','Public / semi-public','Roleplay','Light bondage','Blindfolds','Dirty talk','Edging / denial','Size difference','Age gap','Forbidden / taboo context','First time / initiation','Slow seduction over multiple scenes','Overpowered / overwhelmed','Watching her with another','Being watched'].map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
+      STORY_KINKS.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
     body += wField('Escalation Ceiling', 'wiz_ceiling', 'select', ['Sensual — no explicit acts','Explicit but tasteful','Fully explicit, graphic','No ceiling']);
     body += '<div class="wiz-field"><label class="wiz-label">Hard Limits — Never Appears <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_limits">' +
       ['Fade to black','Euphemisms for anatomy','Cutting away at moment of contact','Emotional deflection instead of physical description','Purple prose / over-metaphored writing','Male protagonist loses composure entirely','She is fully in control at all times','Pain without consent','Degradation','Anything non-consensual framed approvingly'].map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
@@ -4097,6 +4246,9 @@ function renderWizardStep() {
     ethSel.addEventListener('change', function() {
       var row = document.getElementById('wiz_mixed_row');
       if (row) row.style.display = this.value === 'Mixed' ? 'block' : 'none';
+      // Also handle Other free text via standard handler
+      var otherInput = document.getElementById('wiz_ethnicity_other');
+      if (otherInput) otherInput.style.display = this.value === 'Other' ? '' : 'none';
     });
     if (ethSel.value === 'Mixed') {
       var row = document.getElementById('wiz_mixed_row');
@@ -4253,7 +4405,11 @@ function buildLorePrompt() {
     var phrases = collectWizardValue('dynamic','wiz_phrases');
     var carries = collectWizardValue('dynamic','wiz_carries');
     var power = collectWizardValue('dynamic','wiz_power');
-    var kink = collectWizardValue('dynamic','wiz_kink');
+    var kinkChips = collectWizardChips('dynamic','wiz_kink_multi');
+    var kink = kinkChips.length ? kinkChips.join(', ') : collectWizardValue('dynamic','wiz_kink');
+    var kinkExtra = collectWizardValue('dynamic','wiz_kink');
+    if (kinkExtra && kinkChips.length) kink += ', ' + kinkExtra;
+    else if (kinkExtra) kink = kinkExtra;
     var arousalTell = collectWizardValue('dynamic','wiz_arousal_tell');
     var gesture = collectWizardValue('dynamic','wiz_gesture');
     var scent = collectWizardValue('dynamic','wiz_scent');
