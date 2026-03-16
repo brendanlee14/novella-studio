@@ -1299,7 +1299,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v35</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v36</span>
     </div>
   </div>
 
@@ -2389,7 +2389,8 @@ function generatePortrait(charId) {
         height: 1216,
         steps: 30,
         hide_watermark: true,
-        return_binary: false
+        return_binary: false,
+        safe_filter: false
       })
     }).then(function(res) {
       if (!res.ok) {
@@ -2402,9 +2403,13 @@ function generatePortrait(charId) {
       btns.forEach(function(b) { b.disabled = false; });
 
       var images = data.images || (data.data && data.data.images);
+      dbg('Venice response keys: ' + Object.keys(data).join(', '));
+      if (data.metadata) dbg('Venice metadata: ' + JSON.stringify(data.metadata).slice(0, 120));
       if (!images || !images[0]) throw new Error('No image returned');
 
       var b64 = images[0];
+      // Log first chars to debug what Venice returned
+      dbg('Venice b64 prefix: ' + b64.slice(0, 30) + ' len=' + b64.length);
       // Strip data URI prefix if present
       if (b64.indexOf(',') > -1) b64 = b64.split(',')[1];
 
