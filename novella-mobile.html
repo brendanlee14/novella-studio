@@ -1580,7 +1580,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v52</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v53</span>
     </div>
   </div>
 
@@ -2205,10 +2205,20 @@ function generateChapterSummaries() {
 
 ${loreCtx ? loreCtx + '\n\n' : ''}SYNOPSIS:\n${synopsis}
 
-Output ONLY valid JSON — an array of ${numCh} objects, each with "title" (evocative chapter title) and "summary" (2-4 sentences describing what happens, the emotional and physical beats, and how it advances the story — reflecting the tone and heat level above).
+Output ONLY valid JSON — an array of ${numCh} objects, each with:
+- "title": evocative chapter title
+- "summary": a detailed paragraph (6-10 sentences) covering ALL of the following:
+  1. Where the chapter opens — setting, mood, who is present
+  2. The dramatic purpose — what this chapter exists to do in the story arc
+  3. Key events and turning points in order
+  4. The emotional arc — how the protagonist feels at start vs end
+  5. The physical/sexual escalation — what happens, how explicit, how far things go
+  6. What changes by the end — in the dynamic, the relationship, the situation
+  7. The final beat or image — where the chapter leaves off
+  Reflect the heat level and tone from the lore. Do not sanitise or fade to black in descriptions.
 
 Example format:
-[{"title":"Chapter One — The Encounter","summary":"Brendan first sees Elisa..."},...]
+[{"title":"Chapter One — The Encounter","summary":"The chapter opens in..."},...]
 
 No markdown, no commentary, just the JSON array.`;
 
@@ -2267,7 +2277,7 @@ function refineChapterSummary(i) {
     + (toneStyle ? '\n\nTONE & STYLE to maintain:\n' + toneStyle : '')
     + '\n\nWhen refining, preserve the user\'s intent and edits. Keep the heat level and any explicit content — do not sanitise.';
 
-  const prompt = `Refine this chapter summary based on the user's edits. Keep their intent and changes — polish the prose, fix inconsistencies, ensure it reads as a coherent story beat. Output ONLY the refined summary text, no titles or labels.
+  const prompt = `Refine this chapter summary based on the user's edits. Keep their intent and changes — polish the prose, fix inconsistencies, and expand where needed. The summary should be a detailed paragraph (6-10 sentences) covering: opening setting and mood, the chapter's dramatic purpose, key events in order, the emotional arc, the physical/sexual escalation, what changes by the end, and the final beat. Reflect the heat level and tone. Output ONLY the refined summary text, no titles or labels.
 
 Chapter: ${planSummaries[i].title || 'Chapter ' + (i+1)}
 Current summary (with user edits):
