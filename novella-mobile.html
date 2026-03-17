@@ -503,24 +503,68 @@
     background: #4a3f35; transition: background 0.2s;
   }
   .portrait-dot.active { background: var(--gold); }
-  .portrait-pose-bar {
-    padding: 8px 12px 4px;
-    display: flex; gap: 6px; overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; background: #1a120d;
+  /* ── PORTRAIT POSE SELECTOR ── */
+  .portrait-pose-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px 0; background: #1a120d;
   }
-  .portrait-pose-bar::-webkit-scrollbar { display: none; }
-  .pose-chip {
-    flex: 0 0 auto; padding: 5px 10px;
-    border: 1px solid #4a3f35; border-radius: 12px;
-    font-family: 'Jost', sans-serif; font-size: 0.68rem;
-    color: #8a7b72; background: none; cursor: pointer;
-    white-space: nowrap; transition: all 0.12s;
+  .portrait-pose-label {
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: #5a4e48; flex-shrink: 0;
   }
-  .pose-chip.selected {
-    border-color: var(--rose); color: var(--rose-deep);
-    background: #2a1218;
+  .portrait-pose-current {
+    flex: 1; font-family: 'Cormorant Garamond', serif;
+    font-size: 0.88rem; color: var(--gold); font-style: italic;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .portrait-pose-change-btn {
+    background: none; border: 1px solid #4a3f35;
+    border-radius: 8px; padding: 4px 10px;
+    color: var(--muted); font-family: 'Jost', sans-serif;
+    font-size: 0.68rem; cursor: pointer; flex-shrink: 0;
+    letter-spacing: 0.04em;
+  }
+
+  /* Pose picker sheet */
+  #posePicker {
+    display: none; position: fixed; inset: 0;
+    background: rgba(24,18,14,0.78); z-index: 810;
+    align-items: flex-end; justify-content: center;
+  }
+  #posePicker.open { display: flex; }
+  .pose-picker-sheet {
+    background: var(--cream); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px;
+    max-height: 80vh; display: flex; flex-direction: column;
+  }
+  .pose-picker-header {
+    padding: 16px 20px 10px; flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pose-picker-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 12px; }
+  .pose-picker-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.2rem;
+    color: var(--rose-deep); font-style: italic;
+  }
+  .pose-picker-body {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 8px 0 16px;
+  }
+  .pose-category-label {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--gold); padding: 12px 20px 6px;
+  }
+  .pose-option {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 20px; cursor: pointer;
+    font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+    color: var(--ink); font-style: italic;
+    border-bottom: 1px solid var(--border);
+  }
+  .pose-option:last-child { border-bottom: none; }
+  .pose-option:active { background: var(--parchment); }
+  .pose-option.selected { color: var(--rose-deep); }
+  .pose-option-check { color: var(--rose); font-style: normal; font-size: 0.9rem; }
 
   /* ── PORTRAIT FULLSCREEN POPUP ── */
   #portraitPopup {
@@ -1149,7 +1193,11 @@
           <div class="portrait-carousel-track" id="portrait-char1-track"></div>
         </div>
         <div class="portrait-dots" id="portrait-char1-dots" style="display:none"></div>
-        <div class="portrait-pose-bar" id="portrait-char1-poses"></div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">Pose</span>
+          <span class="portrait-pose-current" id="portrait-char1-pose-label">Half body front</span>
+          <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char1')">Change</button>
+        </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
             <span id="portrait-char1-label">✦ Generate Portrait</span>
@@ -1177,7 +1225,11 @@
           <div class="portrait-carousel-track" id="portrait-char2-track"></div>
         </div>
         <div class="portrait-dots" id="portrait-char2-dots" style="display:none"></div>
-        <div class="portrait-pose-bar" id="portrait-char2-poses"></div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">Pose</span>
+          <span class="portrait-pose-current" id="portrait-char2-pose-label">Half body front</span>
+          <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char2')">Change</button>
+        </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
             <span id="portrait-char2-label">✦ Generate Portrait</span>
@@ -1205,7 +1257,11 @@
           <div class="portrait-carousel-track" id="portrait-charSupport-track"></div>
         </div>
         <div class="portrait-dots" id="portrait-charSupport-dots" style="display:none"></div>
-        <div class="portrait-pose-bar" id="portrait-charSupport-poses"></div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">Pose</span>
+          <span class="portrait-pose-current" id="portrait-charSupport-pose-label">Half body front</span>
+          <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('charSupport')">Change</button>
+        </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
             <span id="portrait-charSupport-label">✦ Generate Portrait</span>
@@ -1389,7 +1445,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v46</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v47</span>
     </div>
   </div>
 
@@ -1531,6 +1587,17 @@
       <button type="button" id="personaClearBtn" class="btn-cancel" style="flex:1;color:#c0392b;border-color:#e74c3c;">Clear Slot</button>
       <button type="button" id="personaSaveBtn" class="btn-save" style="flex:2;">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- ── PORTRAIT POSE PICKER ── -->
+<div id="posePicker">
+  <div class="pose-picker-sheet">
+    <div class="pose-picker-header">
+      <div class="pose-picker-handle"></div>
+      <div class="pose-picker-title">Select Pose</div>
+    </div>
+    <div class="pose-picker-body" id="posePickerBody"></div>
   </div>
 </div>
 
@@ -2363,21 +2430,52 @@ function escapeAttr(str) {
 // PORTRAIT CAROUSEL
 // ══════════════════════════════
 const PORTRAIT_MAX = 10;
-const PORTRAIT_POSES = [
-  'Half body front',
-  'Three-quarter angle',
-  'Looking over shoulder',
-  'Close-up face',
-  'Full body front',
-  'Full body side',
-  'Leaning against wall',
-  'Seated',
-  'Lying on bed',
-  'Reclining on sofa',
-  'Standing in doorway',
-  'At a bar',
-  'Getting dressed'
-];
+const PORTRAIT_POSE_GROUPS = {
+  'Studio': [
+    'Half body front',
+    'Three-quarter angle',
+    'Close-up face',
+    'Looking over shoulder',
+    'Full body front',
+    'Full body side',
+    'Walking away — rear view',
+    'Direct eye contact — close',
+  ],
+  'Location': [
+    'At the pool',
+    'At the beach',
+    'On a sun lounger',
+    'Getting out of the pool',
+    'On a balcony',
+    'At a rooftop bar',
+    'In a restaurant',
+    'In a car — passenger seat',
+    'Standing in doorway',
+    'Leaning against wall',
+    'Looking out a window',
+  ],
+  'Intimate': [
+    'In bed — morning light',
+    'Lying on bed',
+    'Reclining on sofa',
+    'Seated',
+    'In a hotel room',
+    'Wrapped in a towel',
+    'In lingerie — standing',
+    'In lingerie — seated on bed',
+    'Getting dressed — caught mid',
+    'In the shower — suggested',
+    'Candlelit — low light',
+  ],
+  'Mood': [
+    'Reading — distracted',
+    'At a bar — holding drink',
+    'Over the shoulder looking back',
+  ]
+};
+
+// Flat list for poseToSDTerm lookup
+const PORTRAIT_POSES_FLAT = Object.values(PORTRAIT_POSE_GROUPS).flat();
 
 // Per-character state
 var portraitState = {
@@ -2396,24 +2494,10 @@ function renderPortraitCarousel(charId, images) {
   var track = document.getElementById('portrait-' + charId + '-track');
   var dots = document.getElementById('portrait-' + charId + '-dots');
   var label = document.getElementById('portrait-' + charId + '-label');
-  var posesBar = document.getElementById('portrait-' + charId + '-poses');
 
-  // Render pose chips
-  if (posesBar) {
-    posesBar.innerHTML = '';
-    PORTRAIT_POSES.forEach(function(pose) {
-      var chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'pose-chip' + (pose === state.pose ? ' selected' : '');
-      chip.textContent = pose;
-      chip.onclick = function() {
-        state.pose = pose;
-        posesBar.querySelectorAll('.pose-chip').forEach(function(c) { c.classList.remove('selected'); });
-        chip.classList.add('selected');
-      };
-      posesBar.appendChild(chip);
-    });
-  }
+  // Update pose label
+  var poseLabel = document.getElementById('portrait-' + charId + '-pose-label');
+  if (poseLabel) poseLabel.textContent = state.pose || 'Half body front';
 
   if (!state.images.length) {
     if (empty) empty.style.display = 'flex';
@@ -2724,21 +2808,89 @@ function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
   return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: ' + exposureInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
 }
 
+// ══════════════════════════════
+// POSE PICKER
+// ══════════════════════════════
+var posePickerCharId = null;
+
+function openPosePicker(charId) {
+  posePickerCharId = charId;
+  var currentPose = portraitState[charId].pose || 'Half body front';
+  var body = document.getElementById('posePickerBody');
+  body.innerHTML = '';
+
+  Object.keys(PORTRAIT_POSE_GROUPS).forEach(function(category) {
+    var catLabel = document.createElement('div');
+    catLabel.className = 'pose-category-label';
+    catLabel.textContent = category;
+    body.appendChild(catLabel);
+
+    PORTRAIT_POSE_GROUPS[category].forEach(function(pose) {
+      var item = document.createElement('div');
+      item.className = 'pose-option' + (pose === currentPose ? ' selected' : '');
+      item.innerHTML = escapeHtml(pose) + (pose === currentPose ? '<span class="pose-option-check">✓</span>' : '');
+      item.addEventListener('click', function() {
+        selectPose(charId, pose);
+        closePosePicker();
+      });
+      body.appendChild(item);
+    });
+  });
+
+  document.getElementById('posePicker').classList.add('open');
+}
+
+function closePosePicker() {
+  document.getElementById('posePicker').classList.remove('open');
+  posePickerCharId = null;
+}
+
+function selectPose(charId, pose) {
+  portraitState[charId].pose = pose;
+  var poseLabel = document.getElementById('portrait-' + charId + '-pose-label');
+  if (poseLabel) poseLabel.textContent = pose;
+  showToast(pose);
+}
+
+document.getElementById('posePicker').addEventListener('click', function(e) {
+  if (e.target === this) closePosePicker();
+});
+
 function poseToSDTerm(pose) {
   var map = {
     'Half body front': 'half body shot, from waist up, facing camera',
     'Three-quarter angle': 'half body shot, three quarter angle, slight turn',
-    'Looking over shoulder': 'upper body, looking over shoulder, back turned slightly',
     'Close-up face': 'close up face portrait, head and shoulders only',
+    'Looking over shoulder': 'upper body, looking over shoulder, back turned slightly',
     'Full body front': 'full body shot, standing, facing camera',
     'Full body side': 'full body shot, side profile, standing',
-    'Leaning against wall': 'full body, leaning against wall, relaxed pose',
-    'Seated': 'seated, upper body visible, chair or surface',
+    'Walking away — rear view': 'full body, walking away, rear view, looking back slightly',
+    'Direct eye contact — close': 'close up portrait, direct intense eye contact, face filling frame',
+    'At the pool': 'poolside, sitting at pool edge, legs in water, natural daylight',
+    'At the beach': 'beach setting, natural light, sand and sea background, relaxed',
+    'On a sun lounger': 'lying on sun lounger, relaxed, outdoor poolside or beach',
+    'Getting out of the pool': 'emerging from swimming pool, wet hair, poolside, natural light',
+    'On a balcony': 'standing on balcony, city or ocean view behind, golden hour light',
+    'At a rooftop bar': 'rooftop bar setting, city skyline behind, evening light',
+    'In a restaurant': 'seated at restaurant table, candlelight, elegant setting',
+    'In a car — passenger seat': 'seated in car passenger seat, window light, intimate framing',
+    'Standing in doorway': 'standing in doorway, natural light from behind, full body',
+    'Leaning against wall': 'leaning against wall, relaxed pose, three-quarter body',
+    'Looking out a window': 'standing at window, looking out, soft window light on face',
+    'In bed — morning light': 'lying in bed, morning light, soft sheets, looking at camera',
     'Lying on bed': 'lying on bed, looking at camera, reclined',
     'Reclining on sofa': 'reclining on sofa, relaxed, looking at camera',
-    'Standing in doorway': 'standing in doorway, full body, natural light',
-    'At a bar': 'half body, standing at bar, holding drink',
-    'Getting dressed': 'half body, in the act of dressing, candid'
+    'Seated': 'seated, upper body visible, natural pose',
+    'In a hotel room': 'in hotel room, standing or seated, interior light',
+    'Wrapped in a towel': 'wrapped in towel, just out of shower, bathroom or bedroom',
+    'In lingerie — standing': 'standing in lingerie, full body, confident pose',
+    'In lingerie — seated on bed': 'seated on bed in lingerie, half body, intimate',
+    'Getting dressed — caught mid': 'caught mid-dress, candid, turning toward camera',
+    'In the shower — suggested': 'in shower, steamy glass, half obscured, suggested nudity',
+    'Candlelit — low light': 'candlelit portrait, warm low light, intimate atmosphere',
+    'Reading — distracted': 'seated reading, looking up distracted, natural light',
+    'At a bar — holding drink': 'standing at bar, holding drink, half body',
+    'Over the shoulder looking back': 'walking, turned looking back over shoulder, full body',
   };
   return map[pose] || 'half body shot, from waist up';
 }
@@ -4501,8 +4653,8 @@ function generateLoreFromWizard() {
 
   } else {
     // char1, char2, charSupport — character reference sheet
-    systemMsg = 'You are a character reference writer for an AI erotica writing tool. Your job is to convert character data into a detailed physical and psychological reference sheet. Write in flowing prose. Be specific, physical, and direct about all details provided. Do NOT invent any details, names, ages, occupations, or characteristics not explicitly given in the data. Do NOT add characters that are not in the data. Do NOT ask follow-up questions. Do NOT write scenes or fiction — this is a reference document only.';
-    userMsg = 'Convert the following character data into a detailed reference sheet for an AI erotica writing assistant. Write in prose paragraphs covering physical appearance, personality, and dynamic exactly as specified. Use ONLY the information provided — do not invent any details not explicitly given. Do not add extra characters. Do not write scenes or fiction. Do not ask for more information. Do not add caveats or warnings.\n\n' + dataPrompt;
+    systemMsg = 'You are a character reference writer for an AI erotica writing tool. Your job is to convert character data into a structured reference sheet. Output ONLY a structured reference document — no narrative prose, no scenes, no fiction, no invented details. Use the exact format shown. Do NOT write flowing creative prose. Do NOT invent any details not in the data. Do NOT write scenes or story content.';
+    userMsg = 'Convert the following character data into a structured reference sheet using EXACTLY this format — labels followed by values, one topic per line. Do not write prose paragraphs. Do not write scenes or fiction. Use only the data provided.\n\nFORMAT TO FOLLOW:\n[ROLE LABEL]\nName: [name], Age: [age], Role: [role], Ethnicity: [ethnicity]\nFace: [face shape], [eye colour] eyes, [hair colour] hair ([hair length]), [striking feature]\nBody: [body type], breasts: [size] [shape], nipples: [nipples], breast movement: [movement], bra tendency: [bra], ass: [ass], pubic hair: [pubic], pussy: [pussy style]\nVoice: [voice quality][, accent if applicable]\n[Native exclamations line if applicable]\nCarries herself: [value]\nPower dynamic: [value]\nKink / defining behaviour: [values]\nPhysical tell when aroused: [value]\nSignature gesture: [value]\nSignature scent: [value]\nHistory: [length], [prior contact]\nWho knows: [value]\nUnspoken tension: [value]\nWhat she withholds: [value]\n[Any cast differentiation fields on separate lines]\n\nDATA TO CONVERT:\n' + dataPrompt;
   }
 
   fetch('https://openrouter.ai/api/v1/chat/completions', {
