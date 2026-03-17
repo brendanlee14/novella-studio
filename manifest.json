@@ -1,12 +1,12 @@
 {
-  "name": "Novella Studio",
-  "short_name": "Novella",
-  "description": "AI-powered romance novella writing studio",
+  "name": "SignalCheck",
+  "short_name": "SignalCheck",
+  "description": "Network signal diagnostics and connectivity tools",
   "start_url": "./novella-mobile.html",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#18120e",
-  "theme_color": "#18120e",
+  "background_color": "#0a0a0f",
+  "theme_color": "#0a0a0f",
   "icons": [
     {
       "src": "icon-192.png",
@@ -21,6 +21,6 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["entertainment", "productivity"],
+  "categories": ["utilities"],
   "lang": "en"
 }
