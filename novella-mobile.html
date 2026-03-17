@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#18120e">
 <meta name="description" content="AI-powered romance novella writing studio">
 <link rel="manifest" href="manifest.json">
-<title>Novella Studio</title>
+<title>SignalCheck</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -35,6 +35,67 @@
     font-family: 'Jost', sans-serif;
     background: var(--parchment);
     color: var(--ink);
+  }
+
+  /* ── PIN LOCK SCREEN ── */
+  #pinLock {
+    display: none; position: fixed; inset: 0;
+    background: #0a0a0f; z-index: 1000;
+    flex-direction: column; align-items: center; justify-content: center;
+  }
+  #pinLock.open { display: flex; }
+  .pin-app-icon {
+    font-size: 2.8rem; margin-bottom: 10px; opacity: 0.85;
+  }
+  .pin-app-name {
+    font-family: 'Jost', sans-serif; font-size: 1.1rem;
+    color: #5a7fa8; letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 48px;
+  }
+  .pin-prompt {
+    font-family: 'Jost', sans-serif; font-size: 0.75rem;
+    color: rgba(255,255,255,0.4); letter-spacing: 0.12em;
+    text-transform: uppercase; margin-bottom: 20px;
+  }
+  .pin-dots {
+    display: flex; gap: 16px; margin-bottom: 40px;
+  }
+  .pin-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: none; transition: all 0.15s;
+  }
+  .pin-dot.filled {
+    background: #5a7fa8; border-color: #5a7fa8;
+  }
+  .pin-dot.error {
+    background: #c0392b; border-color: #c0392b;
+  }
+  .pin-keypad {
+    display: grid; grid-template-columns: repeat(3, 72px);
+    gap: 14px;
+  }
+  .pin-key {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,0.07); border: none;
+    font-family: 'Jost', sans-serif; font-size: 1.4rem;
+    font-weight: 300; color: white; cursor: pointer;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: background 0.1s; user-select: none;
+    -webkit-user-select: none;
+  }
+  .pin-key:active { background: rgba(255,255,255,0.18); }
+  .pin-key.pin-key-empty { background: none; cursor: default; }
+  .pin-key-sub {
+    font-size: 0.45rem; letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.3); text-transform: uppercase;
+    margin-top: 1px;
+  }
+  .pin-error-msg {
+    margin-top: 24px; font-family: 'Jost', sans-serif;
+    font-size: 0.75rem; color: #c0392b; letter-spacing: 0.08em;
+    height: 18px;
   }
 
   /* ── HOME SCREEN ── */
@@ -1081,6 +1142,34 @@
 <!-- ══════════════════════════════
      HOME SCREEN — Stories List
 ══════════════════════════════ -->
+<!-- ── PIN LOCK SCREEN ── -->
+<div id="pinLock">
+  <div class="pin-app-icon">📶</div>
+  <div class="pin-app-name">SignalCheck</div>
+  <div class="pin-prompt" id="pinPromptText">Enter PIN</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot" id="pin-d0"></div>
+    <div class="pin-dot" id="pin-d1"></div>
+    <div class="pin-dot" id="pin-d2"></div>
+    <div class="pin-dot" id="pin-d3"></div>
+  </div>
+  <div class="pin-keypad">
+    <button class="pin-key" type="button" onclick="pinKey('1')">1<span class="pin-key-sub"></span></button>
+    <button class="pin-key" type="button" onclick="pinKey('2')">2<span class="pin-key-sub">ABC</span></button>
+    <button class="pin-key" type="button" onclick="pinKey('3')">3<span class="pin-key-sub">DEF</span></button>
+    <button class="pin-key" type="button" onclick="pinKey('4')">4<span class="pin-key-sub">GHI</span></button>
+    <button class="pin-key" type="button" onclick="pinKey('5')">5<span class="pin-key-sub">JKL</span></button>
+    <button class="pin-key" type="button" onclick="pinKey('6')">6<span class="pin-key-sub">MNO</span></button>
+    <button class="pin-key" type="button" onclick="pinKey('7')">7<span class="pin-key-sub">PQRS</span></button>
+    <button class="pin-key" type="button" onclick="pinKey('8')">8<span class="pin-key-sub">TUV</span></button>
+    <button class="pin-key" type="button" onclick="pinKey('9')">9<span class="pin-key-sub">WXYZ</span></button>
+    <button class="pin-key pin-key-empty" type="button"></button>
+    <button class="pin-key" type="button" onclick="pinKey('0')">0</button>
+    <button class="pin-key" type="button" onclick="pinBackspace()">⌫</button>
+  </div>
+  <div class="pin-error-msg" id="pinErrorMsg"></div>
+</div>
+
 <div id="homeScreen">
   <div class="home-header">
     <h1>✦ Novella Studio</h1>
@@ -1115,6 +1204,7 @@
     <span id="activeStoryLabel" class="header-story-name">Story</span>
   </div>
   <div class="header-actions">
+    <button class="icon-btn" onclick="lockApp()" title="Lock app" style="font-size:1rem;color:var(--muted);">🔒</button>
     <button class="icon-btn" onclick="openReadingMode()" title="Read story" style="font-size:1rem;color:var(--gold);">📖</button>
     <button class="icon-btn" onclick="showToast('Auto-saves to this browser')" title="Info">💾</button>
   </div>
@@ -1445,7 +1535,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v47</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v48</span>
     </div>
   </div>
 
@@ -1463,6 +1553,10 @@
     <div class="setting-row">
       <div><div class="setting-label">Auto-saves to this browser</div><div class="setting-sub">Closes &amp; reopens safely ✓</div></div>
       <span style="font-size:1.2rem">💾</span>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">PIN Lock</div><div class="setting-sub" id="pinStatusLabel">Not set — tap to create</div></div>
+      <button onclick="openPinSetup()" style="padding:8px 14px;background:var(--rose);border:none;border-radius:8px;color:white;font-size:0.85rem;cursor:pointer;" id="pinSetupBtn">Set PIN</button>
     </div>
     <div class="setting-row" id="installBtn" style="display:none">
       <div><div class="setting-label" style="color:var(--rose-deep)">Install as App</div><div class="setting-sub">Add to home screen</div></div>
@@ -4737,6 +4831,130 @@ function saveGlobalKeys() {
   if (el) { el.addEventListener('input', saveGlobalKeys); el.addEventListener('change', saveGlobalKeys); }
 });
 
+// ══════════════════════════════
+// PIN LOCK
+// ══════════════════════════════
+const PIN_STORAGE_KEY = 'signalcheck_pin_v1';
+var pinBuffer = '';
+var pinMode = 'unlock'; // 'unlock' | 'set-new' | 'confirm-new'
+var pinNewTemp = '';
+
+function getPIN() {
+  try { return localStorage.getItem(PIN_STORAGE_KEY) || ''; } catch(e) { return ''; }
+}
+function setPIN(pin) {
+  try { localStorage.setItem(PIN_STORAGE_KEY, pin); } catch(e) {}
+}
+
+function initPinLock() {
+  updatePinStatusLabel();
+  if (getPIN()) {
+    pinMode = 'unlock';
+    document.getElementById('pinPromptText').textContent = 'Enter PIN';
+    document.getElementById('pinLock').classList.add('open');
+  }
+}
+
+function updatePinStatusLabel() {
+  var pin = getPIN();
+  var label = document.getElementById('pinStatusLabel');
+  var btn = document.getElementById('pinSetupBtn');
+  if (label) label.textContent = pin ? 'PIN set — tap to change or remove' : 'Not set — tap to create';
+  if (btn) btn.textContent = pin ? 'Change PIN' : 'Set PIN';
+}
+
+function lockApp() {
+  if (!getPIN()) { showToast('Set a PIN in Setup first'); return; }
+  pinMode = 'unlock';
+  pinBuffer = '';
+  document.getElementById('pinPromptText').textContent = 'Enter PIN';
+  clearPinDots();
+  document.getElementById('pinErrorMsg').textContent = '';
+  document.getElementById('pinLock').classList.add('open');
+}
+
+function openPinSetup() {
+  pinMode = 'set-new';
+  pinBuffer = '';
+  pinNewTemp = '';
+  document.getElementById('pinPromptText').textContent = 'Enter new PIN';
+  clearPinDots();
+  document.getElementById('pinErrorMsg').textContent = '';
+  document.getElementById('pinLock').classList.add('open');
+}
+
+function pinKey(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots(pinBuffer.length, false);
+  if (pinBuffer.length === 4) {
+    setTimeout(function() { processPinEntry(); }, 120);
+  }
+}
+
+function pinBackspace() {
+  if (!pinBuffer.length) return;
+  pinBuffer = pinBuffer.slice(0, -1);
+  updatePinDots(pinBuffer.length, false);
+}
+
+function updatePinDots(filled, error) {
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('pin-d' + i);
+    if (!dot) continue;
+    dot.classList.remove('filled', 'error');
+    if (i < filled) dot.classList.add(error ? 'error' : 'filled');
+  }
+}
+
+function clearPinDots() {
+  pinBuffer = '';
+  updatePinDots(0, false);
+}
+
+function processPinEntry() {
+  var entered = pinBuffer;
+  pinBuffer = '';
+
+  if (pinMode === 'unlock') {
+    if (entered === getPIN()) {
+      document.getElementById('pinLock').classList.remove('open');
+      clearPinDots();
+      document.getElementById('pinErrorMsg').textContent = '';
+    } else {
+      updatePinDots(4, true);
+      document.getElementById('pinErrorMsg').textContent = 'Incorrect PIN';
+      setTimeout(function() { clearPinDots(); document.getElementById('pinErrorMsg').textContent = ''; }, 800);
+    }
+  } else if (pinMode === 'set-new') {
+    pinNewTemp = entered;
+    pinMode = 'confirm-new';
+    clearPinDots();
+    document.getElementById('pinPromptText').textContent = 'Confirm new PIN';
+    document.getElementById('pinErrorMsg').textContent = '';
+  } else if (pinMode === 'confirm-new') {
+    if (entered === pinNewTemp) {
+      setPIN(entered);
+      document.getElementById('pinLock').classList.remove('open');
+      clearPinDots();
+      pinMode = 'unlock';
+      pinNewTemp = '';
+      updatePinStatusLabel();
+      showToast('PIN set ✓');
+    } else {
+      updatePinDots(4, true);
+      document.getElementById('pinErrorMsg').textContent = 'PINs don\'t match — try again';
+      setTimeout(function() {
+        clearPinDots();
+        pinMode = 'set-new';
+        pinNewTemp = '';
+        document.getElementById('pinPromptText').textContent = 'Enter new PIN';
+        document.getElementById('pinErrorMsg').textContent = '';
+      }, 900);
+    }
+  }
+}
+
 // Gist ID stored per story in a separate localStorage key: novella_gist_{storyId}
 function getGistKey() {
   const story = getActiveStory();
@@ -5090,6 +5308,7 @@ document.getElementById('personaModal').addEventListener('click', function(e) {
 loadGlobalKeys();
 loadPersonas();
 renderPersonaChips();
+initPinLock();
 // Init portrait carousels (empty state with pose bars)
 ['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); });
 </script>
