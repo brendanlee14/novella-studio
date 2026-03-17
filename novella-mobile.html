@@ -1535,7 +1535,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v48</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v49</span>
     </div>
   </div>
 
@@ -1700,12 +1700,19 @@
   <div class="popup-img-wrap" id="popupImgWrap">
     <img id="popupImg" src="" alt="Portrait" draggable="false" />
   </div>
-  <div class="popup-toolbar">
+  <div class="popup-toolbar" id="popupToolbarNormal">
     <button class="popup-close-btn" type="button" onclick="closePortraitPopup()">✕ Close</button>
     <span class="popup-counter" id="popupCounter"></span>
     <div class="popup-actions">
       <button class="popup-action-btn" type="button" onclick="downloadPortraitFromPopup()">⬇ Save</button>
-      <button class="popup-action-btn danger" type="button" onclick="deletePortraitFromPopup()">Delete</button>
+      <button class="popup-action-btn danger" type="button" onclick="showDeleteConfirm()">Delete</button>
+    </div>
+  </div>
+  <div class="popup-toolbar" id="popupToolbarConfirm" style="display:none">
+    <span style="font-family:'Jost',sans-serif;font-size:0.8rem;color:rgba(255,255,255,0.7);">Delete this portrait?</span>
+    <div class="popup-actions">
+      <button class="popup-action-btn" type="button" onclick="hideDeleteConfirm()">Cancel</button>
+      <button class="popup-action-btn danger" type="button" onclick="deletePortraitFromPopup()">Yes, Delete</button>
     </div>
   </div>
 </div>
@@ -2791,6 +2798,7 @@ function openPortraitPopup(charId, idx) {
 
 function closePortraitPopup() {
   document.getElementById('portraitPopup').classList.remove('open');
+  hideDeleteConfirm();
   var wrap = document.getElementById('popupImgWrap');
   wrap.removeEventListener('touchstart', onPopupTouchStart);
   wrap.removeEventListener('touchmove', onPopupTouchMove);
@@ -2849,15 +2857,26 @@ function downloadPortraitFromPopup() {
   showToast('Portrait saved ✓');
 }
 
+function showDeleteConfirm() {
+  document.getElementById('popupToolbarNormal').style.display = 'none';
+  document.getElementById('popupToolbarConfirm').style.display = 'flex';
+}
+
+function hideDeleteConfirm() {
+  document.getElementById('popupToolbarNormal').style.display = 'flex';
+  document.getElementById('popupToolbarConfirm').style.display = 'none';
+}
+
 function deletePortraitFromPopup() {
   if (popupCharId === null || popupImgIdx === null) return;
-  if (!confirm('Delete this portrait? This cannot be undone.')) return;
-  var state = portraitState[popupCharId];
-  state.images.splice(popupImgIdx, 1);
+  var charId = popupCharId;
+  var idx = popupImgIdx;
+  var state = portraitState[charId];
+  state.images.splice(idx, 1);
   state.currentIdx = Math.max(0, Math.min(state.currentIdx, state.images.length - 1));
   closePortraitPopup();
-  renderPortraitCarousel(popupCharId, state.images);
-  savePortraitToStory(popupCharId);
+  renderPortraitCarousel(charId, state.images);
+  savePortraitToStory(charId);
   showToast('Portrait deleted');
 }
 
