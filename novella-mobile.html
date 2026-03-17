@@ -1133,6 +1133,40 @@
   .reading-prose { font-family: 'Cormorant Garamond', serif; font-size: 1.12rem; line-height: 1.95; color: #2a1f18; white-space: pre-wrap; }
   .reading-empty { text-align: center; padding: 80px 24px; font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 1.1rem; line-height: 1.7; }
 
+  /* ── TEXT EXPAND OVERLAY ── */
+  #textExpandOverlay {
+    display: none; position: fixed; inset: 0;
+    background: #18120e; z-index: 900;
+    flex-direction: column;
+  }
+  #textExpandOverlay.open { display: flex; }
+  .expand-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid #2e2420;
+    flex-shrink: 0; background: #1a120d;
+  }
+  .expand-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 1rem;
+    color: var(--gold); font-style: italic;
+  }
+  .expand-wordcount {
+    font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em;
+  }
+  .expand-done-btn {
+    padding: 8px 18px; background: var(--rose); border: none;
+    border-radius: 8px; color: white;
+    font-family: 'Jost', sans-serif; font-size: 0.88rem; cursor: pointer;
+  }
+  #textExpandArea {
+    flex: 1; width: 100%; padding: 20px 16px;
+    background: #18120e; color: var(--parchment);
+    border: none; outline: none; resize: none;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; line-height: 1.85;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
   /* ── EXPORT SHEET ── */
   #exportSheet { display: none; position: fixed; inset: 0; background: rgba(24,18,14,0.75); z-index: 500; align-items: flex-end; justify-content: center; }
   #exportSheet.open { display: flex; }
@@ -1580,7 +1614,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v53</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v54</span>
     </div>
   </div>
 
@@ -1803,6 +1837,16 @@
     <div id="readingJumpList"></div>
   </div>
   <div class="reading-scroll" id="readingScroll" onclick="onReadingScrollClick(event)"></div>
+</div>
+
+<!-- ── TEXT EXPAND OVERLAY ── -->
+<div id="textExpandOverlay">
+  <div class="expand-header">
+    <span class="expand-title" id="expandTitle">Edit</span>
+    <span class="expand-wordcount" id="expandWordCount"></span>
+    <button class="expand-done-btn" type="button" onclick="closeTextExpand()">Done ✓</button>
+  </div>
+  <textarea id="textExpandArea" spellcheck="true"></textarea>
 </div>
 
 <!-- ── EXPORT SHEET ── -->
@@ -2132,9 +2176,8 @@ function renderChSummaryList() {
     `;
     list.appendChild(card);
   });
+  wireExpandChapterSummaries();
 }
-
-// ── RENDER BEAT COUNT LIST ──
 function renderBeatCountList() {
   const list = document.getElementById('beatCountList');
   list.innerHTML = '';
@@ -3538,6 +3581,7 @@ function openBeatModal(beatIdx, chIdx) {
   document.getElementById('modalPOV').value = beat ? beat.pov || '' : '';
   document.getElementById('modalLoc').value = beat ? beat.loc || '' : '';
   document.getElementById('beatModal').style.display = 'flex';
+  wireExpandBeatFields();
   setTimeout(() => document.getElementById('modalTitle').focus(), 350);
 }
 
@@ -3681,6 +3725,138 @@ function selectBeat(chIdx, bIdx) {
   goScreen('editor');
 }
 
+// ══════════════════════════════
+// TEXT EXPAND OVERLAY
+// ══════════════════════════════
+var expandSourceEl = null;
+var expandOnChange = null;
+var expandPressTimer = null;
+
+function openTextExpand(el, title, onChangeFn) {
+  expandSourceEl = el;
+  expandOnChange = onChangeFn || null;
+  var area = document.getElementById('textExpandArea');
+  area.value = el.value || el.innerText || '';
+  document.getElementById('expandTitle').textContent = title || 'Edit';
+  updateExpandWordCount();
+  document.getElementById('textExpandOverlay').classList.add('open');
+  setTimeout(function() { area.focus(); area.setSelectionRange(area.value.length, area.value.length); }, 80);
+}
+
+function closeTextExpand() {
+  var area = document.getElementById('textExpandArea');
+  var val = area.value;
+  if (expandSourceEl) {
+    if (expandSourceEl.tagName === 'TEXTAREA' || expandSourceEl.tagName === 'INPUT') {
+      expandSourceEl.value = val;
+      // Fire input/change events so any existing listeners pick up the change
+      expandSourceEl.dispatchEvent(new Event('input', { bubbles: true }));
+      expandSourceEl.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      expandSourceEl.innerText = val;
+    }
+  }
+  if (expandOnChange) expandOnChange(val);
+  document.getElementById('textExpandOverlay').classList.remove('open');
+  expandSourceEl = null;
+  expandOnChange = null;
+}
+
+function updateExpandWordCount() {
+  var area = document.getElementById('textExpandArea');
+  var words = area.value.trim() ? area.value.trim().split(/\s+/).length : 0;
+  var chars = area.value.length;
+  document.getElementById('expandWordCount').textContent = words + ' words · ' + chars + ' chars';
+}
+
+document.getElementById('textExpandArea').addEventListener('input', updateExpandWordCount);
+
+function attachLongPress(el, title, onChangeFn) {
+  if (!el) return;
+  el.addEventListener('touchstart', function(e) {
+    expandPressTimer = setTimeout(function() {
+      e.preventDefault();
+      openTextExpand(el, title, onChangeFn);
+    }, 500);
+  }, { passive: true });
+  el.addEventListener('touchend', function() { clearTimeout(expandPressTimer); });
+  el.addEventListener('touchmove', function() { clearTimeout(expandPressTimer); });
+  // Desktop: double-click to expand
+  el.addEventListener('dblclick', function() { openTextExpand(el, title, onChangeFn); });
+}
+
+function wireExpandFields() {
+  // Lore textareas
+  attachLongPress(document.getElementById('char1'), 'Protagonist Lore');
+  attachLongPress(document.getElementById('char2'), 'Love Interest Lore');
+  attachLongPress(document.getElementById('charSupport'), 'Supporting Cast Lore');
+  attachLongPress(document.getElementById('worldLore'), 'World Lore');
+  attachLongPress(document.getElementById('toneStyle'), 'Tone & Style');
+  // Story state
+  attachLongPress(document.getElementById('storyState'), 'Story State');
+  // Synopsis (Plan tab)
+  attachLongPress(document.getElementById('planSynopsis'), 'Synopsis');
+  // Scene output — long-press to read/edit in fullscreen
+  var proseOut = document.getElementById('proseOutput');
+  if (proseOut) {
+    var pressTimer;
+    proseOut.addEventListener('touchstart', function() {
+      pressTimer = setTimeout(function() {
+        var proseDiv = proseOut.querySelector('.prose-area');
+        var text = proseDiv ? proseDiv.innerText : '';
+        if (!text.trim()) return;
+        // Create a synthetic textarea-like object
+        var synth = { value: text, tagName: 'SYNTHETIC' };
+        openTextExpand(synth, 'Scene Output', function(val) {
+          // Write back to writtenScenes if a beat is active
+          if (activeChIdx !== null && activeBeatIdx !== null) {
+            var key = activeChIdx + '-' + activeBeatIdx;
+            writtenScenes[key] = val;
+            saveCurrentStory();
+            if (proseDiv) proseDiv.innerText = val;
+          }
+        });
+      }, 500);
+    }, { passive: true });
+    proseOut.addEventListener('touchend', function() { clearTimeout(pressTimer); });
+    proseOut.addEventListener('touchmove', function() { clearTimeout(pressTimer); });
+    proseOut.addEventListener('dblclick', function() {
+      var proseDiv = proseOut.querySelector('.prose-area');
+      var text = proseDiv ? proseDiv.innerText : '';
+      if (!text.trim()) return;
+      var synth = { value: text, tagName: 'SYNTHETIC' };
+      openTextExpand(synth, 'Scene Output', function(val) {
+        if (activeChIdx !== null && activeBeatIdx !== null) {
+          var key = activeChIdx + '-' + activeBeatIdx;
+          writtenScenes[key] = val;
+          saveCurrentStory();
+          if (proseDiv) proseDiv.innerText = val;
+        }
+      });
+    });
+  }
+}
+
+function wireExpandChapterSummaries() {
+  // Called after chapter summaries are rendered
+  document.querySelectorAll('.ch-summary-textarea').forEach(function(el) {
+    // Avoid double-wiring
+    if (el.dataset.expandWired) return;
+    el.dataset.expandWired = '1';
+    var idx = parseInt(el.id.replace('chsum-', ''));
+    attachLongPress(el, 'Chapter ' + (idx + 1) + ' Summary', function(val) {
+      if (planSummaries[idx]) { planSummaries[idx].summary = val; saveCurrentStory(); }
+    });
+  });
+}
+
+function wireExpandBeatFields() {
+  // Called after beat modal opens
+  attachLongPress(document.getElementById('modalChapterSummary'), 'Chapter Summary');
+  attachLongPress(document.getElementById('modalDesc'), 'Beat Description');
+}
+
+// ══════════════════════════════
 function escapeHtml(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
@@ -5767,6 +5943,7 @@ loadGlobalKeys();
 loadPersonas();
 renderPersonaChips();
 initPinLock();
+wireExpandFields();
 // Init portrait carousels (empty state with pose bars)
 ['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); });
 </script>
