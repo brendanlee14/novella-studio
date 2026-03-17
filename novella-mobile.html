@@ -1580,7 +1580,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v51</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v52</span>
     </div>
   </div>
 
@@ -4439,7 +4439,7 @@ function closeWizard() {
 }
 
 function buildWizardSteps(target) {
-  if (target === 'char1') return ['identity','build','penis','personality'];
+  if (target === 'char1') return ['identity','build','penis','face_m','personality'];
   if (target === 'char2') return ['identity_f','face','body','dynamic','relationship'];
   if (target === 'charSupport') return ['identity_f','face','body','dynamic','relationship','cast_diff'];
   if (target === 'world') return ['world'];
@@ -4452,7 +4452,8 @@ function wizardStepTitle(step) {
     identity: 'Protagonist — Identity',
     build: 'Protagonist — Build & Physique',
     penis: 'Protagonist — Physical Detail',
-    personality: 'Protagonist — Personality',
+    face_m: 'Protagonist — Face & Hair',
+    personality: 'Protagonist — Personality & Kinks',
     identity_f: 'Character — Identity',
     face: 'Character — Face',
     body: 'Character — Body',
@@ -4538,6 +4539,65 @@ const STORY_KINKS = [
   'Obsession / possessiveness',
   'Jealousy as arousal',
   'Emotional surrender — losing control'
+];
+
+const PROTAGONIST_KINKS = [
+  // Voyeurism & Observation
+  'Watching without being seen',
+  'Watching her undress',
+  'Watching her with another man',
+  'Being the only one who sees what she really is',
+  'Cataloguing her body — noticing everything',
+  // Control & Power
+  'Needing her to want him specifically',
+  'Orchestrating situations without her knowing',
+  'Delayed gratification — making himself wait',
+  'Possessiveness — can\'t stand others looking',
+  'Dominance through patience not force',
+  // Physical Obsessions
+  'Breast fixation — can\'t stop noticing',
+  'How she moves — gait, sway, unconscious motion',
+  'The moment clothing shifts or slips',
+  'Her sounds — voice, breath, involuntary noises',
+  'Skin — texture, warmth, the specific way she flushes',
+  // Psychological
+  'The forbidden — wanting what isn\'t his',
+  'Wanting her to initiate',
+  'Needing her to lose control first',
+  'The performance of normality — pretending not to want',
+  'Jealousy as fuel',
+  // Scenario
+  'Being present but unacknowledged',
+  'The slow reveal — taking a long time to get anywhere',
+  'Shared space — proximity without contact',
+  'Being chosen over someone else',
+  'The moment she realises',
+  // Additional
+  'Praise kink — needs her to vocalise pleasure',
+  'Size awareness — conscious of physical difference',
+  'Control in stillness — being the one who doesn\'t move',
+  'The audience — knowing others can see or hear',
+  'Memory — replaying encounters obsessively'
+];
+
+const EROGENOUS_ZONES = [
+  'Clitoris','Nipples','Neck','Inner thighs','Lower back','Ears',
+  'Lips / mouth','Stomach / navel','Behind the knees','Scalp / hair pulling',
+  'Feet / ankles','Wrists / forearms','Collarbone / décolletage',
+  'Small of the back','Buttocks'
+];
+
+const SEXUAL_BEHAVIOURS = [
+  'Vocalises her own actions',
+  'Preens / checks herself in mirrors',
+  'Controls pace deliberately',
+  'Uses eye contact as a weapon during sex',
+  'Goes completely silent at peak',
+  'Cries after — emotional release',
+  'Bites / scratches without thinking',
+  'Narrates what she wants',
+  'Freezes before letting go',
+  'Talks herself through it'
 ];
 
 function wField(label, id, type, options, placeholder, note) {
@@ -4654,12 +4714,27 @@ function renderWizardStep() {
     body += wField('Additional detail', 'wiz_pen_extra', 'text', null, 'Any distinguishing characteristic…');
   }
 
+  if (stepKey === 'face_m') {
+    body += '<div class="wiz-row">';
+    body += wField('Face Shape', 'wiz_face_shape', 'select', ['Oval','Round','Square','Angular','Diamond','Oblong','Other']);
+    body += wField('Eye Colour', 'wiz_eye_colour', 'select', ['Brown','Dark brown','Blue','Green','Hazel','Grey','Amber','Other']);
+    body += '</div>';
+    body += '<div class="wiz-row">';
+    body += wField('Hair Colour', 'wiz_hair_colour', 'select', ['Black','Dark brown','Brown','Dirty blonde','Blonde','Grey','Salt and pepper','Shaved / no hair','Other']);
+    body += wField('Hair Length', 'wiz_hair_length', 'select', ['Shaved','Cropped','Short','Medium','Other']);
+    body += '</div>';
+    body += wField('Hair Style', 'wiz_hair_style', 'select', ['Straight and neat','Tousled / messy','Wavy','Curly','Shaved sides','Slicked back','Natural / unstyled','Other']);
+    body += wField('Facial Hair', 'wiz_facial_hair', 'select', ['Clean shaven','Light stubble','Heavy stubble','Short beard','Full beard','Moustache','Goatee','Other']);
+    body += wField('Most Striking Feature', 'wiz_face_feature', 'text', null, 'e.g. strong jaw, intense eyes, prominent nose');
+  }
+
   if (stepKey === 'personality') {
-    body += wField('Dominant Mode in Intimate Situations', 'wiz_dommode', 'select', ['Voyeur','Slow seducer','Controller','Worshipper','Loses control','Switches']);
+    body += wField('Dominant Mode in Intimate Situations', 'wiz_dommode', 'select', ['Voyeur','Slow seducer','Controller','Worshipper','Loses control','Switches','Other']);
     body += wField('His Specific Weakness', 'wiz_weakness', 'text', null, 'What undoes him — e.g. a woman who holds eye contact');
     body += wField('What He Notices First', 'wiz_notices', 'text', null, 'e.g. how she moves, her neck, the way she laughs');
     body += wField('His Tell When Close to the Edge', 'wiz_tell', 'text', null, 'e.g. jaw tightens, goes very still, grip tightens');
-    body += wField('Additional personality notes', 'wiz_pers_extra', 'textarea', null, 'Backstory, desires, contradictions…');
+    body += '<div class="wiz-field"><label class="wiz-label">Kinks & Obsessions <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_prot_kinks">' + PROTAGONIST_KINKS.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
+    body += wField('Additional kink / obsession notes', 'wiz_pers_extra', 'textarea', null, 'Backstory, contradictions, anything not in the list…');
   }
 
   if (stepKey === 'identity_f') {
@@ -4676,38 +4751,49 @@ function renderWizardStep() {
 
   if (stepKey === 'face') {
     body += '<div class="wiz-row">';
-    body += wField('Face Shape', 'wiz_face_shape', 'select', ['Oval','Round','Heart','Square','Angular','Diamond']);
+    body += wField('Face Shape', 'wiz_face_shape', 'select', ['Oval','Round','Heart','Square','Angular','Diamond','Other']);
     body += wField('Eye Colour', 'wiz_eye_colour', 'select', ['Brown','Dark brown','Blue','Green','Hazel','Grey','Amber','Other']);
     body += '</div>';
     body += '<div class="wiz-row">';
     body += wField('Hair Colour', 'wiz_hair_colour', 'select', ['Black','Dark brown','Brown','Dirty blonde','Blonde','Red','Auburn','Grey','Platinum','Other']);
-    body += wField('Hair Length', 'wiz_hair_length', 'select', ['Cropped','Short','Shoulder','Long','Very long']);
+    body += wField('Hair Length', 'wiz_hair_length', 'select', ['Cropped','Short','Shoulder','Long','Very long','Other']);
     body += '</div>';
+    body += wField('Hair Style', 'wiz_hair_style', 'select', ['Straight and sleek','Straight and loose','Wavy','Loosely curly','Tightly curly','Afro','Messy / undone','Tousled bed hair','Pulled back — ponytail','Pulled back — bun','Half up half down','Braided','Pinned up — elegant','Windswept','Other']);
+    body += wField('Accessories', 'wiz_accessories', 'text', null, 'Glasses, piercings, jewellery, tattoos…');
     body += wField('Most Striking Facial Feature', 'wiz_face_feature', 'text', null, 'e.g. full lips, strong jaw, heavy-lidded eyes');
   }
 
   if (stepKey === 'body') {
     body += '<div class="wiz-row">';
-    body += wField('Body Type', 'wiz_bodytype', 'select', ['Petite','Slim','Athletic','Curvy','Full-figured','Voluptuous','Slender with curves']);
-    body += wField('Ass', 'wiz_ass', 'select', ['Flat','Proportionate','Round','Full','Large and round']);
+    body += wField('Body Type', 'wiz_bodytype', 'select', ['Petite','Slim','Athletic','Curvy','Full-figured','Voluptuous','Slender with curves','Other']);
+    body += wField('Height', 'wiz_height', 'select', ['Very short (under 5\'2")','Short (5\'2"–5\'5")','Average (5\'5"–5\'7")','Tall (5\'7"–5\'10")','Very tall (5\'10"+)','Other']);
+    body += '</div>';
+    body += '<div class="wiz-row">';
+    body += wField('Ass', 'wiz_ass', 'select', ['Flat','Proportionate','Round','Full','Large and round','Peach-shaped','Other']);
+    body += wField('Hip Shape', 'wiz_hip_shape', 'select', ['Narrow and straight','Tapered with sudden flare','Wide and gradual','Athletic — defined','Shelf hips — pronounced','Hourglass','Pear — wider than shoulders','Other']);
     body += '</div>';
     body += '<div class="wiz-row">';
     body += wField('Breast Size', 'wiz_breast_size', 'select', ['Small (A)','Medium (B)','Full (C)','Large (D)','Very large (DD+)','Huge (E+)']);
-    body += wField('Breast Shape', 'wiz_breast_shape', 'select', ['Natural — perky','Natural — full and heavy','Natural — soft','Implants — round and firm','Implants — full','High and close set','Wide set']);
+    body += wField('Breast Shape', 'wiz_breast_shape', 'select', ['Natural — perky','Natural — full and heavy','Natural — soft','Implants — round and firm','Implants — full','High and close set','Wide set','Teardrop']);
     body += '</div>';
     body += '<div class="wiz-row">';
     body += wField('Nipples', 'wiz_nipples', 'select', ['Small and pale','Small and dark','Medium','Large','Very prominent','Inverted']);
     body += wField('Breast Movement', 'wiz_breast_move', 'select', ['Barely moves','Subtle bounce','Natural sway','Full bounce','Heavy swing']);
     body += '</div>';
+    body += '<div class="wiz-row">';
+    body += wField('Areola Size', 'wiz_areola_size', 'select', ['Very small','Small','Medium','Large','Very large']);
+    body += wField('Areola Colour', 'wiz_areola_colour', 'select', ['Pale pink','Medium pink','Dark pink','Light brown','Medium brown','Dark brown','Deep / dark']);
+    body += '</div>';
     body += wField('Bra Tendency', 'wiz_bra', 'select', ['Rarely wears one','Goes braless at home','Wears occasionally','Always wears one','Only wears lingerie']);
     body += '<div class="wiz-row">';
     body += wField('Pubic Hair', 'wiz_pubic', 'select', ['Bare','Trimmed short','Landing strip','Triangle','Full natural','Shaped']);
-    body += wField('Pussy Style', 'wiz_pussy', 'select', ['Neat and closed','Small inner lips','Prominent inner lips','Full','Puffy','Other']);
+    body += wField('Pussy Style', 'wiz_pussy', 'select', ['Neat and closed','Small inner lips','Prominent inner lips','Full','Puffy','Butterfly','Other']);
     body += '</div>';
-    body += wField('Additional body detail', 'wiz_body_extra', 'text', null, 'Tattoos, piercings, scars, birthmarks…');
+    body += wField('Additional body detail', 'wiz_body_extra', 'text', null, 'Tattoos, piercings, scars, birthmarks, thighs…');
   }
 
   if (stepKey === 'dynamic') {
+    body += wField('Sexual Orientation', 'wiz_orientation', 'select', ['Heterosexual','Bisexual — equally attracted','Bisexual — predominantly straight','Bisexual — predominantly women','Lesbian','Pansexual','Questioning / curious','Straight but situationally fluid','Other']);
     body += wField('Voice Quality', 'wiz_voice', 'select', ['Soft','Husky','Breathy','Low and controlled','High and light','Raspy','Melodic','Quiet and precise','Other']);
     body += '<div class="wiz-field"><label class="wiz-label">Accent</label><select class="wiz-select" id="wiz_accent" onchange="onWizAccentChange()">' + accentGroupOptions() + '</select></div>';
     body += wField('Accent Strength', 'wiz_accent_strength', 'select', ['Subtle','Moderate','Strong']);
@@ -4715,8 +4801,11 @@ function renderWizardStep() {
     body += '<div class="wiz-field" id="wiz_phrases_row" style="display:none"><label class="wiz-label">Seed Phrases <span style="font-weight:300;font-style:italic;color:var(--muted)">— edit freely</span></label><textarea class="wiz-textarea" id="wiz_phrases" rows="3" placeholder="Native words and exclamations…"></textarea><div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">Pre-filled from accent — edit or add your own</div></div>';
     body += wField('Carries Herself', 'wiz_carries', 'select', ['Unaware of her effect','Quietly confident','Deliberately teasing','Exhibitionist','Demure and restrained','Controlled with hidden heat','Other']);
     body += wField('Power Dynamic', 'wiz_power', 'select', ['Submissive','Dominant','Equal','Shifts with context','Submissive in private only','Other']);
+    body += wField('Typical Wardrobe / Style', 'wiz_wardrobe', 'select', ['Barely dressed at home — robes, sheer, minimal','Casual and relaxed — jeans, oversized tees, sundresses','Feminine and fitted — dresses, skirts, heels','Sporty / athletic — gym wear, leggings','Professional / sharp — office wear, tailored','Lingerie as outerwear','Deliberately provocative — always showing something','Understated — fits perfectly but draws no attention','Other']);
     body += '<div class="wiz-field"><label class="wiz-label">Her Kink or Defining Behaviour <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_kink_multi">' + KINK_BEHAVIOURS.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
     body += wField('Additional kink detail', 'wiz_kink', 'text', null, 'Any other defining behaviour…');
+    body += '<div class="wiz-field"><label class="wiz-label">Erogenous Zones <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_erogenous">' + EROGENOUS_ZONES.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
+    body += '<div class="wiz-field"><label class="wiz-label">Sexual Behaviours <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_sex_behaviours">' + SEXUAL_BEHAVIOURS.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
     body += wField('Physical Tell When Aroused', 'wiz_arousal_tell', 'text', null, 'e.g. flush spreads from neck, breathing slows, bites lower lip');
     body += wField('Signature Gesture', 'wiz_gesture', 'select', ['Holds eye contact too long','Touches her own neck','Bites lip when thinking','Tucks hair when nervous','Mirrors his body language','Tilts chin up when challenged','Trails fingers when she walks past','Other']);
     body += wField('Signature Scent', 'wiz_scent', 'select', ['Warm vanilla','Jasmine','Sandalwood','Citrus and clean','Floral and soft','Musk','Clean skin, barely there','Dark rose','Coconut and warm skin','Other']);
@@ -4907,26 +4996,46 @@ function buildLorePrompt() {
     }
     lines.push('PROTAGONIST');
     lines.push('Name: ' + (name||'unnamed') + ', Age: ' + (age||'unspecified') + ', Ethnicity: ' + (eth||'unspecified'));
+
+    // Build
     var bodytype = collectWizardValue('build','wiz_bodytype');
     var height = collectWizardValue('build','wiz_height');
     var chest = collectWizardValue('build','wiz_chest');
     var hands = collectWizardValue('build','wiz_hands');
     var buildExtra = collectWizardValue('build','wiz_build_extra');
     lines.push('Build: ' + [bodytype,height,chest,hands,buildExtra].filter(Boolean).join(', '));
+
+    // Penis
     var penLen = collectWizardValue('penis','wiz_pen_length');
     var penGirth = collectWizardValue('penis','wiz_pen_girth');
     var penCut = collectWizardValue('penis','wiz_pen_cut');
     var penExtra = collectWizardValue('penis','wiz_pen_extra');
-    lines.push('Penis: ' + [penLen,penGirth,penCut,penExtra].filter(Boolean).join(', '));
+    if (penLen||penGirth||penCut||penExtra) lines.push('Penis: ' + [penLen,penGirth,penCut,penExtra].filter(Boolean).join(', '));
+
+    // Face
+    var faceShape = collectWizardValue('face_m','wiz_face_shape');
+    var eyeColour = collectWizardValue('face_m','wiz_eye_colour');
+    var hairColour = collectWizardValue('face_m','wiz_hair_colour');
+    var hairLength = collectWizardValue('face_m','wiz_hair_length');
+    var hairStyle = collectWizardValue('face_m','wiz_hair_style');
+    var facialHair = collectWizardValue('face_m','wiz_facial_hair');
+    var faceFeature = collectWizardValue('face_m','wiz_face_feature');
+    if (faceShape||eyeColour||hairColour) {
+      lines.push('Face: ' + [faceShape, eyeColour ? eyeColour + ' eyes' : '', hairColour ? hairColour + ' hair' + (hairLength ? ' (' + hairLength + ')' : '') + (hairStyle ? ', ' + hairStyle : '') : '', facialHair, faceFeature].filter(Boolean).join(', '));
+    }
+
+    // Personality
     var domMode = collectWizardValue('personality','wiz_dommode');
     var weakness = collectWizardValue('personality','wiz_weakness');
     var notices = collectWizardValue('personality','wiz_notices');
     var tell = collectWizardValue('personality','wiz_tell');
+    var protKinks = collectWizardChips('personality','wiz_prot_kinks');
     var persExtra = collectWizardValue('personality','wiz_pers_extra');
-    lines.push('Intimate mode: ' + (domMode||'unspecified'));
+    if (domMode) lines.push('Intimate mode: ' + domMode);
     if (weakness) lines.push('His weakness: ' + weakness);
     if (notices) lines.push('Notices first: ' + notices);
     if (tell) lines.push('Tell when close to edge: ' + tell);
+    if (protKinks.length) lines.push('Kinks & obsessions: ' + protKinks.join(', '));
     if (persExtra) lines.push('Additional: ' + persExtra);
   }
 
@@ -4944,22 +5053,33 @@ function buildLorePrompt() {
     }
     lines.push(label);
     lines.push('Name: ' + (name||'unnamed') + ', Age: ' + (age||'unspecified') + ', Role: ' + (role||'unspecified') + ', Ethnicity: ' + (eth||'unspecified'));
+    // Height
+    var fHeight = collectWizardValue('body','wiz_height');
+    if (fHeight) lines.push('Height: ' + fHeight);
     // Face
-    lines.push('Face: ' + [collectWizardValue('face','wiz_face_shape'),collectWizardValue('face','wiz_eye_colour') + ' eyes',collectWizardValue('face','wiz_hair_colour') + ' hair (' + collectWizardValue('face','wiz_hair_length') + ')',collectWizardValue('face','wiz_face_feature')].filter(Boolean).join(', '));
+    var fHairStyle = collectWizardValue('face','wiz_hair_style');
+    var fAccessories = collectWizardValue('face','wiz_accessories');
+    lines.push('Face: ' + [collectWizardValue('face','wiz_face_shape'),collectWizardValue('face','wiz_eye_colour') + ' eyes',collectWizardValue('face','wiz_hair_colour') + ' hair (' + collectWizardValue('face','wiz_hair_length') + (fHairStyle ? ', ' + fHairStyle : '') + ')',collectWizardValue('face','wiz_face_feature'),fAccessories].filter(Boolean).join(', '));
     // Body
+    var fHipShape = collectWizardValue('body','wiz_hip_shape');
+    var fAreolaSize = collectWizardValue('body','wiz_areola_size');
+    var fAreolaColour = collectWizardValue('body','wiz_areola_colour');
     var bodyParts = [
       collectWizardValue('body','wiz_bodytype'),
       'breasts: ' + collectWizardValue('body','wiz_breast_size') + ' ' + collectWizardValue('body','wiz_breast_shape'),
+      fAreolaSize || fAreolaColour ? 'areolas: ' + [fAreolaSize, fAreolaColour].filter(Boolean).join(', ') : '',
       'nipples: ' + collectWizardValue('body','wiz_nipples'),
       'breast movement: ' + collectWizardValue('body','wiz_breast_move'),
       'bra tendency: ' + collectWizardValue('body','wiz_bra'),
       'ass: ' + collectWizardValue('body','wiz_ass'),
+      fHipShape ? 'hips: ' + fHipShape : '',
       'pubic hair: ' + collectWizardValue('body','wiz_pubic'),
       'pussy: ' + collectWizardValue('body','wiz_pussy'),
       collectWizardValue('body','wiz_body_extra')
     ].filter(function(v){ return v && v.trim() && v.trim() !== ':' && v.trim() !== ': '; });
     lines.push('Body: ' + bodyParts.join(', '));
     // Dynamic
+    var orientation = collectWizardValue('dynamic','wiz_orientation');
     var voice = collectWizardValue('dynamic','wiz_voice');
     var accent = collectWizardValue('dynamic','wiz_accent');
     var accentStr = collectWizardValue('dynamic','wiz_accent_strength');
@@ -4967,19 +5087,26 @@ function buildLorePrompt() {
     var phrases = collectWizardValue('dynamic','wiz_phrases');
     var carries = collectWizardValue('dynamic','wiz_carries');
     var power = collectWizardValue('dynamic','wiz_power');
+    var wardrobe = collectWizardValue('dynamic','wiz_wardrobe');
     var kinkChips = collectWizardChips('dynamic','wiz_kink_multi');
     var kink = kinkChips.length ? kinkChips.join(', ') : collectWizardValue('dynamic','wiz_kink');
     var kinkExtra = collectWizardValue('dynamic','wiz_kink');
     if (kinkExtra && kinkChips.length) kink += ', ' + kinkExtra;
     else if (kinkExtra) kink = kinkExtra;
+    var erogenousChips = collectWizardChips('dynamic','wiz_erogenous');
+    var sexBehaviourChips = collectWizardChips('dynamic','wiz_sex_behaviours');
     var arousalTell = collectWizardValue('dynamic','wiz_arousal_tell');
     var gesture = collectWizardValue('dynamic','wiz_gesture');
     var scent = collectWizardValue('dynamic','wiz_scent');
+    if (orientation) lines.push('Orientation: ' + orientation);
     if (voice) lines.push('Voice: ' + voice + (accent && accent !== '' ? ', ' + accentStr + ' ' + accent + ' accent' : ''));
     if (exclaimFreq && exclaimFreq !== 'Off' && phrases) lines.push('Native exclamations: ' + exclaimFreq + ' — phrases: ' + phrases);
+    if (wardrobe) lines.push('Typical wardrobe: ' + wardrobe);
     if (carries) lines.push('Carries herself: ' + carries);
     if (power) lines.push('Power dynamic: ' + power);
     if (kink) lines.push('Her kink / defining behaviour: ' + kink);
+    if (erogenousChips.length) lines.push('Erogenous zones: ' + erogenousChips.join(', '));
+    if (sexBehaviourChips.length) lines.push('Sexual behaviours: ' + sexBehaviourChips.join(', '));
     if (arousalTell) lines.push('Physical tell when aroused: ' + arousalTell);
     if (gesture) lines.push('Signature gesture: ' + gesture);
     if (scent) lines.push('Signature scent: ' + scent);
@@ -5061,10 +5188,15 @@ function generateLoreFromWizard() {
     systemMsg = 'You are a setting description writer for an AI erotica writing tool. Your job is to convert setting data into a rich atmospheric description of the location and world. Output ONLY setting and atmosphere description — no characters, no plot, no invented people, no scenes. Do NOT invent any characters, names, or people not explicitly provided in the data. Do NOT ask follow-up questions. Do NOT write fiction or scenes.';
     userMsg = 'Convert the following world and setting data into a rich atmospheric description for an AI erotica writing assistant. Describe only the location, atmosphere, sensory details, and physical environment. Do NOT invent any characters or people. Do NOT write any scenes or fiction. Do NOT ask for more information. Only describe what is explicitly provided.\n\n' + dataPrompt;
 
+  } else if (wizardTarget === 'char1') {
+    // Male protagonist — dedicated male format template
+    systemMsg = 'You are a character reference writer for an AI erotica writing tool. Your job is to convert male character data into a structured reference sheet. Output ONLY a structured reference document — no narrative prose, no scenes, no fiction, no invented details. Use the exact format shown. Do NOT use female anatomy terms. Do NOT write flowing prose. Do NOT invent any details not in the data.';
+    userMsg = 'Convert the following male character data into a structured reference sheet using EXACTLY this format. One topic per line. No prose, no scenes, no fiction. Use only data provided.\n\nFORMAT TO FOLLOW:\nPROTAGONIST\nName: [name], Age: [age], Ethnicity: [ethnicity]\nBuild: [body type], [height], [chest], [hands]\nFace: [face shape], [eye colour] eyes, [hair colour] hair ([length], [style]), [facial hair], [striking feature]\nPenis: [length], [girth], [cut], [extra detail]\nIntimate mode: [value]\nHis weakness: [value]\nNotices first: [value]\nTell when close to edge: [value]\nKinks & obsessions: [list]\nAdditional: [notes]\n\nDATA TO CONVERT:\n' + dataPrompt;
+
   } else {
-    // char1, char2, charSupport — character reference sheet
+    // char2, charSupport — female character reference sheet
     systemMsg = 'You are a character reference writer for an AI erotica writing tool. Your job is to convert character data into a structured reference sheet. Output ONLY a structured reference document — no narrative prose, no scenes, no fiction, no invented details. Use the exact format shown. Do NOT write flowing creative prose. Do NOT invent any details not in the data. Do NOT write scenes or story content.';
-    userMsg = 'Convert the following character data into a structured reference sheet using EXACTLY this format — labels followed by values, one topic per line. Do not write prose paragraphs. Do not write scenes or fiction. Use only the data provided.\n\nFORMAT TO FOLLOW:\n[ROLE LABEL]\nName: [name], Age: [age], Role: [role], Ethnicity: [ethnicity]\nFace: [face shape], [eye colour] eyes, [hair colour] hair ([hair length]), [striking feature]\nBody: [body type], breasts: [size] [shape], nipples: [nipples], breast movement: [movement], bra tendency: [bra], ass: [ass], pubic hair: [pubic], pussy: [pussy style]\nVoice: [voice quality][, accent if applicable]\n[Native exclamations line if applicable]\nCarries herself: [value]\nPower dynamic: [value]\nKink / defining behaviour: [values]\nPhysical tell when aroused: [value]\nSignature gesture: [value]\nSignature scent: [value]\nHistory: [length], [prior contact]\nWho knows: [value]\nUnspoken tension: [value]\nWhat she withholds: [value]\n[Any cast differentiation fields on separate lines]\n\nDATA TO CONVERT:\n' + dataPrompt;
+    userMsg = 'Convert the following character data into a structured reference sheet using EXACTLY this format — labels followed by values, one topic per line. Do not write prose paragraphs. Do not write scenes or fiction. Use only the data provided.\n\nFORMAT TO FOLLOW:\n[LOVE INTEREST / SUPPORTING CHARACTER]\nName: [name], Age: [age], Role: [role], Ethnicity: [ethnicity]\nHeight: [value]\nFace: [face shape], [eye colour] eyes, [hair colour] hair ([length], [style]), [accessories], [striking feature]\nBody: [body type], breasts: [size] [shape], areolas: [size] [colour], nipples: [nipples], breast movement: [movement], bra tendency: [bra], ass: [ass], hips: [shape], pubic hair: [pubic], pussy: [style]\nOrientation: [value]\nVoice: [voice][, accent]\n[Native exclamations if applicable]\nTypical wardrobe: [value]\nCarries herself: [value]\nPower dynamic: [value]\nKink / defining behaviour: [values]\nErogenous zones: [list]\nSexual behaviours: [list]\nPhysical tell when aroused: [value]\nSignature gesture: [value]\nSignature scent: [value]\nHistory: [length], [prior contact]\nWho knows: [value]\nUnspoken tension: [value]\nWhat she withholds: [value]\n[Cast differentiation fields if applicable]\n\nDATA TO CONVERT:\n' + dataPrompt;
   }
 
   fetch('https://openrouter.ai/api/v1/chat/completions', {
