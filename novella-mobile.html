@@ -585,6 +585,15 @@
     font-size: 0.68rem; cursor: pointer; flex-shrink: 0;
     letter-spacing: 0.04em;
   }
+  .portrait-option-toggle {
+    padding: 3px 8px; border-radius: 10px; border: 1px solid #4a3f35;
+    background: none; font-family: 'Jost', sans-serif;
+    font-size: 0.62rem; color: #5a4e48; cursor: pointer;
+    transition: all 0.12s; white-space: nowrap; flex-shrink: 0;
+  }
+  .portrait-option-toggle.on {
+    border-color: var(--gold); color: var(--gold); background: rgba(166,124,58,0.12);
+  }
 
   /* Pose picker sheet */
   #posePicker {
@@ -1288,6 +1297,18 @@
           <span class="portrait-pose-current" id="portrait-char1-pose-label">Half body front</span>
           <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char1')">Change</button>
         </div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">Clothing</span>
+          <span class="portrait-pose-current" id="portrait-char1-clothing-label">Nude</span>
+          <button type="button" class="portrait-option-toggle" id="portrait-char1-sheer-btn" onclick="togglePortraitOption('char1','sheer')">Sheer</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char1')">Change</button>
+        </div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">State</span>
+          <span class="portrait-pose-current" id="portrait-char1-state-label">Nude</span>
+          <button type="button" class="portrait-option-toggle" id="portrait-char1-nipples-btn" onclick="togglePortraitOption('char1','nipples')">Hard nipples</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char1')">Change</button>
+        </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
             <span id="portrait-char1-label">✦ Generate Portrait</span>
@@ -1320,6 +1341,18 @@
           <span class="portrait-pose-current" id="portrait-char2-pose-label">Half body front</span>
           <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char2')">Change</button>
         </div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">Clothing</span>
+          <span class="portrait-pose-current" id="portrait-char2-clothing-label">Nude</span>
+          <button type="button" class="portrait-option-toggle" id="portrait-char2-sheer-btn" onclick="togglePortraitOption('char2','sheer')">Sheer</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char2')">Change</button>
+        </div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">State</span>
+          <span class="portrait-pose-current" id="portrait-char2-state-label">Nude</span>
+          <button type="button" class="portrait-option-toggle" id="portrait-char2-nipples-btn" onclick="togglePortraitOption('char2','nipples')">Hard nipples</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char2')">Change</button>
+        </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
             <span id="portrait-char2-label">✦ Generate Portrait</span>
@@ -1351,6 +1384,18 @@
           <span class="portrait-pose-label">Pose</span>
           <span class="portrait-pose-current" id="portrait-charSupport-pose-label">Half body front</span>
           <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('charSupport')">Change</button>
+        </div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">Clothing</span>
+          <span class="portrait-pose-current" id="portrait-charSupport-clothing-label">Nude</span>
+          <button type="button" class="portrait-option-toggle" id="portrait-charSupport-sheer-btn" onclick="togglePortraitOption('charSupport','sheer')">Sheer</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport')">Change</button>
+        </div>
+        <div class="portrait-pose-row">
+          <span class="portrait-pose-label">State</span>
+          <span class="portrait-pose-current" id="portrait-charSupport-state-label">Nude</span>
+          <button type="button" class="portrait-option-toggle" id="portrait-charSupport-nipples-btn" onclick="togglePortraitOption('charSupport','nipples')">Hard nipples</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport')">Change</button>
         </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
@@ -1535,7 +1580,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v49</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v50</span>
     </div>
   </div>
 
@@ -1681,6 +1726,28 @@
       <button type="button" id="personaClearBtn" class="btn-cancel" style="flex:1;color:#c0392b;border-color:#e74c3c;">Clear Slot</button>
       <button type="button" id="personaSaveBtn" class="btn-save" style="flex:2;">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- ── CLOTHING PICKER ── -->
+<div id="clothingPicker" style="display:none;position:fixed;inset:0;background:rgba(24,18,14,0.78);z-index:810;align-items:flex-end;justify-content:center;">
+  <div class="pose-picker-sheet">
+    <div class="pose-picker-header">
+      <div class="pose-picker-handle"></div>
+      <div class="pose-picker-title">Clothing Type</div>
+    </div>
+    <div class="pose-picker-body" id="clothingPickerBody"></div>
+  </div>
+</div>
+
+<!-- ── STATE PICKER ── -->
+<div id="statePicker" style="display:none;position:fixed;inset:0;background:rgba(24,18,14,0.78);z-index:810;align-items:flex-end;justify-content:center;">
+  <div class="pose-picker-sheet">
+    <div class="pose-picker-header">
+      <div class="pose-picker-handle"></div>
+      <div class="pose-picker-title">Dressed State</div>
+    </div>
+    <div class="pose-picker-body" id="statePickerBody"></div>
   </div>
 </div>
 
@@ -2580,9 +2647,9 @@ const PORTRAIT_POSES_FLAT = Object.values(PORTRAIT_POSE_GROUPS).flat();
 
 // Per-character state
 var portraitState = {
-  char1: { images: [], currentIdx: 0, pose: 'Half body front' },
-  char2: { images: [], currentIdx: 0, pose: 'Half body front' },
-  charSupport: { images: [], currentIdx: 0, pose: 'Half body front' }
+  char1: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
+  char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
+  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false }
 };
 
 function renderPortraitCarousel(charId, images) {
@@ -2599,6 +2666,14 @@ function renderPortraitCarousel(charId, images) {
   // Update pose label
   var poseLabel = document.getElementById('portrait-' + charId + '-pose-label');
   if (poseLabel) poseLabel.textContent = state.pose || 'Half body front';
+
+  // Update clothing/state labels and toggles
+  var clothingLabel = document.getElementById('portrait-' + charId + '-clothing-label');
+  if (clothingLabel) clothingLabel.textContent = state.clothing || 'Nude';
+  var stateLabel = document.getElementById('portrait-' + charId + '-state-label');
+  if (stateLabel) stateLabel.textContent = state.dressedState || 'Nude';
+  updateToggleBtn(charId, 'sheer');
+  updateToggleBtn(charId, 'nipples');
 
   if (!state.images.length) {
     if (empty) empty.style.display = 'flex';
@@ -2891,11 +2966,10 @@ function sanitiseVenicePrompt(prompt) {
 function buildFallbackPrompt(lore, charId, pose) {
   var parts = [];
   parts.push(poseToSDTerm(pose || 'Half body front'));
-  if (charId !== 'char1') {
-    parts.push('topless, bare breasts, nude upper body');
-  } else {
-    parts.push('clothed');
-  }
+
+  // Clothing and state
+  parts.push(buildClothingPromptTerms(charId));
+
   var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
   if (ageMatch) parts.push(ageMatch[1] + ' year old woman');
   var cleaned = lore
@@ -2912,13 +2986,179 @@ function buildFallbackPrompt(lore, charId, pose) {
 }
 
 function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
-  var isProtagonist = charId === 'char1';
   var poseInstruction = poseToSDTerm(pose || 'Half body front');
-  var exposureInstruction = isProtagonist
-    ? poseInstruction + ', clothed'
-    : poseInstruction + ', topless, bare breasts, nude upper body, face clearly visible';
+  var clothingInstruction = buildClothingPromptTerms(charId);
 
-  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired: ' + exposureInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired composition: ' + poseInstruction + '\nRequired clothing/state: ' + clothingInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+}
+
+// ══════════════════════════════
+// CLOTHING & STATE PICKERS
+// ══════════════════════════════
+const CLOTHING_GROUPS = {
+  'None': ['Nude'],
+  'Minimal': ['Lingerie', 'Bikini', 'Underwear only', 'Towel', 'Sheet'],
+  'Casual': ['T-shirt and jeans', 'Sundress', 'Light sundress', 'Shorts and crop top', 'Gym wear', 'Swimsuit', 'Robe'],
+  'Smart': ['Cocktail dress', 'Work wear', 'Blouse and skirt', 'Evening gown', 'Business suit'],
+  'Other': ['Custom']
+};
+
+const DRESSED_STATES = [
+  'Fully dressed',
+  'Partially undressed — top open',
+  'Topless',
+  'Bottomless',
+  'Nude'
+];
+
+var clothingPickerCharId = null;
+var statePickerCharId = null;
+
+function openClothingPicker(charId) {
+  clothingPickerCharId = charId;
+  var current = portraitState[charId].clothing || 'Nude';
+  var body = document.getElementById('clothingPickerBody');
+  body.innerHTML = '';
+
+  Object.keys(CLOTHING_GROUPS).forEach(function(category) {
+    var catLabel = document.createElement('div');
+    catLabel.className = 'pose-category-label';
+    catLabel.textContent = category;
+    body.appendChild(catLabel);
+
+    CLOTHING_GROUPS[category].forEach(function(item) {
+      if (item === 'Custom') {
+        // Free text row
+        var row = document.createElement('div');
+        row.style.cssText = 'padding:10px 20px;border-bottom:1px solid var(--border);';
+        row.innerHTML = '<label style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);display:block;margin-bottom:6px;">Custom</label><input type="text" id="clothingCustomInput" placeholder="e.g. nurse uniform, kimono…" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:\'Cormorant Garamond\',serif;font-size:0.95rem;color:var(--ink);background:var(--parchment);box-sizing:border-box;" /><button type="button" onclick="selectClothing(document.getElementById(\'clothingCustomInput\').value||\'Custom\')" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);border:none;border-radius:8px;color:white;font-family:\'Jost\',sans-serif;font-size:0.85rem;cursor:pointer;">Use Custom</button>';
+        body.appendChild(row);
+        return;
+      }
+      var itemEl = document.createElement('div');
+      itemEl.className = 'pose-option' + (item === current ? ' selected' : '');
+      itemEl.innerHTML = escapeHtml(item) + (item === current ? '<span class="pose-option-check">✓</span>' : '');
+      itemEl.addEventListener('click', function() { selectClothing(item); });
+      body.appendChild(itemEl);
+    });
+  });
+
+  var picker = document.getElementById('clothingPicker');
+  picker.style.display = 'flex';
+  picker.onclick = function(e) { if (e.target === picker) closeClothingPicker(); };
+}
+
+function closeClothingPicker() {
+  document.getElementById('clothingPicker').style.display = 'none';
+  clothingPickerCharId = null;
+}
+
+function selectClothing(item) {
+  if (!clothingPickerCharId || !item.trim()) return;
+  portraitState[clothingPickerCharId].clothing = item;
+  var label = document.getElementById('portrait-' + clothingPickerCharId + '-clothing-label');
+  if (label) label.textContent = item;
+  // Auto-set sheer off if nude
+  if (item === 'Nude') {
+    portraitState[clothingPickerCharId].sheer = false;
+    updateToggleBtn(clothingPickerCharId, 'sheer');
+  }
+  closeClothingPicker();
+  showToast(item);
+}
+
+function openStatePicker(charId) {
+  statePickerCharId = charId;
+  var current = portraitState[charId].dressedState || 'Nude';
+  var body = document.getElementById('statePickerBody');
+  body.innerHTML = '';
+
+  DRESSED_STATES.forEach(function(state) {
+    var item = document.createElement('div');
+    item.className = 'pose-option' + (state === current ? ' selected' : '');
+    item.innerHTML = escapeHtml(state) + (state === current ? '<span class="pose-option-check">✓</span>' : '');
+    item.addEventListener('click', function() { selectDressedState(state); });
+    body.appendChild(item);
+  });
+
+  var picker = document.getElementById('statePicker');
+  picker.style.display = 'flex';
+  picker.onclick = function(e) { if (e.target === picker) closeStatePicker(); };
+}
+
+function closeStatePicker() {
+  document.getElementById('statePicker').style.display = 'none';
+  statePickerCharId = null;
+}
+
+function selectDressedState(state) {
+  if (!statePickerCharId) return;
+  portraitState[statePickerCharId].dressedState = state;
+  var label = document.getElementById('portrait-' + statePickerCharId + '-state-label');
+  if (label) label.textContent = state;
+  closeStatePicker();
+  showToast(state);
+}
+
+function togglePortraitOption(charId, option) {
+  var state = portraitState[charId];
+  if (option === 'sheer') {
+    if (state.clothing === 'Nude') { showToast('Select a clothing type first'); return; }
+    state.sheer = !state.sheer;
+  } else if (option === 'nipples') {
+    state.hardNipples = !state.hardNipples;
+  }
+  updateToggleBtn(charId, option);
+}
+
+function updateToggleBtn(charId, option) {
+  var state = portraitState[charId];
+  var btn = document.getElementById('portrait-' + charId + '-' + (option === 'sheer' ? 'sheer' : 'nipples') + '-btn');
+  if (!btn) return;
+  var on = option === 'sheer' ? state.sheer : state.hardNipples;
+  btn.classList.toggle('on', on);
+}
+
+function buildClothingPromptTerms(charId) {
+  var state = portraitState[charId];
+  var clothing = state.clothing || 'Nude';
+  var dressedState = state.dressedState || 'Nude';
+  var sheer = state.sheer;
+  var hardNipples = state.hardNipples;
+  var parts = [];
+
+  // Clothing base
+  if (clothing === 'Nude') {
+    parts.push('nude, no clothing, bare skin');
+  } else {
+    var clothingTerm = clothing.toLowerCase();
+    if (sheer) clothingTerm += ', sheer fabric, see-through, translucent';
+    parts.push(clothingTerm);
+  }
+
+  // Dressed state modifier
+  var stateMap = {
+    'Fully dressed': '',
+    'Partially undressed — top open': 'partially undressed, top open, slipping off shoulder',
+    'Topless': 'topless, bare chest, no top',
+    'Bottomless': 'bottomless, no bottoms',
+    'Nude': 'nude, completely bare'
+  };
+  var stateTerm = stateMap[dressedState] || '';
+
+  // Avoid redundancy — if clothing is Nude, state Nude is already covered
+  if (clothing !== 'Nude' && stateTerm) parts.push(stateTerm);
+
+  // Nipples
+  if (hardNipples) {
+    if (dressedState === 'Topless' || dressedState === 'Nude' || clothing === 'Nude') {
+      parts.push('hard nipples, erect nipples');
+    } else {
+      parts.push('hard nipples visible through fabric, erect nipples');
+    }
+  }
+
+  return parts.filter(Boolean).join(', ');
 }
 
 // ══════════════════════════════
