@@ -1648,7 +1648,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v64</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v65</span>
     </div>
   </div>
 
@@ -2003,7 +2003,24 @@ function migratePortraitsToIDB(story) {
   });
 }
 
-let stories = [];           // all stories meta + data
+// Migrate ALL stories' portraits to IDB on startup — runs once, cleans up localStorage
+function migrateAllPortraitsToIDB() {
+  var pending = stories.filter(function(s) {
+    return s.data && s.data.portraits &&
+      ['char1','char2','charSupport'].some(function(id) {
+        return s.data.portraits[id] && s.data.portraits[id].length > 0;
+      });
+  });
+  if (!pending.length) return;
+  dbg('Migrating portraits for ' + pending.length + ' stories...');
+  var chain = Promise.resolve();
+  pending.forEach(function(story) {
+    chain = chain.then(function() { return migratePortraitsToIDB(story); });
+  });
+  chain.then(function() {
+    dbg('All portrait migrations complete');
+  });
+}
 let activeStoryId = null;   // which story is open
 
 // Per-story runtime state
@@ -4807,6 +4824,8 @@ function installApp() {
 // ══════════════════════════════
 loadStories();
 renderStoriesList();
+// Migrate any portraits still in localStorage to IndexedDB
+migrateAllPortraitsToIDB();
 
 // Wire modal buttons
 document.getElementById('chCancelBtn').addEventListener('click', closeChapterModal);
