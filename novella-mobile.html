@@ -1648,7 +1648,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v63</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v64</span>
     </div>
   </div>
 
@@ -1917,6 +1917,92 @@
 // ══════════════════════════════
 const STORIES_KEY = 'novella_studio_stories_v1';
 
+// ══════════════════════════════
+// INDEXEDDB — PORTRAIT STORAGE
+// ══════════════════════════════
+const IDB_NAME = 'novella_portraits';
+const IDB_STORE = 'portraits';
+const IDB_VERSION = 1;
+let idbDb = null;
+
+function idbOpen() {
+  return new Promise(function(resolve, reject) {
+    if (idbDb) { resolve(idbDb); return; }
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = function(e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE);
+      }
+    };
+    req.onsuccess = function(e) { idbDb = e.target.result; resolve(idbDb); };
+    req.onerror = function(e) { reject(e); };
+  });
+}
+
+function idbSavePortraits(storyId, charId, images) {
+  var key = storyId + '_' + charId;
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      var store = tx.objectStore(IDB_STORE);
+      var req = store.put(images, key);
+      req.onsuccess = function() { resolve(); };
+      req.onerror = function(e) { reject(e); };
+    });
+  }).catch(function(e) { console.warn('IDB save failed', e); });
+}
+
+function idbLoadPortraits(storyId, charId) {
+  var key = storyId + '_' + charId;
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readonly');
+      var store = tx.objectStore(IDB_STORE);
+      var req = store.get(key);
+      req.onsuccess = function() { resolve(req.result || []); };
+      req.onerror = function() { resolve([]); };
+    });
+  }).catch(function() { return []; });
+}
+
+function idbDeletePortraits(storyId, charId) {
+  var key = storyId + '_' + charId;
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = resolve;
+    });
+  }).catch(function() {});
+}
+
+// Migrate portraits from localStorage story data into IndexedDB
+function migratePortraitsToIDB(story) {
+  if (!story.data || !story.data.portraits) return Promise.resolve();
+  var portraits = story.data.portraits;
+  var chars = ['char1', 'char2', 'charSupport'];
+  var hasData = chars.some(function(id) {
+    return portraits[id] && portraits[id].length > 0;
+  });
+  if (!hasData) return Promise.resolve();
+
+  var promises = chars.map(function(id) {
+    var arr = portraits[id];
+    if (!arr || !arr.length) return Promise.resolve();
+    // Normalise legacy format
+    if (typeof arr === 'string') arr = [{ b64: arr, pose: 'Half body front', createdAt: Date.now() }];
+    return idbSavePortraits(story.id, id, arr);
+  });
+
+  return Promise.all(promises).then(function() {
+    // Remove portraits from localStorage story data
+    delete story.data.portraits;
+    saveStories();
+    dbg('Migrated portraits to IDB for story ' + story.id);
+  });
+}
+
 let stories = [];           // all stories meta + data
 let activeStoryId = null;   // which story is open
 
@@ -1980,16 +2066,12 @@ function saveCurrentStory() {
       includeHistory: document.getElementById('includeHistory').checked,
       systemPrefix: document.getElementById('systemPrefix').value,
     },
-    portraits: {
-      char1: story.data && story.data.portraits ? story.data.portraits.char1 : [],
-      char2: story.data && story.data.portraits ? story.data.portraits.char2 : [],
-      charSupport: story.data && story.data.portraits ? story.data.portraits.charSupport : [],
-    },
     plan: {
       synopsis: document.getElementById('planSynopsis').value,
       summaries: planSummaries,
       stage: planCurrentStage,
     }
+    // portraits are stored in IndexedDB — not in localStorage
   };
   story.updatedAt = new Date().toISOString();
   saveStories();
@@ -2025,14 +2107,18 @@ function loadStoryIntoApp(story) {
   renderChapters();
   rebuildSceneLog();
 
-  // Restore portraits
-  const portraits = d.portraits || {};
-  ['char1', 'char2', 'charSupport'].forEach(function(id) {
-    // Migrate legacy single-image format to array
-    var arr = portraits[id];
-    if (!arr) arr = [];
-    if (typeof arr === 'string') arr = [{ b64: arr, pose: 'Half body front', createdAt: Date.now() }];
-    renderPortraitCarousel(id, arr);
+  // Restore portraits from IndexedDB (with migration from localStorage if needed)
+  migratePortraitsToIDB(story).then(function() {
+    var chars = ['char1', 'char2', 'charSupport'];
+    var promises = chars.map(function(id) {
+      return idbLoadPortraits(story.id, id).then(function(arr) {
+        renderPortraitCarousel(id, arr || []);
+      });
+    });
+    return Promise.all(promises);
+  }).catch(function() {
+    // Fallback — render empty carousels
+    ['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); });
   });
 
   // Restore plan
@@ -3091,12 +3177,10 @@ function setupCarouselSwipe(charId) {
 }
 
 function savePortraitToStory(charId) {
-  var story = getActiveStory();
-  if (!story) return;
-  if (!story.data) story.data = {};
-  if (!story.data.portraits) story.data.portraits = {};
-  story.data.portraits[charId] = portraitState[charId].images;
-  saveStories();
+  if (!activeStoryId) return;
+  idbSavePortraits(activeStoryId, charId, portraitState[charId].images).catch(function(e) {
+    showToast('⚠ Portrait save failed: ' + e.message);
+  });
 }
 
 function addPortraitImage(charId, b64, pose) {
@@ -3115,6 +3199,7 @@ function clearPortraitImage(charId) {
   portraitState[charId].images = [];
   portraitState[charId].currentIdx = 0;
   renderPortraitCarousel(charId, []);
+  if (activeStoryId) idbDeletePortraits(activeStoryId, charId);
 }
 
 // Legacy compatibility — kept for clearStoryData
