@@ -932,7 +932,15 @@
     border-color: var(--rose); color: var(--rose-deep);
     background: #f9edef;
   }
-  .persona-chip.empty {
+  .persona-chip.default-chip {
+    border-style: dashed; border-color: var(--border);
+    color: var(--muted); font-size: 0.68rem; opacity: 0.7;
+    letter-spacing: 0.04em;
+  }
+  .persona-chip.default-chip.active {
+    border-style: dashed; border-color: var(--gold);
+    color: var(--gold); background: #fdf8f0; opacity: 1;
+  }
     opacity: 0.38; border-style: dashed;
   }
   .persona-chip.empty.active {
@@ -1640,7 +1648,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v58</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v60</span>
     </div>
   </div>
 
@@ -1911,6 +1919,7 @@ let activeStoryId = null;   // which story is open
 // Per-story runtime state
 let chapters = [];
 let writtenScenes = {};
+let scenePersonas = {}; // key -> persona name used when scene was written
 let activeChIdx = null;
 let activeBeatIdx = null;
 let editingChIdx = null;
@@ -1944,6 +1953,7 @@ function saveCurrentStory() {
   story.data = {
     chapters,
     writtenScenes,
+    scenePersonas,
     storyState: document.getElementById('storyState').value,
     lore: {
       char1: document.getElementById('char1').value,
@@ -1980,6 +1990,7 @@ function loadStoryIntoApp(story) {
   const d = story.data || {};
   chapters = d.chapters || [];
   writtenScenes = d.writtenScenes || {};
+  scenePersonas = d.scenePersonas || {};
   activeChIdx = null; activeBeatIdx = null;
 
   const lore = d.lore || {};
@@ -3877,7 +3888,10 @@ function renderChapters() {
           <div class="beat-card-title">${escapeHtml(beat.title || 'Untitled')}</div>
           ${beat.desc ? '<div class="beat-card-desc">' + escapeHtml(beat.desc) + '</div>' : ''}
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
-            <span class="beat-chip ${isWritten ? 'chip-written' : 'chip-pending'}">${isWritten ? '✓ Written' : 'Pending'}</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="beat-chip ${isWritten ? 'chip-written' : 'chip-pending'}">${isWritten ? '✓ Written' : 'Pending'}</span>
+              ${isWritten && scenePersonas[key] ? '<span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.06em;font-family:\'Jost\',sans-serif;">' + escapeHtml(scenePersonas[key]) + '</span>' : ''}
+            </div>
             <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
               <button class="chapter-action-btn" onclick="openBeatModal(${bIdx}, ${chIdx})">Edit</button>
               <button class="chapter-action-btn" style="color:#c0392b;border-color:#c0392b" onclick="deleteBeat(${chIdx}, ${bIdx})">✕</button>
@@ -4439,7 +4453,7 @@ function exportAsHTML() {
 // ══════════════════════════════
 function clearStoryData() {
   if (!confirm('Clear all chapters, beats, lore and scenes for this story? This cannot be undone.')) return;
-  chapters = []; writtenScenes = {}; activeChIdx = null; activeBeatIdx = null;
+  chapters = []; writtenScenes = {}; scenePersonas = {}; activeChIdx = null; activeBeatIdx = null;
   ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
   ['char1','char2','charSupport'].forEach(id => clearPortraitImage(id));
   document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
@@ -4578,6 +4592,14 @@ function writeScene() {
           dbg('stream done, words=' + fullText.split(/\s+/).length);
           cursor.remove();
           writtenScenes[key] = fullText;
+          // Record which persona was active when this scene was written
+          if (activePersonaIdx === null) {
+            scenePersonas[key] = 'Default';
+          } else if (personas[activePersonaIdx] && personas[activePersonaIdx].name) {
+            scenePersonas[key] = personas[activePersonaIdx].name;
+          } else {
+            scenePersonas[key] = 'Slot ' + (activePersonaIdx + 1);
+          }
           renderChapters();
           saveCurrentStory();
           document.getElementById('btnCopy').style.display = '';
@@ -6004,10 +6026,10 @@ function restoreFromBackup(input) {
 const PERSONA_STORAGE_KEY = 'novella_studio_personas_v1';
 const PERSONA_SLOTS = 5;
 const DEFAULT_PERSONAS = [
-  { name: 'Explicit Smut', text: 'You are a skilled erotic fiction author. Write in third-person limited POV anchored to the male protagonist. Use explicit, direct language — no euphemisms, no fade-to-black. Describe physical sensation, desire, and action in unhurried, sensory detail. Every scene should feel present-tense urgent.' },
+  { name: 'Explicit Smut', text: 'You are a skilled erotic fiction author. Write in third-person limited POV anchored to the male protagonist. Use explicit, direct language — no euphemisms, no fade-to-black. Describe physical sensation, desire, and action in charged, immediate detail — the reader should feel inside the moment. The protagonist is always the observer and recipient — desire and power flow toward him. Every scene should feel like it\'s happening now, to him, in his body.' },
   { name: 'Slow Burn', text: 'You are a skilled romance novelist. Write in third-person limited POV. Prioritise longing, restraint, and charged subtext over explicit content. Let desire simmer beneath the surface — in a held gaze, a brushed hand, unspoken words. Deny the reader and the characters what they want for as long as possible.' },
-  { name: 'Emotional Aftermath', text: 'You are a literary fiction writer. Write in third-person limited POV. Focus on interior emotional processing — how the protagonist makes sense of what just happened. Slow the prose down. Use memory, physical sensation, and quiet observation to show emotional state without stating it directly.' },
-  { name: '', text: '' },
+  { name: 'Emotional Aftermath', text: 'You are a literary fiction writer. Write in third-person limited POV. Focus on how the protagonist processes the physical and emotional residue after intimacy. Slow the prose down. Use involuntary memory, bodily sensation, and quiet observation to reveal emotional state — never name the emotion directly. The world around him should reflect his interior without comment.' },
+  { name: 'Voyeur Gaze', text: 'You are a skilled erotic fiction author specialising in the male voyeur perspective. Write in third-person limited POV locked entirely inside the protagonist\'s head. He is stationary, observing — never acting. His gaze moves slowly and deliberately across women in the room, cataloguing physical detail with precision: how fabric moves, what it reveals, what it conceals and implies. Interior monologue should feel compulsive — he cannot stop noticing. Freely render his explicit mental projections: what she looks like undressed, how she would move, what sounds she would make. These fantasies should feel vivid and physical, not abstract. The prose should have the quality of a man trying to maintain composure while his mind runs ahead of him. The room is real; his interior world is explicit.' },
   { name: '', text: '' }
 ];
 
@@ -6042,12 +6064,21 @@ function renderPersonaChips() {
   if (!container) return;
   container.innerHTML = '';
 
-  // Slot 0 = "Setup" (use systemPrefix from Setup tab)
+  // Default chip — fallback to Setup tab persona, visually distinct
   const setupChip = document.createElement('div');
-  setupChip.className = 'persona-chip' + (activePersonaIdx === null ? ' active' : '');
-  setupChip.textContent = 'Setup';
-  setupChip.title = 'Use the AI Persona from Setup';
+  setupChip.className = 'persona-chip default-chip' + (activePersonaIdx === null ? ' active' : '');
+  setupChip.textContent = 'Default';
+  setupChip.title = 'Fallback — uses the AI Persona text from Setup tab';
   setupChip.onclick = function() { setActivePersona(null); };
+  // Long-press navigates to Setup to edit the default text
+  let defTimer;
+  setupChip.addEventListener('pointerdown', function() {
+    defTimer = setTimeout(function() { defTimer = null; goScreen('settings'); showToast('Edit Default persona in Setup tab'); }, 600);
+  });
+  setupChip.addEventListener('pointerup', function() {
+    if (defTimer) { clearTimeout(defTimer); defTimer = null; setActivePersona(null); }
+  });
+  setupChip.addEventListener('pointercancel', function() { clearTimeout(defTimer); defTimer = null; });
   container.appendChild(setupChip);
 
   personas.forEach(function(p, i) {
