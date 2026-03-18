@@ -1136,18 +1136,18 @@
   /* ── TEXT EXPAND OVERLAY ── */
   #textExpandOverlay {
     display: none; position: fixed; inset: 0;
-    background: #18120e; z-index: 900;
+    background: var(--cream); z-index: 900;
     flex-direction: column;
   }
   #textExpandOverlay.open { display: flex; }
   .expand-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-bottom: 1px solid #2e2420;
-    flex-shrink: 0; background: #1a120d;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0; background: var(--parchment);
   }
   .expand-title {
-    font-family: 'Cormorant Garamond', serif; font-size: 1rem;
-    color: var(--gold); font-style: italic;
+    font-family: 'Jost', sans-serif; font-size: 0.75rem;
+    color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase;
   }
   .expand-wordcount {
     font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em;
@@ -1155,14 +1155,15 @@
   .expand-done-btn {
     padding: 8px 18px; background: var(--rose); border: none;
     border-radius: 8px; color: white;
-    font-family: 'Jost', sans-serif; font-size: 0.88rem; cursor: pointer;
+    font-family: 'Jost', sans-serif; font-size: 0.88rem;
+    cursor: pointer;
   }
   #textExpandArea {
-    flex: 1; width: 100%; padding: 20px 16px;
-    background: #18120e; color: var(--parchment);
+    flex: 1; width: 100%; padding: 20px 18px;
+    background: var(--cream); color: var(--ink);
     border: none; outline: none; resize: none;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem; line-height: 1.85;
+    font-family: 'Jost', sans-serif;
+    font-size: 1rem; line-height: 1.9;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
   }
@@ -1523,7 +1524,7 @@
   <div class="plan-stage" id="plan-stage-3">
     <div class="plan-body">
       <span class="plan-label">Beat Generation</span>
-      <p class="plan-desc">Set beats per chapter. Generation is sequential — each chapter receives context from the previous one for continuity.</p>
+      <p class="plan-desc">Set beats per chapter then tap ✦ Generate on each chapter one at a time. Review beats before moving to the next. When all chapters are ready tap Import.</p>
       <div class="plan-count-row">
         <label style="font-weight:500;">Default beats per chapter</label>
         <div class="count-stepper">
@@ -1537,7 +1538,7 @@
     </div>
     <div class="plan-footer">
       <button class="btn-plan-back" onclick="planGoStage(2)">← Chapters</button>
-      <button class="btn-plan-next" id="planImportBtn" onclick="generateAndImportBeats()">✦ Generate &amp; Import Beats</button>
+      <button class="btn-plan-next" id="planImportBtn" onclick="importGeneratedBeats()">⬇ Import Beats</button>
     </div>
   </div>
 
@@ -1614,7 +1615,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v54</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v56</span>
     </div>
   </div>
 
@@ -2187,21 +2188,24 @@ function renderBeatCountList() {
     const result = lastBeatResults[i];
     const hasFailed = result && !result.ok;
     const wasGenerated = result !== undefined;
+    const hasBeats = chapters[i] && chapters[i].beats && chapters[i].beats.length > 0;
 
     const row = document.createElement('div');
     row.className = 'beat-count-card';
     row.innerHTML = `
       <div style="flex:1;min-width:0;">
         <div class="beat-count-card-title">${escapeHtml(ch.title || 'Chapter ' + (i+1))}</div>
-        ${wasGenerated ? '<div class="beat-count-card-status' + (hasFailed ? ' failed' : '') + '">' + (hasFailed ? '✗ Failed — no beats generated' : '✓ ' + result.count + ' beats generated') + '</div>' : ''}
+        <div class="beat-count-card-status${hasFailed ? ' failed' : ''}" id="beat-status-${i}">
+          ${hasFailed ? '✗ Failed — tap Generate to retry' : hasBeats ? '✓ ' + chapters[i].beats.length + ' beats' : 'Not generated'}
+        </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        ${hasFailed ? '<button class="btn-retry-ch" id="retry-btn-' + i + '" type="button" onclick="retryChapterBeats(' + i + ')">↺ Retry</button>' : ''}
         <div class="count-stepper">
           <button type="button" onclick="planSummaries[${i}].beatCount=Math.max(1,(planSummaries[${i}].beatCount||4)-1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">−</button>
           <span>${ch.beatCount}</span>
           <button type="button" onclick="planSummaries[${i}].beatCount=Math.min(12,(planSummaries[${i}].beatCount||4)+1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">+</button>
         </div>
+        <button class="btn-retry-ch" id="beat-gen-btn-${i}" type="button" onclick="generateChapterBeats(${i})">✦ Generate</button>
       </div>
     `;
     list.appendChild(row);
@@ -2401,19 +2405,136 @@ function regenChapterSummaries() {
 }
 
 function generateAndImportBeats() {
+  // Legacy — now replaced by per-chapter generate
+  importGeneratedBeats();
+}
+
+// Per-chapter beat generation — the primary path
+function generateChapterBeats(chIdx) {
   const apiKey = document.getElementById('apiKey').value.trim();
   if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
-  if (!planSummaries.length) { showToast('Generate chapter summaries first'); return; }
-  const model = document.getElementById('modelSelect').value;
+  if (!planSummaries[chIdx]) { showToast('No chapter data'); return; }
 
-  const hasExisting = chapters.some(ch => ch.beats && ch.beats.length > 0);
-  if (hasExisting) {
-    const choice = confirm('You have existing beats.\n\nOK = Replace all\nCancel = Append to existing');
-    if (choice === null) return;
-    doGenerateBeatsSequential(apiKey, model, !choice);
-  } else {
-    doGenerateBeatsSequential(apiKey, model, false);
-  }
+  const btn = document.getElementById('beat-gen-btn-' + chIdx);
+  const statusEl = document.getElementById('beat-status-' + chIdx);
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  if (statusEl) statusEl.textContent = 'Generating…';
+
+  const model = document.getElementById('modelSelect').value;
+  const ch = planSummaries[chIdx];
+  const beatCount = ch.beatCount || 4;
+  const synopsis = document.getElementById('planSynopsis').value.trim();
+  const persona = document.getElementById('systemPrefix').value.trim();
+  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const char1 = document.getElementById('char1').value.trim();
+  const char2 = document.getElementById('char2').value.trim();
+  const charSupport = document.getElementById('charSupport').value.trim();
+  const worldLore = document.getElementById('worldLore').value.trim();
+
+  const loreCtx = [
+    char1 ? 'PROTAGONIST:\n' + char1 : '',
+    char2 ? 'LOVE INTEREST:\n' + char2 : '',
+    charSupport ? 'SUPPORTING CAST:\n' + charSupport : '',
+    worldLore ? 'WORLD & SETTING:\n' + worldLore : '',
+    toneStyle ? 'TONE & STYLE (follow closely — heat level and explicitness):\n' + toneStyle : '',
+  ].filter(Boolean).join('\n\n');
+
+  const systemMsg = (persona || 'You are a story structure expert for adult romance fiction.')
+    + '\n\nGenerate story beats. Each beat must reflect the tone, heat level, and explicitness in the lore. Do not sanitise — clearly describe what happens including sexual or intimate scenes.';
+
+  // Previous chapters as context
+  const prevCtx = chIdx > 0
+    ? 'PREVIOUS CHAPTERS (for continuity):\n' + planSummaries.slice(0, chIdx).map((s, idx) => 'Ch.' + (idx+1) + ' — ' + s.title + ': ' + (s.summary || '').slice(0, 200)).join('\n')
+    : '';
+
+  // Next chapter as a peek
+  const nextCh = planSummaries[chIdx + 1];
+  const nextCtx = nextCh ? 'NEXT CHAPTER (coming up — do not write these events yet, just ensure continuity):\nCh.' + (chIdx+2) + ' — ' + nextCh.title + ': ' + (nextCh.summary || '').slice(0, 150) : '';
+
+  // Chapter summary is the PRIMARY brief — everything else is context
+  const prompt = `Generate exactly ${beatCount} story beats for Chapter ${chIdx+1}.
+
+━━ CHAPTER BRIEF — follow this precisely ━━
+${ch.title}
+${ch.summary}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The beats must cover every event described in the chapter brief above — beginning, middle, and end.
+Map the chapter's arc into exactly ${beatCount} sequential beats that together tell the complete chapter story.
+Do not skip or compress events from the brief. Each beat should advance the chapter forward.
+
+${prevCtx ? prevCtx + '\n\n' : ''}${nextCtx ? nextCtx + '\n\n' : ''}OVERALL STORY (brief context only):\n${synopsis.slice(0, 300)}
+
+${loreCtx ? 'CHARACTER & TONE REFERENCE:\n' + loreCtx : ''}
+
+Output ONLY valid JSON — an array of exactly ${beatCount} beat objects:
+- "title": short evocative beat title (max 8 words) — specific about what happens
+- "desc": 2-3 sentences — what happens, what is felt, what shifts. Reflect heat level, don't fade to black.
+- "pov": POV character name
+- "loc": location
+
+No markdown, no commentary, just the JSON array.`;
+
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({ model, stream: false, messages: [
+      { role: 'system', content: systemMsg },
+      { role: 'user', content: prompt }
+    ]})
+  }).then(r => r.json()).then(data => {
+    if (btn) { btn.disabled = false; btn.textContent = '✦ Regenerate'; }
+    const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    try {
+      const parsed = JSON.parse(cleaned);
+      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty');
+
+      // Store in lastBeatResults
+      lastBeatResults[chIdx] = { ok: true, count: parsed.length, beats: parsed };
+
+      // Write directly into chapters
+      if (!chapters[chIdx]) {
+        chapters[chIdx] = { title: ch.title, summary: ch.summary, collapsed: false, beats: [] };
+      }
+      chapters[chIdx].beats = parsed.map(b => ({
+        title: b.title || 'Untitled Beat',
+        desc: b.desc || '',
+        pov: b.pov || '',
+        loc: b.loc || '',
+        written: false
+      }));
+      saveCurrentStory();
+
+      if (statusEl) statusEl.textContent = '✓ ' + parsed.length + ' beats generated';
+      if (statusEl) statusEl.className = 'beat-count-card-status';
+      showToast('Ch.' + (chIdx+1) + ' — ' + parsed.length + ' beats ✓');
+    } catch(e) {
+      lastBeatResults[chIdx] = { ok: false };
+      if (statusEl) { statusEl.textContent = '✗ Failed — tap Generate to retry'; statusEl.className = 'beat-count-card-status failed'; }
+      showToast('Ch.' + (chIdx+1) + ' failed — try again');
+    }
+  }).catch(err => {
+    if (btn) { btn.disabled = false; btn.textContent = '✦ Generate'; }
+    lastBeatResults[chIdx] = { ok: false };
+    if (statusEl) { statusEl.textContent = '✗ Network error — tap Generate to retry'; statusEl.className = 'beat-count-card-status failed'; }
+    showToast('Network error — try again');
+  });
+}
+
+// Import all generated beats into the story and go to Beats tab
+function importGeneratedBeats() {
+  const ready = planSummaries.filter((_, i) => chapters[i] && chapters[i].beats && chapters[i].beats.length > 0).length;
+  if (!ready) { showToast('Generate beats for at least one chapter first'); return; }
+  saveCurrentStory();
+  renderBeats();
+  goScreen('beats');
+  showToast(ready + ' chapter' + (ready !== 1 ? 's' : '') + ' imported ✓');
 }
 
 // Track beat generation results for retry
