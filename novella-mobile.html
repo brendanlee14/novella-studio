@@ -843,13 +843,38 @@
   /* Beat count rows per chapter */
   .beat-count-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 12px 14px; margin-bottom: 10px;
+    border-radius: 12px; margin-bottom: 10px; overflow: hidden;
+  }
+  .beat-count-card-top {
     display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
   }
   .beat-count-card-title {
     flex: 1; font-family: 'Cormorant Garamond', serif;
     font-size: 1rem; color: var(--ink); font-style: italic;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .beat-preview-list {
+    border-top: 1px solid var(--border);
+    padding: 0 14px 10px;
+  }
+  .beat-preview-item {
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .beat-preview-item:last-child { border-bottom: none; }
+  .beat-preview-num {
+    font-size: 0.62rem; color: var(--muted); letter-spacing: 0.08em;
+    flex-shrink: 0; padding-top: 2px; min-width: 20px;
+  }
+  .beat-preview-content { flex: 1; min-width: 0; }
+  .beat-preview-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 0.9rem;
+    color: var(--ink); font-style: italic; font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .beat-preview-desc {
+    font-size: 0.75rem; color: var(--muted); line-height: 1.5;
   }
 
   /* Plan action footer */
@@ -1615,7 +1640,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v56</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v58</span>
     </div>
   </div>
 
@@ -2185,31 +2210,100 @@ function renderBeatCountList() {
   const def = parseInt(document.getElementById('planDefaultBeats').textContent) || 4;
   planSummaries.forEach((ch, i) => {
     if (!ch.beatCount) ch.beatCount = def;
+    const hasBeats = chapters[i] && chapters[i].beats && chapters[i].beats.length > 0;
     const result = lastBeatResults[i];
     const hasFailed = result && !result.ok;
-    const wasGenerated = result !== undefined;
-    const hasBeats = chapters[i] && chapters[i].beats && chapters[i].beats.length > 0;
 
     const row = document.createElement('div');
     row.className = 'beat-count-card';
+    row.id = 'beat-card-' + i;
+
+    // Build beat preview HTML
+    var previewHtml = '';
+    if (hasBeats) {
+      previewHtml = '<div class="beat-preview-list">' +
+        chapters[i].beats.map((b, bi) =>
+          '<div class="beat-preview-item">' +
+          '<div class="beat-preview-num">B' + (bi+1) + '</div>' +
+          '<div class="beat-preview-content">' +
+          '<div class="beat-preview-title">' + escapeHtml(b.title || 'Untitled') + '</div>' +
+          (b.desc ? '<div class="beat-preview-desc">' + escapeHtml(b.desc) + '</div>' : '') +
+          '</div></div>'
+        ).join('') +
+        '</div>';
+    }
+
+    const statusText = hasFailed ? '✗ Failed — tap Generate to retry'
+      : hasBeats ? '✓ ' + chapters[i].beats.length + ' beats'
+      : 'Not generated';
+    const statusClass = 'beat-count-card-status' + (hasFailed ? ' failed' : '');
+
     row.innerHTML = `
-      <div style="flex:1;min-width:0;">
-        <div class="beat-count-card-title">${escapeHtml(ch.title || 'Chapter ' + (i+1))}</div>
-        <div class="beat-count-card-status${hasFailed ? ' failed' : ''}" id="beat-status-${i}">
-          ${hasFailed ? '✗ Failed — tap Generate to retry' : hasBeats ? '✓ ' + chapters[i].beats.length + ' beats' : 'Not generated'}
+      <div class="beat-count-card-top">
+        <div style="flex:1;min-width:0;">
+          <div class="beat-count-card-title">${escapeHtml(ch.title || 'Chapter ' + (i+1))}</div>
+          <div class="${statusClass}" id="beat-status-${i}">${statusText}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="count-stepper">
+            <button type="button" onclick="planSummaries[${i}].beatCount=Math.max(1,(planSummaries[${i}].beatCount||4)-1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">−</button>
+            <span>${ch.beatCount}</span>
+            <button type="button" onclick="planSummaries[${i}].beatCount=Math.min(12,(planSummaries[${i}].beatCount||4)+1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">+</button>
+          </div>
+          <button class="btn-retry-ch" id="beat-gen-btn-${i}" type="button" onclick="generateChapterBeats(${i})">${hasBeats ? '↺ Regen' : '✦ Generate'}</button>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="count-stepper">
-          <button type="button" onclick="planSummaries[${i}].beatCount=Math.max(1,(planSummaries[${i}].beatCount||4)-1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">−</button>
-          <span>${ch.beatCount}</span>
-          <button type="button" onclick="planSummaries[${i}].beatCount=Math.min(12,(planSummaries[${i}].beatCount||4)+1);this.parentElement.querySelector('span').textContent=planSummaries[${i}].beatCount">+</button>
-        </div>
-        <button class="btn-retry-ch" id="beat-gen-btn-${i}" type="button" onclick="generateChapterBeats(${i})">✦ Generate</button>
-      </div>
+      ${previewHtml}
     `;
     list.appendChild(row);
   });
+}
+
+function refreshBeatCard(chIdx) {
+  const ch = planSummaries[chIdx];
+  const hasBeats = chapters[chIdx] && chapters[chIdx].beats && chapters[chIdx].beats.length > 0;
+  const result = lastBeatResults[chIdx];
+  const hasFailed = result && !result.ok;
+
+  const card = document.getElementById('beat-card-' + chIdx);
+  if (!card) return;
+
+  var previewHtml = '';
+  if (hasBeats) {
+    previewHtml = '<div class="beat-preview-list">' +
+      chapters[chIdx].beats.map((b, bi) =>
+        '<div class="beat-preview-item">' +
+        '<div class="beat-preview-num">B' + (bi+1) + '</div>' +
+        '<div class="beat-preview-content">' +
+        '<div class="beat-preview-title">' + escapeHtml(b.title || 'Untitled') + '</div>' +
+        (b.desc ? '<div class="beat-preview-desc">' + escapeHtml(b.desc) + '</div>' : '') +
+        '</div></div>'
+      ).join('') +
+      '</div>';
+  }
+
+  const statusText = hasFailed ? '✗ Failed — tap Generate to retry'
+    : hasBeats ? '✓ ' + chapters[chIdx].beats.length + ' beats'
+    : 'Not generated';
+  const statusClass = 'beat-count-card-status' + (hasFailed ? ' failed' : '');
+
+  card.innerHTML = `
+    <div class="beat-count-card-top">
+      <div style="flex:1;min-width:0;">
+        <div class="beat-count-card-title">${escapeHtml(ch.title || 'Chapter ' + (chIdx+1))}</div>
+        <div class="${statusClass}" id="beat-status-${chIdx}">${statusText}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="count-stepper">
+          <button type="button" onclick="planSummaries[${chIdx}].beatCount=Math.max(1,(planSummaries[${chIdx}].beatCount||4)-1);this.parentElement.querySelector('span').textContent=planSummaries[${chIdx}].beatCount">−</button>
+          <span>${ch.beatCount || 4}</span>
+          <button type="button" onclick="planSummaries[${chIdx}].beatCount=Math.min(12,(planSummaries[${chIdx}].beatCount||4)+1);this.parentElement.querySelector('span').textContent=planSummaries[${chIdx}].beatCount">+</button>
+        </div>
+        <button class="btn-retry-ch" id="beat-gen-btn-${chIdx}" type="button" onclick="generateChapterBeats(${chIdx})">${hasBeats ? '↺ Regen' : '✦ Generate'}</button>
+      </div>
+    </div>
+    ${previewHtml}
+  `;
 }
 
 // ── GENERATE CHAPTER SUMMARIES ──
@@ -2416,9 +2510,7 @@ function generateChapterBeats(chIdx) {
   if (!planSummaries[chIdx]) { showToast('No chapter data'); return; }
 
   const btn = document.getElementById('beat-gen-btn-' + chIdx);
-  const statusEl = document.getElementById('beat-status-' + chIdx);
   if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
-  if (statusEl) statusEl.textContent = 'Generating…';
 
   const model = document.getElementById('modelSelect').value;
   const ch = planSummaries[chIdx];
@@ -2488,17 +2580,15 @@ No markdown, no commentary, just the JSON array.`;
       { role: 'user', content: prompt }
     ]})
   }).then(r => r.json()).then(data => {
-    if (btn) { btn.disabled = false; btn.textContent = '✦ Regenerate'; }
+    if (btn) { btn.disabled = false; }
     const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
     try {
       const parsed = JSON.parse(cleaned);
       if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty');
 
-      // Store in lastBeatResults
       lastBeatResults[chIdx] = { ok: true, count: parsed.length, beats: parsed };
 
-      // Write directly into chapters
       if (!chapters[chIdx]) {
         chapters[chIdx] = { title: ch.title, summary: ch.summary, collapsed: false, beats: [] };
       }
@@ -2510,19 +2600,17 @@ No markdown, no commentary, just the JSON array.`;
         written: false
       }));
       saveCurrentStory();
-
-      if (statusEl) statusEl.textContent = '✓ ' + parsed.length + ' beats generated';
-      if (statusEl) statusEl.className = 'beat-count-card-status';
+      refreshBeatCard(chIdx);
       showToast('Ch.' + (chIdx+1) + ' — ' + parsed.length + ' beats ✓');
     } catch(e) {
       lastBeatResults[chIdx] = { ok: false };
-      if (statusEl) { statusEl.textContent = '✗ Failed — tap Generate to retry'; statusEl.className = 'beat-count-card-status failed'; }
+      refreshBeatCard(chIdx);
       showToast('Ch.' + (chIdx+1) + ' failed — try again');
     }
   }).catch(err => {
-    if (btn) { btn.disabled = false; btn.textContent = '✦ Generate'; }
+    if (btn) { btn.disabled = false; }
     lastBeatResults[chIdx] = { ok: false };
-    if (statusEl) { statusEl.textContent = '✗ Network error — tap Generate to retry'; statusEl.className = 'beat-count-card-status failed'; }
+    refreshBeatCard(chIdx);
     showToast('Network error — try again');
   });
 }
@@ -2532,7 +2620,7 @@ function importGeneratedBeats() {
   const ready = planSummaries.filter((_, i) => chapters[i] && chapters[i].beats && chapters[i].beats.length > 0).length;
   if (!ready) { showToast('Generate beats for at least one chapter first'); return; }
   saveCurrentStory();
-  renderBeats();
+  renderChapters();
   goScreen('beats');
   showToast(ready + ' chapter' + (ready !== 1 ? 's' : '') + ' imported ✓');
 }
