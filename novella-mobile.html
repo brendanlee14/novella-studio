@@ -1648,7 +1648,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v60</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v62</span>
     </div>
   </div>
 
@@ -1668,7 +1668,9 @@
       <span style="font-size:1.2rem">💾</span>
     </div>
     <div class="setting-row">
-      <div><div class="setting-label">PIN Lock</div><div class="setting-sub" id="pinStatusLabel">Not set — tap to create</div></div>
+      <div><div class="setting-label">Storage Usage</div><div class="setting-sub" id="storageUsageLabel">Calculating…</div></div>
+      <button onclick="calcStorageUsage()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.85rem;cursor:pointer;">Check</button>
+    </div><div class="setting-sub" id="pinStatusLabel">Not set — tap to create</div></div>
       <button onclick="openPinSetup()" style="padding:8px 14px;background:var(--rose);border:none;border-radius:8px;color:white;font-size:0.85rem;cursor:pointer;" id="pinSetupBtn">Set PIN</button>
     </div>
     <div class="setting-row" id="installBtn" style="display:none">
@@ -1940,7 +1942,13 @@ function loadStories() {
 
 // ── SAVE ALL STORIES TO LOCALSTORAGE ──
 function saveStories() {
-  try { localStorage.setItem(STORIES_KEY, JSON.stringify(stories)); } catch(e) { console.warn('Save failed', e); }
+  try {
+    localStorage.setItem(STORIES_KEY, JSON.stringify(stories));
+  } catch(e) {
+    // Storage full — portraits are the likely cause
+    console.warn('Save failed', e);
+    showToast('⚠ Save failed — storage may be full. Try removing portraits.');
+  }
 }
 
 // ── GET ACTIVE STORY OBJECT ──
@@ -5728,6 +5736,23 @@ function updatePinStatusLabel() {
   if (btn) btn.textContent = pin ? 'Change PIN' : 'Set PIN';
 }
 
+function calcStorageUsage() {
+  try {
+    var total = 0;
+    for (var k in localStorage) {
+      if (localStorage.hasOwnProperty(k)) {
+        total += (localStorage[k].length + k.length) * 2;
+      }
+    }
+    var mb = (total / (1024 * 1024)).toFixed(2);
+    var pct = Math.round((total / (5 * 1024 * 1024)) * 100);
+    var label = document.getElementById('storageUsageLabel');
+    if (label) label.textContent = mb + ' MB used (~' + pct + '% of 5MB limit)';
+    if (pct > 80) showToast('⚠ Storage ' + pct + '% full — remove portraits to free space');
+    else showToast('Storage: ' + mb + ' MB (' + pct + '%)');
+  } catch(e) { showToast('Could not calculate storage'); }
+}
+
 function lockApp() {
   if (!getPIN()) { showToast('Set a PIN in Setup first'); return; }
   pinMode = 'unlock';
@@ -6041,7 +6066,6 @@ function loadPersonas() {
     const raw = localStorage.getItem(PERSONA_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Ensure exactly 5 slots
       personas = [];
       for (let i = 0; i < PERSONA_SLOTS; i++) {
         personas.push(parsed[i] || { name: '', text: '' });
@@ -6050,13 +6074,26 @@ function loadPersonas() {
       personas = DEFAULT_PERSONAS.map(p => ({ name: p.name, text: p.text }));
       savePersonas();
     }
+    // Restore active persona index
+    const savedActive = localStorage.getItem(PERSONA_STORAGE_KEY + '_active');
+    if (savedActive !== null && savedActive !== '') {
+      const idx = parseInt(savedActive);
+      if (!isNaN(idx) && idx >= 0 && idx < PERSONA_SLOTS) {
+        activePersonaIdx = idx;
+      }
+    }
   } catch(e) {
     personas = DEFAULT_PERSONAS.map(p => ({ name: p.name, text: p.text }));
   }
 }
 
 function savePersonas() {
-  try { localStorage.setItem(PERSONA_STORAGE_KEY, JSON.stringify(personas)); } catch(e) {}
+  try {
+    localStorage.setItem(PERSONA_STORAGE_KEY, JSON.stringify(personas));
+    localStorage.setItem(PERSONA_STORAGE_KEY + '_active', activePersonaIdx === null ? '' : String(activePersonaIdx));
+  } catch(e) {
+    showToast('⚠ Could not save persona — storage full?');
+  }
 }
 
 function renderPersonaChips() {
@@ -6112,9 +6149,11 @@ function renderPersonaChips() {
 
 function setActivePersona(idx) {
   activePersonaIdx = idx;
+  // Persist the active selection
+  try { localStorage.setItem(PERSONA_STORAGE_KEY + '_active', idx === null ? '' : String(idx)); } catch(e) {}
   renderPersonaChips();
   if (idx === null) {
-    showToast('Using Setup persona');
+    showToast('Using Default persona');
   } else {
     showToast('Persona: ' + (personas[idx].name || 'Preset ' + (idx + 1)));
   }
@@ -6184,6 +6223,16 @@ loadPersonas();
 renderPersonaChips();
 initPinLock();
 wireExpandFields();
+
+// Auto-save when app is backgrounded or tab loses focus
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden' && activeStoryId) {
+    saveCurrentStory();
+  }
+});
+window.addEventListener('beforeunload', function() {
+  if (activeStoryId) saveCurrentStory();
+});
 // Init portrait carousels (empty state with pose bars)
 ['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); });
 </script>
