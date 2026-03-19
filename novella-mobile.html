@@ -1212,6 +1212,21 @@
   .export-option-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
 
   ::-webkit-scrollbar { width: 0; }
+
+  /* ── SEQUEL OVERLAY ── */
+  .sequel-step {
+    display: flex; align-items: center; gap: 14px;
+    font-family: 'Jost', sans-serif; font-size: 0.88rem;
+    color: rgba(255,255,255,0.35); transition: color 0.3s;
+  }
+  .sequel-step.active { color: rgba(255,255,255,0.9); }
+  .sequel-step.done { color: #a67c3a; }
+  .sequel-step-icon {
+    font-size: 1rem; width: 20px; text-align: center;
+    flex-shrink: 0; transition: all 0.3s;
+  }
+  .sequel-step.active .sequel-step-icon { color: #c9a05a; }
+  .sequel-step.done .sequel-step-icon { color: #a67c3a; }
 </style>
 </head>
 <body>
@@ -1254,6 +1269,32 @@
   </div>
   <div class="stories-list" id="storiesList"></div>
   <button class="add-story-btn" type="button" id="addStoryBtn">＋ New Story</button>
+</div>
+
+<!-- ── SEQUEL GENERATION OVERLAY ── -->
+<div id="sequelOverlay" style="display:none;position:fixed;inset:0;background:#0a0a0f;z-index:600;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;">
+  <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#c9a05a;font-style:italic;margin-bottom:8px;">Creating Sequel</div>
+  <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:48px;" id="sequelSourceTitle"></div>
+  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:16px;" id="sequelSteps">
+    <div class="sequel-step" id="seq-step-1">
+      <span class="sequel-step-icon" id="seq-icon-1">○</span>
+      <span class="sequel-step-label">Creating story</span>
+    </div>
+    <div class="sequel-step" id="seq-step-2">
+      <span class="sequel-step-icon" id="seq-icon-2">○</span>
+      <span class="sequel-step-label">Analysing previous story</span>
+    </div>
+    <div class="sequel-step" id="seq-step-3">
+      <span class="sequel-step-icon" id="seq-icon-3">○</span>
+      <span class="sequel-step-label">Generating sequel synopsis</span>
+    </div>
+    <div class="sequel-step" id="seq-step-4">
+      <span class="sequel-step-icon" id="seq-icon-4">○</span>
+      <span class="sequel-step-label">Ready</span>
+    </div>
+  </div>
+  <div id="sequelErrorMsg" style="margin-top:24px;font-size:0.82rem;color:#e74c3c;text-align:center;display:none;line-height:1.6;"></div>
+  <button type="button" id="sequelCancelBtn" onclick="closeSequelOverlay()" style="margin-top:40px;padding:10px 24px;background:none;border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:rgba(255,255,255,0.4);font-family:'Jost',sans-serif;font-size:0.8rem;cursor:pointer;">Cancel</button>
 </div>
 
 <!-- Story create/rename modal -->
@@ -1654,7 +1695,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v77</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v78</span>
     </div>
   </div>
 
@@ -2162,6 +2203,205 @@ function loadStoryIntoApp(story) {
 // ══════════════════════════════
 // HOME SCREEN
 // ══════════════════════════════
+
+// ══════════════════════════════
+// CREATE SEQUEL
+// ══════════════════════════════
+var sequelAborted = false;
+
+function sequelStep(n, state) {
+  // state: 'active' | 'done' | 'error'
+  var el = document.getElementById('seq-step-' + n);
+  var icon = document.getElementById('seq-icon-' + n);
+  if (!el || !icon) return;
+  el.className = 'sequel-step ' + state;
+  if (state === 'done') icon.textContent = '✓';
+  else if (state === 'active') icon.textContent = '…';
+  else if (state === 'error') icon.textContent = '✗';
+  else icon.textContent = '○';
+}
+
+function closeSequelOverlay() {
+  sequelAborted = true;
+  document.getElementById('sequelOverlay').style.display = 'none';
+}
+
+function createSequel(sourceId) {
+  var source = stories.find(function(s) { return s.id === sourceId; });
+  if (!source) return;
+
+  var apiKey = localStorage.getItem('novella_studio_global_keys_v1') ?
+    (JSON.parse(localStorage.getItem('novella_studio_global_keys_v1')).openRouterKey || '') : '';
+  // Try from DOM if a story is open
+  var keyEl = document.getElementById('apiKey');
+  if (keyEl && keyEl.value.trim()) apiKey = keyEl.value.trim();
+
+  if (!apiKey) {
+    showToast('Add OpenRouter key in Setup first');
+    return;
+  }
+
+  // Check if previous story has content worth using
+  var d = source.data || {};
+  var hasContent = (d.storyState && d.storyState.trim()) ||
+    (d.writtenScenes && Object.keys(d.writtenScenes).length > 0) ||
+    (d.plan && d.plan.summaries && d.plan.summaries.length > 0);
+
+  if (!hasContent) {
+    if (!confirm('"' + source.title + '" has no written scenes or story state.\n\nThe sequel synopsis may be thin. Continue anyway?')) return;
+  }
+
+  // Show overlay
+  sequelAborted = false;
+  [1,2,3,4].forEach(function(n) { sequelStep(n, ''); });
+  document.getElementById('sequelSourceTitle').textContent = source.title;
+  document.getElementById('sequelErrorMsg').style.display = 'none';
+  document.getElementById('sequelCancelBtn').style.display = '';
+  document.getElementById('sequelOverlay').style.display = 'flex';
+
+  var model = d.settings && d.settings.model ? d.settings.model : 'stepfun/step-3.5-flash:free';
+  var lore = d.lore || {};
+
+  // Step 1: Create the new story shell
+  sequelStep(1, 'active');
+
+  var newId = genId();
+  var newStory = {
+    id: newId,
+    title: source.title + ' \u2014 Part II', // placeholder, AI will rename
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    data: {
+      chapters: [],
+      writtenScenes: {},
+      scenePersonas: {},
+      storyState: '',
+      physicalContinuity: '',
+      lore: {
+        char1: lore.char1 || '',
+        char2: lore.char2 || '',
+        charSupport: lore.charSupport || '',
+        worldLore: lore.worldLore || '',
+        toneStyle: lore.toneStyle || '',
+      },
+      settings: {
+        veniceImageModel: d.settings && d.settings.veniceImageModel ? d.settings.veniceImageModel : 'hidream-i1-full',
+        model: model,
+        length: d.settings && d.settings.length ? d.settings.length : 'medium',
+        autoUpdate: d.settings ? d.settings.autoUpdate : true,
+        includeHistory: d.settings ? d.settings.includeHistory : true,
+        systemPrefix: d.settings && d.settings.systemPrefix ? d.settings.systemPrefix : '',
+      },
+      plan: { synopsis: '', summaries: [], stage: 1 }
+    }
+  };
+
+  if (sequelAborted) return;
+  sequelStep(1, 'done');
+
+  // Step 2 + 3: Build context and generate synopsis + title
+  sequelStep(2, 'active');
+
+  // Build context from source story
+  var summaryCtx = '';
+  if (d.plan && d.plan.summaries && d.plan.summaries.length) {
+    summaryCtx = d.plan.summaries.map(function(ch, i) {
+      return 'Chapter ' + (i+1) + ' — ' + (ch.title || 'Untitled') + ': ' + (ch.summary || '').slice(0, 300);
+    }).join('\n');
+  }
+  var stateCtx = d.storyState ? d.storyState.trim() : '';
+  var physCtx = d.physicalContinuity ? d.physicalContinuity.trim() : '';
+  var loreCtx = [
+    lore.char1 ? 'PROTAGONIST:\n' + lore.char1.slice(0, 400) : '',
+    lore.char2 ? 'LOVE INTEREST:\n' + lore.char2.slice(0, 400) : '',
+    lore.charSupport ? 'SUPPORTING CAST:\n' + lore.charSupport.slice(0, 200) : '',
+    lore.worldLore ? 'WORLD & SETTING:\n' + lore.worldLore.slice(0, 200) : '',
+    lore.toneStyle ? 'TONE & STYLE:\n' + lore.toneStyle.slice(0, 200) : '',
+  ].filter(Boolean).join('\n\n');
+
+  if (sequelAborted) return;
+  sequelStep(2, 'done');
+  sequelStep(3, 'active');
+
+  var systemMsg = (d.settings && d.settings.systemPrefix ? d.settings.systemPrefix : 'You are a story structure expert for adult romance fiction.') +
+    '\n\nYou are planning a sequel story. Reflect the same tone, heat level, and style as the original.';
+
+  var userMsg = 'The following is a completed story. Generate a sequel synopsis and title.\n\n' +
+    '━━ CHARACTERS & WORLD ━━\n' + loreCtx + '\n\n' +
+    (summaryCtx ? '━━ PREVIOUS STORY — CHAPTER SUMMARIES ━━\n' + summaryCtx + '\n\n' : '') +
+    (stateCtx ? '━━ WHERE THE STORY ENDED ━━\n' + stateCtx + '\n\n' : '') +
+    (physCtx ? '━━ PHYSICAL STATE AT END ━━\n' + physCtx + '\n\n' : '') +
+    '━━ YOUR TASK ━━\n' +
+    'Write a sequel synopsis that:\n' +
+    '- Opens with "Here\'s where things stand:" and summarises the end of the previous story in 2-3 sentences\n' +
+    '- Suggests a possible direction for the sequel in 3-5 sentences — leave room for the user to change or add plot points\n' +
+    '- Reflects the same heat level and tone as the original\n\n' +
+    'Also generate a sequel title that builds on the original story title: "' + source.title + '"\n\n' +
+    'Output ONLY valid JSON with two fields: "title" (string) and "synopsis" (string).\n' +
+    'Example: {"title":"The Singapore Affair — Reckoning","synopsis":"Here\'s where things stand: ..."}';
+
+  streamingFetch(apiKey, model,
+    [{ role: 'system', content: systemMsg }, { role: 'user', content: userMsg }],
+    { maxTokens: 800, label: 'createSequel',
+      onDone: function(raw) {
+        if (sequelAborted) return;
+        sequelStep(3, 'done');
+        sequelStep(4, 'active');
+
+        raw = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        var title = source.title + ' \u2014 Part II';
+        var synopsis = '';
+
+        try {
+          var parsed = JSON.parse(raw);
+          if (parsed.title && parsed.title.trim()) title = parsed.title.trim();
+          if (parsed.synopsis && parsed.synopsis.trim()) synopsis = parsed.synopsis.trim();
+        } catch(e) {
+          dbg('Sequel JSON parse error: ' + e.message + ' — using raw as synopsis');
+          synopsis = raw;
+        }
+
+        newStory.title = title;
+        newStory.data.plan.synopsis = synopsis;
+        newStory.updatedAt = new Date().toISOString();
+
+        // Insert new story at top of list
+        stories.unshift(newStory);
+        saveStories();
+
+        if (sequelAborted) return;
+        sequelStep(4, 'done');
+
+        // Hide cancel, show brief success then open
+        document.getElementById('sequelCancelBtn').style.display = 'none';
+        setTimeout(function() {
+          if (sequelAborted) return;
+          document.getElementById('sequelOverlay').style.display = 'none';
+          renderStoriesList();
+          openStory(newId);
+          // Land on Plan tab stage 1 so user sees the synopsis
+          goScreen('plan');
+          planGoStage(1);
+          showToast('Sequel created \u2014 edit the synopsis and build your story');
+        }, 800);
+      },
+      onError: function(err) {
+        if (sequelAborted) return;
+        sequelStep(3, 'error');
+        dbg('Sequel error: ' + err.message);
+        var errEl = document.getElementById('sequelErrorMsg');
+        errEl.textContent = 'Generation failed: ' + err.message + '\n\nThe story has been created — you can write the synopsis manually.';
+        errEl.style.display = 'block';
+        document.getElementById('sequelCancelBtn').textContent = 'Close';
+
+        // Still create the story, just without a synopsis
+        stories.unshift(newStory);
+        saveStories();
+      }
+    }
+  );
+}
+
 function renderStoriesList() {
   const list = document.getElementById('storiesList');
   list.innerHTML = '';
@@ -2189,6 +2429,7 @@ function renderStoriesList() {
       </div>
       <div class="story-card-actions" onclick="event.stopPropagation()">
         <button class="story-action-btn" type="button" onclick="openRenameStory('${story.id}')">Rename</button>
+        <button class="story-action-btn" type="button" onclick="createSequel('${story.id}')">Sequel →</button>
         <button class="story-action-btn" type="button" style="color:#c0392b;border-color:#c0392b" onclick="deleteStory('${story.id}')">Delete</button>
       </div>
     `;
