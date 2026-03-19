@@ -1654,7 +1654,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v72</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v73</span>
     </div>
   </div>
 
@@ -3440,7 +3440,7 @@ function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
   var poseInstruction = poseToSDTerm(pose || 'Half body front');
   var clothingInstruction = buildClothingPromptTerms(charId);
 
-  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired composition: ' + poseInstruction + '\nRequired clothing/state: ' + clothingInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+  return 'Convert this character description into a Stable Diffusion image prompt. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nYou MUST include these terms exactly as written at the START of your output:\n' + clothingInstruction + ', ' + poseInstruction + '\n\nThen add: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type. Do NOT add any nudity or skin descriptors that contradict the clothing terms above. Max 80 words total.\n\nCharacter:\n' + loreTruncated;
 }
 
 // ══════════════════════════════
@@ -3795,6 +3795,9 @@ function generatePortrait(charId) {
 
   function doGenerate(imagePrompt) {
     dbg('Venice portrait prompt: ' + imagePrompt.slice(0, 80) + '…');
+    var isNude = (portraitState[charId].clothing === 'Nude' || portraitState[charId].dressedState === 'Nude');
+    var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus';
+    var negativePrompt = isNude ? baseNeg : baseNeg + ', nude, naked, nudity, bare skin, undressed, topless, bottomless, no clothing, no clothes';
     fetch('https://api.venice.ai/api/v1/image/generate', {
       method: 'POST',
       headers: {
@@ -3804,7 +3807,7 @@ function generatePortrait(charId) {
       body: JSON.stringify({
         model: model,
         prompt: imagePrompt,
-        negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus',
+        negative_prompt: negativePrompt,
         width: 832,
         height: 1216,
         steps: 30,
@@ -3868,7 +3871,14 @@ function generatePortrait(charId) {
             doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
             return;
           }
-          prompt = sanitiseVenicePrompt(prompt);
+          // Force clothing terms to front — overrides any nudity descriptors OR may have inferred from lore
+          var clothingTerms = buildClothingPromptTerms(charId);
+          // Strip any nudity terms OR may have added if clothing is not nude
+          var isNude = (portraitState[charId].clothing === 'Nude' || portraitState[charId].dressedState === 'Nude');
+          if (!isNude) {
+            prompt = prompt.replace(/\b(nude|naked|bare skin|undressed|topless|bottomless|no clothing|no clothes)\b,?\s*/gi, '');
+          }
+          prompt = sanitiseVenicePrompt(clothingTerms + ', ' + prompt);
           dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
           doGenerate(prompt + ', photorealistic, sharp focus, studio lighting, detailed skin, 8k');
         },
