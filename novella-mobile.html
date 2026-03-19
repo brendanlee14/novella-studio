@@ -1650,7 +1650,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v70</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v71</span>
     </div>
   </div>
 
@@ -2436,6 +2436,67 @@ function refreshBeatCard(chIdx) {
 }
 
 // ── GENERATE CHAPTER SUMMARIES ──
+// ══════════════════════════════
+// STREAMING FETCH HELPER
+// Converts stream:false calls to streaming to work around Android PWA fetch restrictions
+// ══════════════════════════════
+function streamingFetch(apiKey, model, messages, opts) {
+  // opts: { maxTokens, systemOverride, onDone, onError }
+  var maxTokens = opts.maxTokens || 2000;
+  return fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({
+      model: model, stream: true, max_tokens: maxTokens,
+      messages: messages
+    })
+  }).then(function(res) {
+    if (!res.ok) {
+      return res.json().then(function(e) {
+        throw new Error(e.error && e.error.message ? e.error.message : 'HTTP ' + res.status);
+      }).catch(function(jsonErr) {
+        if (jsonErr.message && !jsonErr.message.includes('HTTP')) throw jsonErr;
+        throw new Error('HTTP ' + res.status);
+      });
+    }
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var fullText = '';
+    var buf = '';
+    function read() {
+      return reader.read().then(function(result) {
+        if (result.done) {
+          opts.onDone(fullText);
+          return;
+        }
+        buf += decoder.decode(result.value, { stream: true });
+        var lines = buf.split('\n');
+        buf = lines.pop();
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          if (!line.startsWith('data: ')) continue;
+          var data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            var json = JSON.parse(data);
+            var delta = json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content ? json.choices[0].delta.content : '';
+            fullText += delta;
+          } catch(e) {}
+        }
+        return read();
+      });
+    }
+    return read();
+  }).catch(function(err) {
+    opts.onError(err);
+  });
+}
+
 function generateChapterSummaries() {
   const apiKey = document.getElementById('apiKey').value.trim();
   if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
@@ -2493,60 +2554,47 @@ Example format:
 No markdown, no commentary, just the JSON array.`;
 
   function attemptSummaryGeneration(retryCount) {
-    dbg('ChSum attempt=' + retryCount + ' model=' + model + ' keyLen=' + apiKey.length + ' online=' + navigator.onLine);
-    fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey,
-        'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-        'X-Title': 'Novella Studio',
-        'Cache-Control': 'no-store'
-      },
-      body: JSON.stringify({ model, stream: false, max_tokens: 4000, messages: [
-        { role: 'system', content: systemMsg },
-        { role: 'user', content: prompt }
-      ] })
-    }).then(function(r) {
-      dbg('ChSum HTTP status=' + r.status + ' ok=' + r.ok + ' type=' + r.type);
-      return r.json();
-    }).then(data => {
-      if (data.error) dbg('ChSum API error: ' + JSON.stringify(data.error).slice(0, 150));
-      const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-      dbg('Chapter summary raw: ' + raw.slice(0, 120));
-      if (!raw && retryCount < 1) {
-        dbg('Empty response — retrying...');
-        btn.textContent = '↺ Retrying…';
-        setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
-        return;
-      }
-      btn.disabled = false;
-      btn.textContent = '✦ Regenerate Summaries';
-      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      try {
-        const parsed = JSON.parse(cleaned);
-        planSummaries = parsed.map(ch => ({ title: ch.title || '', summary: ch.summary || '', beatCount: 4 }));
-        renderChSummaryList();
-        saveCurrentStory();
-        showToast(numCh + ' chapter summaries generated');
-      } catch(e) {
-        dbg('JSON parse error: ' + e.message + ' raw: ' + cleaned.slice(0, 200));
-        if (retryCount < 1) {
-          dbg('Parse failed — retrying...');
-          btn.textContent = '↺ Retrying…';
-          setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
-        } else {
-          list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;line-height:1.6"><strong>Parse error after retry.</strong> Try a different model or shorten your synopsis.<br><br><small>' + escapeHtml(cleaned.slice(0, 300)) + '</small></div>';
+    dbg('ChSum attempt=' + retryCount + ' model=' + model);
+    streamingFetch(apiKey, model,
+      [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
+      { maxTokens: 4000,
+        onDone: function(raw) {
+          raw = raw.trim();
+          dbg('ChSum raw: ' + raw.slice(0, 120));
+          if (!raw && retryCount < 1) {
+            dbg('Empty response — retrying...');
+            btn.textContent = '↺ Retrying…';
+            setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
+            return;
+          }
+          btn.disabled = false;
+          btn.textContent = '✦ Regenerate Summaries';
+          const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+          try {
+            const parsed = JSON.parse(cleaned);
+            planSummaries = parsed.map(ch => ({ title: ch.title || '', summary: ch.summary || '', beatCount: 4 }));
+            renderChSummaryList();
+            saveCurrentStory();
+            showToast(numCh + ' chapter summaries generated');
+          } catch(e) {
+            dbg('JSON parse error: ' + e.message + ' raw: ' + cleaned.slice(0, 200));
+            if (retryCount < 1) {
+              dbg('Parse failed — retrying...');
+              btn.textContent = '↺ Retrying…';
+              setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
+            } else {
+              list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;line-height:1.6"><strong>Parse error after retry.</strong> Try a different model or shorten your synopsis.<br><br><small>' + escapeHtml(cleaned.slice(0, 300)) + '</small></div>';
+            }
+          }
+        },
+        onError: function(err) {
+          btn.disabled = false;
+          btn.textContent = '✦ Generate Chapter Summaries';
+          list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error: ' + escapeHtml(err.message) + '</div>';
+          dbg('ChSum error: ' + err.message);
         }
       }
-    }).catch(err => {
-      btn.disabled = false;
-      btn.textContent = '✦ Generate Chapter Summaries';
-      list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error: ' + escapeHtml(err.message) + '</div>';
-      dbg('ChSum FETCH ERROR name=' + err.name + ' msg=' + err.message);
-      dbg('ChSum online=' + navigator.onLine + ' model=' + model);
-      if (err.stack) dbg('ChSum stack: ' + err.stack.slice(0, 200));
-    });
+    );
   }
 
   attemptSummaryGeneration(0);
@@ -2579,35 +2627,28 @@ ${currentText}
 Overall story synopsis for context:
 ${document.getElementById('planSynopsis').value.trim().slice(0, 500)}`;
 
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify({ model, stream: false, messages: [
-      { role: 'system', content: systemMsg },
-      { role: 'user', content: prompt }
-    ] })
-  }).then(r => r.json()).then(data => {
-    btn.disabled = false;
-    btn.textContent = '✦ Refine my edits';
-    const refined = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-    if (refined) {
-      planSummaries[i].summary = refined;
-      if (textarea) textarea.value = refined;
-      saveCurrentStory();
-      showToast('Chapter ' + (i+1) + ' refined');
+  streamingFetch(apiKey, model,
+    [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
+    { maxTokens: 2000,
+      onDone: function(refined) {
+        btn.disabled = false;
+        btn.textContent = '✦ Refine my edits';
+        refined = refined.trim();
+        if (refined) {
+          planSummaries[i].summary = refined;
+          if (textarea) textarea.value = refined;
+          saveCurrentStory();
+          showToast('Chapter ' + (i+1) + ' refined');
+        }
+      },
+      onError: function(err) {
+        btn.disabled = false;
+        btn.textContent = '✦ Refine my edits';
+        showToast('Refine error: ' + err.message.slice(0, 40));
+        dbg('Refine error: ' + err.message);
+      }
     }
-  }).catch(err => {
-    btn.disabled = false;
-    btn.textContent = '✦ Refine my edits';
-    showToast('Refine error: ' + err.message.slice(0, 40));
-    dbg('Refine error: ' + err.message);
-  });
+  );
 }
 
 // ── GENERATE BEATS AND IMPORT ──
@@ -2720,53 +2761,45 @@ Output ONLY valid JSON — an array of exactly ${beatCount} beat objects:
 
 No markdown, no commentary, just the JSON array.`;
 
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify({ model, stream: false, max_tokens: 3000, messages: [
-      { role: 'system', content: systemMsg },
-      { role: 'user', content: prompt }
-    ]})
-  }).then(r => r.json()).then(data => {
-    if (btn) { btn.disabled = false; }
-    const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-    try {
-      const parsed = JSON.parse(cleaned);
-      if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty');
-
-      lastBeatResults[chIdx] = { ok: true, count: parsed.length, beats: parsed };
-
-      if (!chapters[chIdx]) {
-        chapters[chIdx] = { title: ch.title, summary: ch.summary, collapsed: false, beats: [] };
+  streamingFetch(apiKey, model,
+    [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
+    { maxTokens: 3000,
+      onDone: function(raw) {
+        if (btn) { btn.disabled = false; }
+        raw = raw.trim();
+        const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        try {
+          const parsed = JSON.parse(cleaned);
+          if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty');
+          lastBeatResults[chIdx] = { ok: true, count: parsed.length, beats: parsed };
+          if (!chapters[chIdx]) {
+            chapters[chIdx] = { title: ch.title, summary: ch.summary, collapsed: false, beats: [] };
+          }
+          chapters[chIdx].beats = parsed.map(b => ({
+            title: b.title || 'Untitled Beat',
+            desc: b.desc || '',
+            pov: b.pov || '',
+            loc: b.loc || '',
+            written: false
+          }));
+          saveCurrentStory();
+          refreshBeatCard(chIdx);
+          showToast('Ch.' + (chIdx+1) + ' — ' + parsed.length + ' beats ✓');
+        } catch(e) {
+          lastBeatResults[chIdx] = { ok: false };
+          refreshBeatCard(chIdx);
+          showToast('Ch.' + (chIdx+1) + ' failed — try again');
+        }
+      },
+      onError: function(err) {
+        if (btn) { btn.disabled = false; }
+        lastBeatResults[chIdx] = { ok: false };
+        refreshBeatCard(chIdx);
+        showToast('Network error — try again');
+        dbg('generateChapterBeats error: ' + err.message);
       }
-      chapters[chIdx].beats = parsed.map(b => ({
-        title: b.title || 'Untitled Beat',
-        desc: b.desc || '',
-        pov: b.pov || '',
-        loc: b.loc || '',
-        written: false
-      }));
-      saveCurrentStory();
-      refreshBeatCard(chIdx);
-      showToast('Ch.' + (chIdx+1) + ' — ' + parsed.length + ' beats ✓');
-    } catch(e) {
-      lastBeatResults[chIdx] = { ok: false };
-      refreshBeatCard(chIdx);
-      showToast('Ch.' + (chIdx+1) + ' failed — try again');
     }
-  }).catch(err => {
-    if (btn) { btn.disabled = false; }
-    lastBeatResults[chIdx] = { ok: false };
-    refreshBeatCard(chIdx);
-    showToast('Network error — try again');
-  });
+  );
 }
 
 // Import all generated beats into the story and go to Beats tab
@@ -2840,39 +2873,32 @@ ${i < total - 1 ? 'UPCOMING CHAPTER ' + (i+2) + ': ' + planSummaries[i+1].title 
 
 No markdown, no commentary, just the JSON array.`;
 
-    fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey,
-        'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-        'X-Title': 'Novella Studio',
-        'Cache-Control': 'no-store'
-      },
-      body: JSON.stringify({ model, stream: false, max_tokens: 3000, messages: [
-        { role: 'system', content: systemMsg },
-        { role: 'user', content: prompt }
-      ]})
-    }).then(r => r.json()).then(data => {
-      const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      try {
-        const parsed = JSON.parse(cleaned);
-        if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty array');
-        results[i] = parsed;
-        dbg('Ch' + (i+1) + ' beats ok: ' + parsed.length);
-      } catch(e) {
-        dbg('Ch' + (i+1) + ' parse error: ' + e.message + ' — raw: ' + raw.slice(0, 80));
-        results[i] = null; // null = failed, [] = empty
+    streamingFetch(apiKey, model,
+      [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
+      { maxTokens: 3000,
+        onDone: function(raw) {
+          raw = raw.trim();
+          const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+          try {
+            const parsed = JSON.parse(cleaned);
+            if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty array');
+            results[i] = parsed;
+            dbg('Ch' + (i+1) + ' beats ok: ' + parsed.length);
+          } catch(e) {
+            dbg('Ch' + (i+1) + ' parse error: ' + e.message + ' — raw: ' + raw.slice(0, 80));
+            results[i] = null;
+          }
+          previousChapterSummaries.push({ title: ch.title, summary: ch.summary });
+          generateChapter(i + 1);
+        },
+        onError: function(err) {
+          dbg('Ch' + (i+1) + ' network error: ' + err.message);
+          results[i] = null;
+          previousChapterSummaries.push({ title: ch.title, summary: ch.summary });
+          generateChapter(i + 1);
+        }
       }
-      previousChapterSummaries.push({ title: ch.title, summary: ch.summary });
-      generateChapter(i + 1);
-    }).catch(err => {
-      dbg('Ch' + (i+1) + ' network error: ' + err.message);
-      results[i] = null;
-      previousChapterSummaries.push({ title: ch.title, summary: ch.summary });
-      generateChapter(i + 1);
-    });
+    );
   }
 
   generateChapter(0);
@@ -2974,38 +3000,36 @@ ${ch.summary}
 
 Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", "pov", "loc". No markdown.`;
 
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify({ model, stream: false, max_tokens: 2000, messages: [
-      { role: 'system', content: systemMsg },
-      { role: 'user', content: prompt }
-    ]})
-  }).then(r => r.json()).then(data => {
-    const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-    const parsed = JSON.parse(cleaned);
-    if (!Array.isArray(parsed) || !parsed.length) throw new Error('Empty');
-    const beats = parsed.map(b => ({ title: b.title || 'Untitled Beat', desc: b.desc || '', pov: b.pov || '', loc: b.loc || '' }));
-    // Replace chapter beats
-    if (chapters[chIdx]) chapters[chIdx].beats = beats;
-    else chapters.push({ title: ch.title, summary: ch.summary, collapsed: false, beats });
-    renderChapters();
-    saveCurrentStory();
-    renderBeatCountList();
-    showToast('Ch' + (chIdx+1) + ' beats generated ✓');
-    dbg('Retry ch' + (chIdx+1) + ' ok: ' + beats.length + ' beats');
-  }).catch(err => {
-    dbg('Retry ch' + (chIdx+1) + ' failed: ' + err.message);
-    showToast('Ch' + (chIdx+1) + ' retry failed — check debug log');
-    if (retryBtn) { retryBtn.disabled = false; retryBtn.textContent = '↺ Retry'; }
-  });
+  streamingFetch(apiKey, model,
+    [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
+    { maxTokens: 2000,
+      onDone: function(raw) {
+        raw = raw.trim();
+        const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        try {
+          const parsed = JSON.parse(cleaned);
+          if (!Array.isArray(parsed) || !parsed.length) throw new Error('Empty');
+          const beats = parsed.map(b => ({ title: b.title || 'Untitled Beat', desc: b.desc || '', pov: b.pov || '', loc: b.loc || '' }));
+          if (chapters[chIdx]) chapters[chIdx].beats = beats;
+          else chapters.push({ title: ch.title, summary: ch.summary, collapsed: false, beats });
+          renderChapters();
+          saveCurrentStory();
+          renderBeatCountList();
+          showToast('Ch' + (chIdx+1) + ' beats generated ✓');
+          dbg('Retry ch' + (chIdx+1) + ' ok: ' + beats.length + ' beats');
+        } catch(e) {
+          dbg('Retry ch' + (chIdx+1) + ' parse failed: ' + e.message);
+          showToast('Ch' + (chIdx+1) + ' retry failed — check debug log');
+          if (retryBtn) { retryBtn.disabled = false; retryBtn.textContent = '↺ Retry'; }
+        }
+      },
+      onError: function(err) {
+        dbg('Retry ch' + (chIdx+1) + ' failed: ' + err.message);
+        showToast('Ch' + (chIdx+1) + ' retry failed — check debug log');
+        if (retryBtn) { retryBtn.disabled = false; retryBtn.textContent = '↺ Retry'; }
+      }
+    }
+  );
 }
 
 function escapeAttr(str) {
@@ -3829,36 +3853,26 @@ function generatePortrait(charId) {
     // Use a fast model for prompt building — not the writing model which may refuse explicit SD prompts
     var orPromptModel = 'openai/gpt-4o-mini';
     dbg('Building image prompt via OpenRouter…');
-    fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + openRouterKey,
-        'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-        'X-Title': 'Novella Studio',
-        'Cache-Control': 'no-store'
-      },
-      body: JSON.stringify({
-        model: orPromptModel, stream: false,
-        messages: [{
-          role: 'user',
-          content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose)
-        }]
-      })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      var msg = data.choices && data.choices[0] && data.choices[0].message;
-      var prompt = msg ? (msg.content || '').trim() : '';
-      // Strip any markdown fences or leading labels the model may add
-      prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
-      if (!prompt || prompt.length < 10) throw new Error('No prompt generated');
-      // Sanitise terms known to trigger Venice free tier filter
-      prompt = sanitiseVenicePrompt(prompt);
-      dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
-      doGenerate(prompt + ', photorealistic, sharp focus, studio lighting, detailed skin, 8k');
-    }).catch(function(err) {
-      dbg('Prompt build failed, using lore directly: ' + err.message);
-      doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
-    });
+    streamingFetch(openRouterKey, orPromptModel,
+      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
+      { maxTokens: 300,
+        onDone: function(prompt) {
+          prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
+          if (!prompt || prompt.length < 10) {
+            dbg('OR prompt too short, using fallback');
+            doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+            return;
+          }
+          prompt = sanitiseVenicePrompt(prompt);
+          dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
+          doGenerate(prompt + ', photorealistic, sharp focus, studio lighting, detailed skin, 8k');
+        },
+        onError: function(err) {
+          dbg('Prompt build failed, using lore directly: ' + err.message);
+          doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+        }
+      }
+    );
   } else {
     doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
   }
@@ -4819,27 +4833,20 @@ function updateStoryState(apiKey, model, beat, sceneText) {
   const currentState = document.getElementById('storyState').value.trim();
   const prompt = 'Update this story state based on the scene just written.\n\nCurrent state:\n' + (currentState || '(none yet)') + '\n\nScene just written for beat "' + beat.title + '":\n' + sceneText.slice(0, 800) + '\n\nWrite a brief updated story state (3-5 sentences) describing where the story now stands. Focus on: character emotional states, what has changed, what tension remains.';
 
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify({
-      model: model, stream: false,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    const newState = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
-    if (newState) {
-      document.getElementById('storyState').value = newState;
-      saveCurrentStory();
-      showToast('Story state updated');
+  streamingFetch(apiKey, model,
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 500,
+      onDone: function(newState) {
+        newState = newState.trim();
+        if (newState) {
+          document.getElementById('storyState').value = newState;
+          saveCurrentStory();
+          showToast('Story state updated');
+        }
+      },
+      onError: function(e) { dbg('State update error: ' + e.message); }
     }
-  }).catch(function(e) { dbg('State update error: ' + e.message); });
+  );
 }
 
 function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
@@ -4857,30 +4864,23 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
     '\n' + charNames.map(function(n) { return n + ' position: [physical position/activity at scene end]'; }).join('\n') +
     '\nLast physical action: [one sentence — what physically just happened]\n\nScene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 1200);
 
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify({
-      model: model, stream: false,
-      messages: [
-        { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Be precise about clothing — if an item was removed, say so. Never invent details not in the scene.' },
-        { role: 'user', content: prompt }
-      ]
-    })
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    var result = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-    if (result) {
-      physicalContinuity = result;
-      saveCurrentStory();
-      dbg('Physical continuity updated');
+  streamingFetch(apiKey, model,
+    [
+      { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Be precise about clothing — if an item was removed, say so. Never invent details not in the scene.' },
+      { role: 'user', content: prompt }
+    ],
+    { maxTokens: 400,
+      onDone: function(result) {
+        result = result.trim();
+        if (result) {
+          physicalContinuity = result;
+          saveCurrentStory();
+          dbg('Physical continuity updated');
+        }
+      },
+      onError: function(e) { dbg('Physical continuity update error: ' + e.message); }
     }
-  }).catch(function(e) { dbg('Physical continuity update error: ' + e.message); });
+  );
 }
 let saveTimer;
 function debouncedSave() {
@@ -5813,39 +5813,35 @@ function generateLoreFromWizard() {
     userMsg = 'Convert the following character data into a structured reference sheet using EXACTLY this format — labels followed by values, one topic per line. Do not write prose paragraphs. Do not write scenes or fiction. Use only the data provided.\n\nFORMAT TO FOLLOW:\n[LOVE INTEREST / SUPPORTING CHARACTER]\nName: [name], Age: [age], Role: [role], Ethnicity: [ethnicity]\nHeight: [value]\nFace: [face shape], [eye colour] eyes, [hair colour] hair ([length], [style]), [accessories], [striking feature]\nBody: [body type], breasts: [size] [shape], areolas: [size] [colour], nipples: [nipples], breast movement: [movement], bra tendency: [bra], ass: [ass], hips: [shape], pubic hair: [pubic], pussy: [style]\nOrientation: [value]\nVoice: [voice][, accent]\n[Native exclamations if applicable]\nTypical wardrobe: [value]\nCarries herself: [value]\nPower dynamic: [value]\nKink / defining behaviour: [values]\nErogenous zones: [list]\nSexual behaviours: [list]\nPhysical tell when aroused: [value]\nSignature gesture: [value]\nSignature scent: [value]\nHistory: [length], [prior contact]\nWho knows: [value]\nUnspoken tension: [value]\nWhat she withholds: [value]\n[Cast differentiation fields if applicable]\n\nDATA TO CONVERT:\n' + dataPrompt;
   }
 
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio',
-      'Cache-Control': 'no-store'
-    },
-    body: JSON.stringify({
-      model: model, stream: false,
-      messages: [
-        { role: 'system', content: systemMsg },
-        { role: 'user', content: userMsg }
-      ]
-    })
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    var msg = data.choices && data.choices[0] && data.choices[0].message;
-    var lore = msg ? (msg.content || '').trim() : '';
-    if (!lore) throw new Error('No lore generated');
-    fillLoreTarget(lore);
-    closeWizard();
-    showToast('Lore generated ✓');
-    saveCurrentStory();
-  }).catch(function(err) {
-    fillLoreTarget(buildLorePrompt());
-    closeWizard();
-    showToast('AI unavailable — raw data filled');
-    saveCurrentStory();
-  }).finally(function() {
-    sel('wizBtnNext').disabled = false;
-    sel('wizBtnNext').textContent = '✦ Generate Lore';
-  });
+  streamingFetch(apiKey, model,
+    [{ role: 'system', content: systemMsg }, { role: 'user', content: userMsg }],
+    { maxTokens: 1500,
+      onDone: function(lore) {
+        lore = lore.trim();
+        if (!lore) {
+          fillLoreTarget(buildLorePrompt());
+          closeWizard();
+          showToast('AI unavailable — raw data filled');
+          saveCurrentStory();
+        } else {
+          fillLoreTarget(lore);
+          closeWizard();
+          showToast('Lore generated ✓');
+          saveCurrentStory();
+        }
+        sel('wizBtnNext').disabled = false;
+        sel('wizBtnNext').textContent = '✦ Generate Lore';
+      },
+      onError: function(err) {
+        fillLoreTarget(buildLorePrompt());
+        closeWizard();
+        showToast('AI unavailable — raw data filled');
+        saveCurrentStory();
+        sel('wizBtnNext').disabled = false;
+        sel('wizBtnNext').textContent = '✦ Generate Lore';
+      }
+    }
+  );
 }
 
 function fillLoreTarget(text) {
