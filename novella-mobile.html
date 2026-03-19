@@ -1504,6 +1504,10 @@
     <button onclick="resetStoryState()" style="margin-top:8px;padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">Reset</button>
   </div>
   <div class="state-section">
+    <span class="state-label">Physical Continuity</span>
+    <div id="physicalContinuityDisplay" style="font-family:'Cormorant Garamond',serif;font-size:0.92rem;line-height:1.7;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:60px;white-space:pre-wrap;"><span style="color:var(--muted);font-style:italic;font-size:0.85rem;">Updated automatically after each scene is written…</span></div>
+  </div>
+  <div class="state-section">
     <span class="state-label">Scene Log</span>
     <div id="sceneLog"><div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div></div>
   </div>
@@ -1650,7 +1654,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v71</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v72</span>
     </div>
   </div>
 
@@ -2128,6 +2132,7 @@ function loadStoryIntoApp(story) {
 
   renderChapters();
   rebuildSceneLog();
+  renderPhysicalContinuity();
 
   // Restore portraits from IndexedDB (with migration from localStorage if needed)
   migratePortraitsToIDB(story).then(function() {
@@ -4292,6 +4297,17 @@ function resetStoryState() {
   showToast('Story state reset');
 }
 
+function renderPhysicalContinuity() {
+  var el = document.getElementById('physicalContinuityDisplay');
+  if (!el) return;
+  if (physicalContinuity) {
+    el.textContent = physicalContinuity;
+    el.style.color = 'var(--ink)';
+  } else {
+    el.innerHTML = '<span style="color:var(--muted);font-style:italic;font-size:0.85rem;">Updated automatically after each scene is written…</span>';
+  }
+}
+
 function rebuildSceneLog() {
   const log = document.getElementById('sceneLog');
   log.innerHTML = '';
@@ -4622,6 +4638,7 @@ function exportAsHTML() {
 function clearStoryData() {
   if (!confirm('Clear all chapters, beats, lore and scenes for this story? This cannot be undone.')) return;
   chapters = []; writtenScenes = {}; scenePersonas = {}; physicalContinuity = ''; activeChIdx = null; activeBeatIdx = null;
+  renderPhysicalContinuity();
   ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
   ['char1','char2','charSupport'].forEach(id => clearPortraitImage(id));
   document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
@@ -4875,6 +4892,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
         if (result) {
           physicalContinuity = result;
           saveCurrentStory();
+          renderPhysicalContinuity();
           dbg('Physical continuity updated');
         }
       },
