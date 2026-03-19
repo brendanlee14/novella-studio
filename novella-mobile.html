@@ -1654,7 +1654,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v76</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v77</span>
     </div>
   </div>
 
@@ -5087,30 +5087,30 @@ function generateWizardPreview() {
   var veniceKey = document.getElementById('veniceApiKey').value.trim();
   if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
 
-  var btn = document.getElementById('wizPreviewBtn');
-  var btnLabel = btn ? btn : document.querySelector('[onclick="generateWizardPreview()"]');
-  if (btnLabel) { btnLabel.disabled = true; btnLabel.textContent = 'Generating…'; }
+  var btn = document.querySelector('#wizPreviewBtn') || document.querySelector('[onclick="generateWizardPreview()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating\u2026'; }
 
   var lore = buildLorePrompt();
   var loreTruncated = lore.slice(0, 600);
   var model = document.getElementById('veniceImageModel').value;
-  var pose = 'Full body front';
-  var poseSD = poseToSDTerm(pose);
+  var poseSD = poseToSDTerm('Full body front');
 
-  // Build a simple SD prompt from lore directly (no OR call for wizard preview)
   var parts = [poseSD, 'nude, no clothing, bare skin'];
   var ageMatch = loreTruncated.match(/Age:\s*(\d{2})/i);
   if (ageMatch) parts.push(ageMatch[1] + ' year old');
   var cleaned = loreTruncated
-    .replace(/(Name|Age|Role|Ethnicity|Build|Face|Body|Penis|History|Orientation|Voice)[:\s][^
-]*/gi, '')
-    .replace(/["\[\]{}()]/g, '').replace(/
-+/g, ', ').replace(/[.!?]+/g, ',').replace(/,\s*,+/g, ',').trim().slice(0, 200);
+    .replace(/(Name|Age|Role|Ethnicity|Build|Face|Body|Penis|History|Orientation|Voice)[:\s][^\n]*/gi, '')
+    .replace(/["[\]{}()]/g, '')
+    .replace(/\n+/g, ', ')
+    .replace(/[.!?]+/g, ',')
+    .replace(/,\s*,+/g, ',')
+    .trim()
+    .slice(0, 200);
   if (cleaned) parts.push(cleaned);
   parts.push('photorealistic, sharp focus, soft studio lighting, detailed skin, 8k');
   var imagePrompt = parts.filter(Boolean).join(', ');
 
-  dbg('[Venice] → wizardPreview promptChars=' + imagePrompt.length);
+  dbg('[Venice] \u2192 wizardPreview promptChars=' + imagePrompt.length);
   var t0 = Date.now();
 
   fetch('https://api.venice.ai/api/v1/image/generate', {
@@ -5131,12 +5131,12 @@ function generateWizardPreview() {
     var b64 = images[0];
     if (b64.indexOf(',') > -1) b64 = b64.split(',')[1];
     wizardData['_previewImg'] = b64;
-    dbg('[Venice] ← wizardPreview done elapsed=' + (Date.now() - t0) + 'ms');
+    dbg('[Venice] \u2190 wizardPreview done elapsed=' + (Date.now() - t0) + 'ms');
     renderWizardStep();
-    showToast('Preview generated ✓');
+    showToast('Preview generated \u2713');
   }).catch(function(err) {
-    dbg('[Venice] ✗ wizardPreview err=' + err.message);
-    if (btnLabel) { btnLabel.disabled = false; btnLabel.textContent = '✦ Generate Preview'; }
+    dbg('[Venice] \u2717 wizardPreview err=' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '\u2726 Generate Preview'; }
     showToast('Preview failed: ' + err.message.slice(0, 50));
   });
 }
@@ -5149,8 +5149,16 @@ function expandWizardPreview() {
     overlay = document.createElement('div');
     overlay.id = 'wizPreviewOverlay';
     overlay.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;align-items:center;justify-content:center;flex-direction:column;';
-    overlay.innerHTML = '<img id="wizPreviewFullImg" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;" />' +
-      '<button type="button" onclick="document.getElementById(\'wizPreviewOverlay\').remove()" style="margin-top:16px;padding:10px 24px;background:none;border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:\'Jost\',sans-serif;font-size:0.85rem;cursor:pointer;">✕ Close</button>';
+    var img = document.createElement('img');
+    img.id = 'wizPreviewFullImg';
+    img.style.cssText = 'max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;';
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = '\u2715 Close';
+    closeBtn.style.cssText = 'margin-top:16px;padding:10px 24px;background:none;border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:\'Jost\',sans-serif;font-size:0.85rem;cursor:pointer;';
+    closeBtn.onclick = function() { overlay.remove(); };
+    overlay.appendChild(img);
+    overlay.appendChild(closeBtn);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
     document.body.appendChild(overlay);
   }
@@ -5167,32 +5175,26 @@ function generateWizardNames() {
   var model = document.getElementById('modelSelect').value;
 
   var btn = document.getElementById('wizNamesBtn') || document.querySelector('[onclick="generateWizardNames()"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating\u2026'; }
 
   var eth = (wizardData['identity_f'] && wizardData['identity_f']['wiz_ethnicity']) ||
             (wizardData['identity'] && wizardData['identity']['wiz_ethnicity']) || '';
   var role = (wizardData['identity_f'] && wizardData['identity_f']['wiz_role']) || '';
-  var dynamic = (wizardData['dynamic'] && wizardData['dynamic']['wiz_power_dynamic']) || '';
-  var personality = (wizardData['personality'] && wizardData['personality']['wiz_pers_extra']) || '';
   var isChar1 = wizardTarget === 'char1';
+  var gender = isChar1 ? 'male' : 'female';
 
-  var prompt = 'Generate exactly 5 ' + (isChar1 ? 'male' : 'female') + ' given names suitable for a character with these traits:
-' +
-    (eth ? 'Ethnicity: ' + eth + '
-' : '') +
-    (role ? 'Role: ' + role + '
-' : '') +
-    (dynamic ? 'Dynamic: ' + dynamic + '
-' : '') +
-    'The names should feel authentic to the ethnicity and fit the character's personality.
-' +
-    'Output ONLY the 5 names as a JSON array, e.g. ["Sofia","Elena","Mia","Ines","Lucia"]. No explanation, no other text.';
+  var promptParts = ['Generate exactly 5 ' + gender + ' given names for a character.'];
+  if (eth) promptParts.push('Ethnicity: ' + eth + '.');
+  if (role) promptParts.push('Role: ' + role + '.');
+  promptParts.push('Names should feel authentic to the ethnicity and suit the character.');
+  promptParts.push('Output ONLY a JSON array of 5 strings. Example: ["Sofia","Elena","Mia","Ines","Lucia"]. No explanation, no other text.');
+  var prompt = promptParts.join(' ');
 
   streamingFetch(apiKey, model,
     [{ role: 'user', content: prompt }],
-    { maxTokens: 100, label: 'wizardNames',
+    { maxTokens: 80, label: 'wizardNames',
       onDone: function(raw) {
-        raw = raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+        raw = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
         try {
           var names = JSON.parse(raw);
           if (!Array.isArray(names) || !names.length) throw new Error('Bad format');
@@ -5201,12 +5203,12 @@ function generateWizardNames() {
           showToast('Name suggestions ready');
         } catch(e) {
           dbg('wizardNames parse error: ' + e.message + ' raw: ' + raw.slice(0, 80));
-          if (btn) { btn.disabled = false; btn.textContent = '✦ Suggest Names'; }
-          showToast('Could not generate names — try again');
+          if (btn) { btn.disabled = false; btn.textContent = '\u2726 Suggest Names'; }
+          showToast('Could not generate names \u2014 try again');
         }
       },
       onError: function(err) {
-        if (btn) { btn.disabled = false; btn.textContent = '✦ Suggest Names'; }
+        if (btn) { btn.disabled = false; btn.textContent = '\u2726 Suggest Names'; }
         showToast('Name suggestion failed: ' + err.message.slice(0, 40));
       }
     }
@@ -5214,14 +5216,13 @@ function generateWizardNames() {
 }
 
 function selectWizardName(el, name) {
-  // Deselect all chips
   var chips = document.querySelectorAll('#wizNameChips .wiz-chip');
   chips.forEach(function(c) { c.classList.remove('selected'); });
   el.classList.add('selected');
-  // Fill the text input
   var input = document.getElementById('wiz_name');
   if (input) input.value = name;
 }
+
 
 function closeWizard() {
   document.getElementById('wizardOverlay').classList.remove('open');
