@@ -1650,7 +1650,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v69</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v70</span>
     </div>
   </div>
 
@@ -2493,6 +2493,7 @@ Example format:
 No markdown, no commentary, just the JSON array.`;
 
   function attemptSummaryGeneration(retryCount) {
+    dbg('ChSum attempt=' + retryCount + ' model=' + model + ' keyLen=' + apiKey.length + ' online=' + navigator.onLine);
     fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -2506,7 +2507,11 @@ No markdown, no commentary, just the JSON array.`;
         { role: 'system', content: systemMsg },
         { role: 'user', content: prompt }
       ] })
-    }).then(r => r.json()).then(data => {
+    }).then(function(r) {
+      dbg('ChSum HTTP status=' + r.status + ' ok=' + r.ok + ' type=' + r.type);
+      return r.json();
+    }).then(data => {
+      if (data.error) dbg('ChSum API error: ' + JSON.stringify(data.error).slice(0, 150));
       const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
       dbg('Chapter summary raw: ' + raw.slice(0, 120));
       if (!raw && retryCount < 1) {
@@ -2538,7 +2543,9 @@ No markdown, no commentary, just the JSON array.`;
       btn.disabled = false;
       btn.textContent = '✦ Generate Chapter Summaries';
       list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error: ' + escapeHtml(err.message) + '</div>';
-      dbg('Chapter gen error: ' + err.message);
+      dbg('ChSum FETCH ERROR name=' + err.name + ' msg=' + err.message);
+      dbg('ChSum online=' + navigator.onLine + ' model=' + model);
+      if (err.stack) dbg('ChSum stack: ' + err.stack.slice(0, 200));
     });
   }
 
