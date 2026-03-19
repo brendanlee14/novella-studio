@@ -1596,8 +1596,10 @@
       <select id="veniceImageModel">
         <option value="hidream-i1-full">HiDream Full ⭐ (best)</option>
         <option value="hidream-i1-fast">HiDream Fast</option>
+        <option value="hidream">HiDream (latest)</option>
         <option value="lustify-sdxl">Lustify SDXL (explicit)</option>
         <option value="fluently-xl">Fluently XL</option>
+        <option value="nano-banana-pro">Nano Banana Pro</option>
       </select>
     </div>
     <div class="setting-row">
@@ -1648,7 +1650,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v66</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v68</span>
     </div>
   </div>
 
@@ -2114,7 +2116,7 @@ function loadStoryIntoApp(story) {
   document.getElementById('storyState').value = d.storyState || '';
 
   const s = d.settings || {};
-  document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream-i1-full';
+  document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream';
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
   document.getElementById('lengthTarget').value = s.length || 'medium';
   document.getElementById('autoUpdateState').checked = s.autoUpdate !== false;
@@ -2490,41 +2492,56 @@ Example format:
 
 No markdown, no commentary, just the JSON array.`;
 
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
-    },
-    body: JSON.stringify({ model, stream: false, messages: [
-      { role: 'system', content: systemMsg },
-      { role: 'user', content: prompt }
-    ] })
-  }).then(r => r.json()).then(data => {
-    btn.disabled = false;
-    btn.textContent = '✦ Regenerate Summaries';
-    const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
-    dbg('Chapter summary raw: ' + raw.slice(0, 120));
-    // Strip markdown fences if present
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-    try {
-      const parsed = JSON.parse(cleaned);
-      planSummaries = parsed.map(ch => ({ title: ch.title || '', summary: ch.summary || '', beatCount: 4 }));
-      renderChSummaryList();
-      saveCurrentStory();
-      showToast(numCh + ' chapter summaries generated');
-    } catch(e) {
-      dbg('JSON parse error: ' + e.message + ' raw: ' + cleaned.slice(0,200));
-      list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;line-height:1.6"><strong>Parse error.</strong> The AI returned unexpected format. Try again or use a different model.<br><br><small>' + escapeHtml(cleaned.slice(0,300)) + '</small></div>';
-    }
-  }).catch(err => {
-    btn.disabled = false;
-    btn.textContent = '✦ Generate Chapter Summaries';
-    list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error: ' + escapeHtml(err.message) + '</div>';
-    dbg('Chapter gen error: ' + err.message);
-  });
+  function attemptSummaryGeneration(retryCount) {
+    fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+        'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+        'X-Title': 'Novella Studio'
+      },
+      body: JSON.stringify({ model, stream: false, max_tokens: 4000, messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: prompt }
+      ] })
+    }).then(r => r.json()).then(data => {
+      const raw = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
+      dbg('Chapter summary raw: ' + raw.slice(0, 120));
+      if (!raw && retryCount < 1) {
+        dbg('Empty response — retrying...');
+        btn.textContent = '↺ Retrying…';
+        setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
+        return;
+      }
+      btn.disabled = false;
+      btn.textContent = '✦ Regenerate Summaries';
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      try {
+        const parsed = JSON.parse(cleaned);
+        planSummaries = parsed.map(ch => ({ title: ch.title || '', summary: ch.summary || '', beatCount: 4 }));
+        renderChSummaryList();
+        saveCurrentStory();
+        showToast(numCh + ' chapter summaries generated');
+      } catch(e) {
+        dbg('JSON parse error: ' + e.message + ' raw: ' + cleaned.slice(0, 200));
+        if (retryCount < 1) {
+          dbg('Parse failed — retrying...');
+          btn.textContent = '↺ Retrying…';
+          setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
+        } else {
+          list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;line-height:1.6"><strong>Parse error after retry.</strong> Try a different model or shorten your synopsis.<br><br><small>' + escapeHtml(cleaned.slice(0, 300)) + '</small></div>';
+        }
+      }
+    }).catch(err => {
+      btn.disabled = false;
+      btn.textContent = '✦ Generate Chapter Summaries';
+      list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error: ' + escapeHtml(err.message) + '</div>';
+      dbg('Chapter gen error: ' + err.message);
+    });
+  }
+
+  attemptSummaryGeneration(0);
 }
 
 // ── REFINE A SINGLE CHAPTER SUMMARY ──
@@ -2702,7 +2719,7 @@ No markdown, no commentary, just the JSON array.`;
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
       'X-Title': 'Novella Studio'
     },
-    body: JSON.stringify({ model, stream: false, messages: [
+    body: JSON.stringify({ model, stream: false, max_tokens: 3000, messages: [
       { role: 'system', content: systemMsg },
       { role: 'user', content: prompt }
     ]})
@@ -2821,7 +2838,7 @@ No markdown, no commentary, just the JSON array.`;
         'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
         'X-Title': 'Novella Studio'
       },
-      body: JSON.stringify({ model, stream: false, messages: [
+      body: JSON.stringify({ model, stream: false, max_tokens: 3000, messages: [
         { role: 'system', content: systemMsg },
         { role: 'user', content: prompt }
       ]})
@@ -2954,7 +2971,7 @@ Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", 
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
       'X-Title': 'Novella Studio'
     },
-    body: JSON.stringify({ model, stream: false, messages: [
+    body: JSON.stringify({ model, stream: false, max_tokens: 2000, messages: [
       { role: 'system', content: systemMsg },
       { role: 'user', content: prompt }
     ]})
@@ -3755,8 +3772,16 @@ function generatePortrait(charId) {
         safe_mode: false
       })
     }).then(function(res) {
+      dbg('Venice response status: ' + res.status);
       if (!res.ok) {
-        return res.json().then(function(e) { throw new Error(e.message || 'Venice error ' + res.status); });
+        return res.json().then(function(e) {
+          var msg = e.message || e.error || 'Venice error ' + res.status;
+          if (res.status === 404) msg = 'Model not found: ' + model + ' — update Venice model in Setup';
+          throw new Error(msg);
+        }).catch(function(jsonErr) {
+          if (jsonErr.message && jsonErr.message.includes('Model not found')) throw jsonErr;
+          throw new Error('Venice error ' + res.status);
+        });
       }
       return res.json();
     }).then(function(data) {
@@ -3789,7 +3814,8 @@ function generatePortrait(charId) {
 
   // Build a good image prompt from lore using OpenRouter if available
   if (openRouterKey) {
-    var orModel = document.getElementById('modelSelect').value;
+    // Use a fast model for prompt building — not the writing model which may refuse explicit SD prompts
+    var orPromptModel = 'openai/gpt-4o-mini';
     dbg('Building image prompt via OpenRouter…');
     fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -3800,7 +3826,7 @@ function generatePortrait(charId) {
         'X-Title': 'Novella Studio'
       },
       body: JSON.stringify({
-        model: orModel, stream: false,
+        model: orPromptModel, stream: false,
         messages: [{
           role: 'user',
           content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose)
