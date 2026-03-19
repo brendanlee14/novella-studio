@@ -1650,7 +1650,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v68</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v69</span>
     </div>
   </div>
 
@@ -2499,7 +2499,8 @@ No markdown, no commentary, just the JSON array.`;
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + apiKey,
         'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-        'X-Title': 'Novella Studio'
+        'X-Title': 'Novella Studio',
+        'Cache-Control': 'no-store'
       },
       body: JSON.stringify({ model, stream: false, max_tokens: 4000, messages: [
         { role: 'system', content: systemMsg },
@@ -2577,7 +2578,8 @@ ${document.getElementById('planSynopsis').value.trim().slice(0, 500)}`;
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + apiKey,
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'X-Title': 'Novella Studio',
+      'Cache-Control': 'no-store'
     },
     body: JSON.stringify({ model, stream: false, messages: [
       { role: 'system', content: systemMsg },
@@ -2717,7 +2719,8 @@ No markdown, no commentary, just the JSON array.`;
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + apiKey,
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'X-Title': 'Novella Studio',
+      'Cache-Control': 'no-store'
     },
     body: JSON.stringify({ model, stream: false, max_tokens: 3000, messages: [
       { role: 'system', content: systemMsg },
@@ -2836,7 +2839,8 @@ No markdown, no commentary, just the JSON array.`;
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + apiKey,
         'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-        'X-Title': 'Novella Studio'
+        'X-Title': 'Novella Studio',
+        'Cache-Control': 'no-store'
       },
       body: JSON.stringify({ model, stream: false, max_tokens: 3000, messages: [
         { role: 'system', content: systemMsg },
@@ -2969,7 +2973,8 @@ Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", 
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + apiKey,
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'X-Title': 'Novella Studio',
+      'Cache-Control': 'no-store'
     },
     body: JSON.stringify({ model, stream: false, max_tokens: 2000, messages: [
       { role: 'system', content: systemMsg },
@@ -3823,7 +3828,8 @@ function generatePortrait(charId) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + openRouterKey,
         'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-        'X-Title': 'Novella Studio'
+        'X-Title': 'Novella Studio',
+        'Cache-Control': 'no-store'
       },
       body: JSON.stringify({
         model: orPromptModel, stream: false,
@@ -4812,7 +4818,8 @@ function updateStoryState(apiKey, model, beat, sceneText) {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + apiKey,
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'X-Title': 'Novella Studio',
+      'Cache-Control': 'no-store'
     },
     body: JSON.stringify({
       model: model, stream: false,
@@ -4849,7 +4856,8 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + apiKey,
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'X-Title': 'Novella Studio',
+      'Cache-Control': 'no-store'
     },
     body: JSON.stringify({
       model: model, stream: false,
@@ -5804,7 +5812,8 @@ function generateLoreFromWizard() {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + apiKey,
       'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'X-Title': 'Novella Studio',
+      'Cache-Control': 'no-store'
     },
     body: JSON.stringify({
       model: model, stream: false,
