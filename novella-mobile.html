@@ -1654,7 +1654,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v74</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v76</span>
     </div>
   </div>
 
@@ -2446,8 +2446,12 @@ function refreshBeatCard(chIdx) {
 // Converts stream:false calls to streaming to work around Android PWA fetch restrictions
 // ══════════════════════════════
 function streamingFetch(apiKey, model, messages, opts) {
-  // opts: { maxTokens, systemOverride, onDone, onError }
+  // opts: { maxTokens, label, onDone, onError }
   var maxTokens = opts.maxTokens || 2000;
+  var label = opts.label || 'call';
+  var t0 = Date.now();
+  var promptChars = messages.reduce(function(n, m) { return n + (m.content ? m.content.length : 0); }, 0);
+  dbg('[OR] → ' + label + ' model=' + model + ' maxTokens=' + maxTokens + ' promptChars=' + promptChars);
   return fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -2461,6 +2465,7 @@ function streamingFetch(apiKey, model, messages, opts) {
       messages: messages
     })
   }).then(function(res) {
+    dbg('[OR] ' + label + ' status=' + res.status + ' (' + (Date.now() - t0) + 'ms)');
     if (!res.ok) {
       return res.json().then(function(e) {
         throw new Error(e.error && e.error.message ? e.error.message : 'HTTP ' + res.status);
@@ -2476,6 +2481,7 @@ function streamingFetch(apiKey, model, messages, opts) {
     function read() {
       return reader.read().then(function(result) {
         if (result.done) {
+          dbg('[OR] ← ' + label + ' done responseChars=' + fullText.length + ' elapsed=' + (Date.now() - t0) + 'ms');
           opts.onDone(fullText);
           return;
         }
@@ -2498,6 +2504,7 @@ function streamingFetch(apiKey, model, messages, opts) {
     }
     return read();
   }).catch(function(err) {
+    dbg('[OR] ✗ ' + label + ' err=' + err.message + ' elapsed=' + (Date.now() - t0) + 'ms');
     opts.onError(err);
   });
 }
@@ -2562,7 +2569,7 @@ No markdown, no commentary, just the JSON array.`;
     dbg('ChSum attempt=' + retryCount + ' model=' + model);
     streamingFetch(apiKey, model,
       [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-      { maxTokens: 4000,
+      { maxTokens: 4000, label: 'chapterSummaries',
         onDone: function(raw) {
           raw = raw.trim();
           dbg('ChSum raw: ' + raw.slice(0, 120));
@@ -2634,7 +2641,7 @@ ${document.getElementById('planSynopsis').value.trim().slice(0, 500)}`;
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-    { maxTokens: 2000,
+    { maxTokens: 2000, label: 'refineChapter',
       onDone: function(refined) {
         btn.disabled = false;
         btn.textContent = '✦ Refine my edits';
@@ -2768,7 +2775,7 @@ No markdown, no commentary, just the JSON array.`;
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-    { maxTokens: 3000,
+    { maxTokens: 3000, label: 'chapterBeats',
       onDone: function(raw) {
         if (btn) { btn.disabled = false; }
         raw = raw.trim();
@@ -2880,7 +2887,7 @@ No markdown, no commentary, just the JSON array.`;
 
     streamingFetch(apiKey, model,
       [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-      { maxTokens: 3000,
+      { maxTokens: 3000, label: 'batchBeats',
         onDone: function(raw) {
           raw = raw.trim();
           const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -3007,7 +3014,7 @@ Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", 
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-    { maxTokens: 2000,
+    { maxTokens: 2000, label: 'retryBeats',
       onDone: function(raw) {
         raw = raw.trim();
         const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
@@ -3072,6 +3079,8 @@ const PORTRAIT_POSE_GROUPS = {
   'Intimate': [
     'In bed — morning light',
     'Lying on bed',
+    'From behind on bed',
+    'From behind on armchair',
     'Reclining on sofa',
     'Seated',
     'In a hotel room',
@@ -3735,6 +3744,8 @@ function poseToSDTerm(pose) {
     'Looking out a window': 'standing at window, looking out, soft window light on face',
     'In bed — morning light': 'lying in bed, morning light, soft sheets, looking at camera',
     'Lying on bed': 'lying on bed, looking at camera, reclined',
+    'From behind on bed': 'full body, lying face down on bed, rear view, looking back over shoulder, intimate',
+    'From behind on armchair': 'full body, kneeling on armchair facing away, rear view, looking back over shoulder, intimate',
     'Reclining on sofa': 'reclining on sofa, relaxed, looking at camera',
     'Seated': 'seated, upper body visible, natural pose',
     'In a hotel room': 'in hotel room, standing or seated, interior light',
@@ -3794,7 +3805,9 @@ function generatePortrait(charId) {
   var loreTruncated = loreText.slice(0, 600);
 
   function doGenerate(imagePrompt) {
-    dbg('Venice portrait prompt: ' + imagePrompt.slice(0, 80) + '…');
+    var veniceT0 = Date.now();
+    dbg('[Venice] → generate model=' + model + ' promptChars=' + imagePrompt.length);
+    dbg('[Venice] prompt: ' + imagePrompt.slice(0, 120) + '…');
     fetch('https://api.venice.ai/api/v1/image/generate', {
       method: 'POST',
       headers: {
@@ -3813,7 +3826,7 @@ function generatePortrait(charId) {
         safe_mode: false
       })
     }).then(function(res) {
-      dbg('Venice response status: ' + res.status);
+      dbg('[Venice] status=' + res.status + ' (' + (Date.now() - veniceT0) + 'ms)');
       if (!res.ok) {
         return res.json().then(function(e) {
           var msg = e.message || e.error || 'Venice error ' + res.status;
@@ -3831,8 +3844,8 @@ function generatePortrait(charId) {
       if (btn) btn.disabled = false;
 
       var images = data.images || (data.data && data.data.images);
-      dbg('Venice response keys: ' + Object.keys(data).join(', '));
-      if (data.metadata) dbg('Venice metadata: ' + JSON.stringify(data.metadata).slice(0, 120));
+      dbg('[Venice] ← done keys=' + Object.keys(data).join(',') + ' elapsed=' + (Date.now() - veniceT0) + 'ms');
+      if (data.metadata) dbg('[Venice] metadata: ' + JSON.stringify(data.metadata).slice(0, 120));
       if (!images || !images[0]) throw new Error('No image returned');
 
       var b64 = images[0];
@@ -3843,7 +3856,7 @@ function generatePortrait(charId) {
       showToast('Portrait generated ✓');
       dbg('Portrait saved for ' + charId);
     }).catch(function(err) {
-      dbg('Portrait error: ' + err.message);
+      dbg('[Venice] ✗ error=' + err.message + ' elapsed=' + (Date.now() - veniceT0) + 'ms');
       var spinner = document.getElementById('portrait-' + charId + '-spinner');
       if (spinner) spinner.remove();
       if (btn) btn.disabled = false;
@@ -3860,7 +3873,7 @@ function generatePortrait(charId) {
     dbg('Building image prompt via OpenRouter…');
     streamingFetch(openRouterKey, orPromptModel,
       [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
-      { maxTokens: 300,
+      { maxTokens: 300, label: 'portraitPrompt',
         onDone: function(prompt) {
           prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
           if (!prompt || prompt.length < 10) {
@@ -4745,8 +4758,9 @@ function writeScene() {
   document.getElementById('btnRewrite').style.display = 'none';
 
   let fullText = '';
-
-  dbg('fetching from OpenRouter...');
+  var wsT0 = Date.now();
+  var wsPromptChars = systemPrompt.length + userPrompt.length;
+  dbg('[OR] → writeScene model=' + model + ' promptChars=' + wsPromptChars);
   fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -4763,7 +4777,7 @@ function writeScene() {
       ]
     })
   }).then(function(res) {
-    dbg('response status=' + res.status + ' ok=' + res.ok);
+    dbg('[OR] writeScene status=' + res.status + ' (' + (Date.now() - wsT0) + 'ms)');
     if (!res.ok) {
       return res.json().then(function(err) {
         throw new Error(err.error && err.error.message ? err.error.message : 'HTTP ' + res.status);
@@ -4775,7 +4789,7 @@ function writeScene() {
     function readChunk() {
       return reader.read().then(function(result) {
         if (result.done) {
-          dbg('stream done, words=' + fullText.split(/\s+/).length);
+          dbg('[OR] ← writeScene done words=' + fullText.split(/\s+/).length + ' elapsed=' + (Date.now() - wsT0) + 'ms');
           cursor.remove();
           writtenScenes[key] = fullText;
           // Record which persona was active when this scene was written
@@ -4852,7 +4866,7 @@ function updateStoryState(apiKey, model, beat, sceneText) {
 
   streamingFetch(apiKey, model,
     [{ role: 'user', content: prompt }],
-    { maxTokens: 500,
+    { maxTokens: 500, label: 'storyState',
       onDone: function(newState) {
         newState = newState.trim();
         if (newState) {
@@ -4886,7 +4900,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
       { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Be precise about clothing — if an item was removed, say so. Never invent details not in the scene.' },
       { role: 'user', content: prompt }
     ],
-    { maxTokens: 400,
+    { maxTokens: 400, label: 'physicalContinuity',
       onDone: function(result) {
         result = result.trim();
         if (result) {
@@ -5065,15 +5079,159 @@ function openWizard(target) {
   renderWizardStep();
 }
 
+
+// ══════════════════════════════
+// WIZARD PORTRAIT PREVIEW
+// ══════════════════════════════
+function generateWizardPreview() {
+  var veniceKey = document.getElementById('veniceApiKey').value.trim();
+  if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
+
+  var btn = document.getElementById('wizPreviewBtn');
+  var btnLabel = btn ? btn : document.querySelector('[onclick="generateWizardPreview()"]');
+  if (btnLabel) { btnLabel.disabled = true; btnLabel.textContent = 'Generating…'; }
+
+  var lore = buildLorePrompt();
+  var loreTruncated = lore.slice(0, 600);
+  var model = document.getElementById('veniceImageModel').value;
+  var pose = 'Full body front';
+  var poseSD = poseToSDTerm(pose);
+
+  // Build a simple SD prompt from lore directly (no OR call for wizard preview)
+  var parts = [poseSD, 'nude, no clothing, bare skin'];
+  var ageMatch = loreTruncated.match(/Age:\s*(\d{2})/i);
+  if (ageMatch) parts.push(ageMatch[1] + ' year old');
+  var cleaned = loreTruncated
+    .replace(/(Name|Age|Role|Ethnicity|Build|Face|Body|Penis|History|Orientation|Voice)[:\s][^
+]*/gi, '')
+    .replace(/["\[\]{}()]/g, '').replace(/
++/g, ', ').replace(/[.!?]+/g, ',').replace(/,\s*,+/g, ',').trim().slice(0, 200);
+  if (cleaned) parts.push(cleaned);
+  parts.push('photorealistic, sharp focus, soft studio lighting, detailed skin, 8k');
+  var imagePrompt = parts.filter(Boolean).join(', ');
+
+  dbg('[Venice] → wizardPreview promptChars=' + imagePrompt.length);
+  var t0 = Date.now();
+
+  fetch('https://api.venice.ai/api/v1/image/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
+    body: JSON.stringify({
+      model: model, prompt: imagePrompt,
+      negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text, logo',
+      width: 832, height: 1216, steps: 30, hide_watermark: true, return_binary: false, safe_mode: false
+    })
+  }).then(function(res) {
+    dbg('[Venice] wizardPreview status=' + res.status + ' (' + (Date.now() - t0) + 'ms)');
+    if (!res.ok) throw new Error('Venice error ' + res.status);
+    return res.json();
+  }).then(function(data) {
+    var images = data.images || (data.data && data.data.images);
+    if (!images || !images[0]) throw new Error('No image returned');
+    var b64 = images[0];
+    if (b64.indexOf(',') > -1) b64 = b64.split(',')[1];
+    wizardData['_previewImg'] = b64;
+    dbg('[Venice] ← wizardPreview done elapsed=' + (Date.now() - t0) + 'ms');
+    renderWizardStep();
+    showToast('Preview generated ✓');
+  }).catch(function(err) {
+    dbg('[Venice] ✗ wizardPreview err=' + err.message);
+    if (btnLabel) { btnLabel.disabled = false; btnLabel.textContent = '✦ Generate Preview'; }
+    showToast('Preview failed: ' + err.message.slice(0, 50));
+  });
+}
+
+function expandWizardPreview() {
+  var b64 = wizardData['_previewImg'];
+  if (!b64) return;
+  var overlay = document.getElementById('wizPreviewOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'wizPreviewOverlay';
+    overlay.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;align-items:center;justify-content:center;flex-direction:column;';
+    overlay.innerHTML = '<img id="wizPreviewFullImg" style="max-width:100%;max-height:90vh;object-fit:contain;border-radius:8px;" />' +
+      '<button type="button" onclick="document.getElementById(\'wizPreviewOverlay\').remove()" style="margin-top:16px;padding:10px 24px;background:none;border:1px solid rgba(255,255,255,0.3);border-radius:8px;color:white;font-family:\'Jost\',sans-serif;font-size:0.85rem;cursor:pointer;">✕ Close</button>';
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+  document.getElementById('wizPreviewFullImg').src = 'data:image/jpeg;base64,' + b64;
+  overlay.style.display = 'flex';
+}
+
+// ══════════════════════════════
+// WIZARD NAME SUGGESTIONS
+// ══════════════════════════════
+function generateWizardNames() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup'); return; }
+  var model = document.getElementById('modelSelect').value;
+
+  var btn = document.getElementById('wizNamesBtn') || document.querySelector('[onclick="generateWizardNames()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+
+  var eth = (wizardData['identity_f'] && wizardData['identity_f']['wiz_ethnicity']) ||
+            (wizardData['identity'] && wizardData['identity']['wiz_ethnicity']) || '';
+  var role = (wizardData['identity_f'] && wizardData['identity_f']['wiz_role']) || '';
+  var dynamic = (wizardData['dynamic'] && wizardData['dynamic']['wiz_power_dynamic']) || '';
+  var personality = (wizardData['personality'] && wizardData['personality']['wiz_pers_extra']) || '';
+  var isChar1 = wizardTarget === 'char1';
+
+  var prompt = 'Generate exactly 5 ' + (isChar1 ? 'male' : 'female') + ' given names suitable for a character with these traits:
+' +
+    (eth ? 'Ethnicity: ' + eth + '
+' : '') +
+    (role ? 'Role: ' + role + '
+' : '') +
+    (dynamic ? 'Dynamic: ' + dynamic + '
+' : '') +
+    'The names should feel authentic to the ethnicity and fit the character's personality.
+' +
+    'Output ONLY the 5 names as a JSON array, e.g. ["Sofia","Elena","Mia","Ines","Lucia"]. No explanation, no other text.';
+
+  streamingFetch(apiKey, model,
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 100, label: 'wizardNames',
+      onDone: function(raw) {
+        raw = raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+        try {
+          var names = JSON.parse(raw);
+          if (!Array.isArray(names) || !names.length) throw new Error('Bad format');
+          wizardData['_nameOptions'] = names.slice(0, 5);
+          renderWizardStep();
+          showToast('Name suggestions ready');
+        } catch(e) {
+          dbg('wizardNames parse error: ' + e.message + ' raw: ' + raw.slice(0, 80));
+          if (btn) { btn.disabled = false; btn.textContent = '✦ Suggest Names'; }
+          showToast('Could not generate names — try again');
+        }
+      },
+      onError: function(err) {
+        if (btn) { btn.disabled = false; btn.textContent = '✦ Suggest Names'; }
+        showToast('Name suggestion failed: ' + err.message.slice(0, 40));
+      }
+    }
+  );
+}
+
+function selectWizardName(el, name) {
+  // Deselect all chips
+  var chips = document.querySelectorAll('#wizNameChips .wiz-chip');
+  chips.forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  // Fill the text input
+  var input = document.getElementById('wiz_name');
+  if (input) input.value = name;
+}
+
 function closeWizard() {
   document.getElementById('wizardOverlay').classList.remove('open');
   wizardTarget = null;
 }
 
 function buildWizardSteps(target) {
-  if (target === 'char1') return ['identity','build','penis','face_m','personality'];
-  if (target === 'char2') return ['identity_f','face','body','dynamic','relationship'];
-  if (target === 'charSupport') return ['identity_f','face','body','dynamic','relationship','cast_diff'];
+  if (target === 'char1') return ['identity','build','penis','face_m','personality','portrait_preview','name_step'];
+  if (target === 'char2') return ['identity_f','face','body','dynamic','relationship','portrait_preview','name_step'];
+  if (target === 'charSupport') return ['identity_f','face','body','dynamic','relationship','cast_diff','portrait_preview','name_step'];
   if (target === 'world') return ['world'];
   if (target === 'tone') return ['tone'];
   return [];
@@ -5093,7 +5251,9 @@ function wizardStepTitle(step) {
     relationship: 'Character — Relationship History',
     cast_diff: 'Supporting — Story Role',
     world: 'World & Setting',
-    tone: 'Tone & Style'
+    tone: 'Tone & Style',
+    portrait_preview: 'Character — Portrait Preview',
+    name_step: 'Character — Choose a Name'
   };
   return map[step] || step;
 }
@@ -5313,7 +5473,17 @@ function renderWizardStep() {
 
   // Back button
   sel('wizBtnBack').textContent = wizardStep === 0 ? '✕ Cancel' : '← Back';
-  sel('wizBtnNext').textContent = wizardStep === total - 1 ? '✦ Generate Lore' : 'Next →';
+  var lastStep = wizardSteps[wizardSteps.length - 1];
+  var curStep = wizardSteps[wizardStep];
+  if (curStep === 'portrait_preview') {
+    sel('wizBtnNext').textContent = wizardData['_previewImg'] ? 'Next →' : 'Skip →';
+  } else if (curStep === 'name_step') {
+    sel('wizBtnNext').textContent = '✦ Generate Lore';
+  } else if (wizardStep === total - 1) {
+    sel('wizBtnNext').textContent = '✦ Generate Lore';
+  } else {
+    sel('wizBtnNext').textContent = 'Next →';
+  }
 
   // Restore saved values if any
   var saved = wizardData[stepKey] || {};
@@ -5321,7 +5491,6 @@ function renderWizardStep() {
   var body = '';
 
   if (stepKey === 'identity') {
-    body += wField('Name', 'wiz_name', 'text', null, 'e.g. Marcus');
     body += wField('Age', 'wiz_age', 'text', null, 'e.g. 38');
     body += wField('Ethnicity', 'wiz_ethnicity', 'select-grouped', ethnicityGroupOptions());
     body += '<div class="wiz-field" id="wiz_mixed_row" style="display:none">';
@@ -5370,7 +5539,6 @@ function renderWizardStep() {
   }
 
   if (stepKey === 'identity_f') {
-    body += wField('Name', 'wiz_name', 'text', null, 'e.g. Sofia');
     body += wField('Age', 'wiz_age', 'text', null, 'e.g. 29');
     body += wField('Role in Story', 'wiz_role', 'select', ['Wife','Girlfriend','Affair','Stranger','Colleague','Friend\'s partner','Escort','Neighbour','Other']);
     body += wField('Ethnicity', 'wiz_ethnicity', 'select-grouped', ethnicityGroupOptions());
@@ -5501,6 +5669,49 @@ function renderWizardStep() {
     body += wField('Additional tone notes', 'wiz_tone_extra', 'textarea', null, 'Anything else about voice, style, what to avoid…');
   }
 
+  // portrait_preview step
+  if (stepKey === 'portrait_preview') {
+    var prevImg = wizardData['_previewImg'] || null;
+    body += '<div style="text-align:center;padding:8px 0 16px;">';
+    body += '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">Generate a portrait preview to check the character matches your vision. You can regenerate as many times as you like.</p>';
+    if (prevImg) {
+      body += '<div id="wizPreviewImgWrap" style="position:relative;display:inline-block;width:100%;max-width:320px;border-radius:12px;overflow:hidden;cursor:pointer;" onclick="expandWizardPreview()">';
+      body += '<img id="wizPreviewImg" src="data:image/jpeg;base64,' + prevImg + '" style="width:100%;display:block;border-radius:12px;" />';
+      body += '<div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.55);border-radius:6px;padding:4px 10px;font-size:0.7rem;color:white;pointer-events:none;">⤢ Expand</div>';
+      body += '</div>';
+      body += '<div style="margin-top:12px;display:flex;gap:10px;justify-content:center;">';
+      body += '<button type="button" onclick="generateWizardPreview()" style="padding:10px 20px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:\'Jost\',sans-serif;font-size:0.85rem;cursor:pointer;">↺ Regenerate</button>';
+      body += '</div>';
+    } else {
+      body += '<div style="width:100%;max-width:320px;height:200px;background:var(--parchment);border:1px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto;">';
+      body += '<span style="color:var(--muted);font-size:0.85rem;">No portrait yet</span>';
+      body += '</div>';
+      body += '<div style="margin-top:12px;">';
+      body += '<button type="button" id="wizPreviewBtn" onclick="generateWizardPreview()" style="padding:12px 28px;background:var(--rose);border:none;border-radius:8px;color:white;font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.05rem;cursor:pointer;">✦ Generate Preview</button>';
+      body += '</div>';
+    }
+    body += '</div>';
+  }
+
+  // name_step
+  if (stepKey === 'name_step') {
+    var nameOptions = wizardData['_nameOptions'] || [];
+    var savedName = saved['wiz_name'] || '';
+    body += '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">Select a name or enter your own. Tap a suggestion to use it, or type freely below.</p>';
+    if (nameOptions.length) {
+      body += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;" id="wizNameChips">';
+      nameOptions.forEach(function(n) {
+        var isSelected = savedName === n;
+        body += '<div class="wiz-chip' + (isSelected ? ' selected' : '') + '" onclick="selectWizardName(this, \'' + n.replace(/'/g,"\\'") + '\')" style="font-size:0.9rem;padding:8px 16px;">' + n + '</div>';
+      });
+      body += '</div>';
+      body += '<button type="button" onclick="generateWizardNames()" style="margin-bottom:16px;padding:8px 16px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:\'Jost\',sans-serif;font-size:0.8rem;cursor:pointer;">↺ New suggestions</button>';
+    } else {
+      body += '<div style="margin-bottom:16px;"><button type="button" id="wizNamesBtn" onclick="generateWizardNames()" style="padding:12px 24px;background:var(--rose);border:none;border-radius:8px;color:white;font-family:\'Cormorant Garamond\',serif;font-style:italic;font-size:1.05rem;cursor:pointer;">✦ Suggest Names</button></div>';
+    }
+    body += wField('Name', 'wiz_name', 'text', null, 'Type a name or select above');
+  }
+
   sel('wizardBody').innerHTML = body;
 
   // Restore saved values
@@ -5586,10 +5797,20 @@ function saveWizardStepData() {
 
 function wizardNext() {
   saveWizardStepData();
+  var curStep = wizardSteps[wizardStep];
+
+  // At portrait_preview — save lore now so progress is preserved if wizard is closed
+  if (curStep === 'portrait_preview') {
+    var rawLore = buildLorePrompt();
+    fillLoreTarget(rawLore);
+    saveCurrentStory();
+  }
+
   if (wizardStep < wizardSteps.length - 1) {
     wizardStep++;
     renderWizardStep();
   } else {
+    // Final step (name_step) — inject name into lore then generate
     generateLoreFromWizard();
   }
 }
@@ -5617,7 +5838,7 @@ function buildLorePrompt() {
   var target = wizardTarget;
 
   if (target === 'char1') {
-    var name = collectWizardValue('identity','wiz_name');
+    var name = collectWizardValue('name_step','wiz_name') || collectWizardValue('identity','wiz_name');
     var age = collectWizardValue('identity','wiz_age');
     var eth = collectWizardValue('identity','wiz_ethnicity');
     if (eth === 'Mixed') {
@@ -5673,7 +5894,7 @@ function buildLorePrompt() {
 
   if (target === 'char2' || target === 'charSupport') {
     var label = target === 'char2' ? 'LOVE INTEREST' : 'SUPPORTING CHARACTER';
-    var name = collectWizardValue('identity_f','wiz_name');
+    var name = collectWizardValue('name_step','wiz_name') || collectWizardValue('identity_f','wiz_name');
     var age = collectWizardValue('identity_f','wiz_age');
     var role = collectWizardValue('identity_f','wiz_role');
     var eth = collectWizardValue('identity_f','wiz_ethnicity');
@@ -5833,7 +6054,7 @@ function generateLoreFromWizard() {
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: userMsg }],
-    { maxTokens: 1500,
+    { maxTokens: 1500, label: 'loreWizard',
       onDone: function(lore) {
         lore = lore.trim();
         if (!lore) {
