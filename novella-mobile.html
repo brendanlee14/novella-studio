@@ -1648,7 +1648,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v65</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v66</span>
     </div>
   </div>
 
@@ -2026,7 +2026,8 @@ let activeStoryId = null;   // which story is open
 // Per-story runtime state
 let chapters = [];
 let writtenScenes = {};
-let scenePersonas = {}; // key -> persona name used when scene was written
+let scenePersonas = {};
+let physicalContinuity = ''; // tracks clothing, position, who is present — updated after each scene
 let activeChIdx = null;
 let activeBeatIdx = null;
 let editingChIdx = null;
@@ -2068,6 +2069,7 @@ function saveCurrentStory() {
     writtenScenes,
     scenePersonas,
     storyState: document.getElementById('storyState').value,
+    physicalContinuity: physicalContinuity,
     lore: {
       char1: document.getElementById('char1').value,
       char2: document.getElementById('char2').value,
@@ -2100,6 +2102,7 @@ function loadStoryIntoApp(story) {
   chapters = d.chapters || [];
   writtenScenes = d.writtenScenes || {};
   scenePersonas = d.scenePersonas || {};
+  physicalContinuity = d.physicalContinuity || '';
   activeChIdx = null; activeBeatIdx = null;
 
   const lore = d.lore || {};
@@ -4565,7 +4568,7 @@ function exportAsHTML() {
 // ══════════════════════════════
 function clearStoryData() {
   if (!confirm('Clear all chapters, beats, lore and scenes for this story? This cannot be undone.')) return;
-  chapters = []; writtenScenes = {}; scenePersonas = {}; activeChIdx = null; activeBeatIdx = null;
+  chapters = []; writtenScenes = {}; scenePersonas = {}; physicalContinuity = ''; activeChIdx = null; activeBeatIdx = null;
   ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
   ['char1','char2','charSupport'].forEach(id => clearPortraitImage(id));
   document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
@@ -4595,6 +4598,7 @@ function buildContext() {
   if (worldLore) ctx += '## WORLD & SETTING\n' + worldLore + '\n\n';
   if (toneStyle) ctx += '## TONE & STYLE\n' + toneStyle + '\n\n';
   if (storyState) ctx += '## CURRENT STORY STATE\n' + storyState + '\n\n';
+  if (physicalContinuity) ctx += '## PHYSICAL CONTINUITY — these are facts, do not contradict them\n' + physicalContinuity + '\n\n';
 
   if (activeChIdx !== null && chapters[activeChIdx]) {
     const ch = chapters[activeChIdx];
@@ -4721,6 +4725,8 @@ function writeScene() {
             showToast('Updating story state\u2026');
             updateStoryState(apiKey, model, beat, fullText);
           }
+          // Always update physical continuity silently
+          updatePhysicalContinuity(apiKey, model, beat, fullText);
           showToast('\u2713 Scene written \u2014 ' + fullText.split(/\s+/).length + ' words');
           document.getElementById('btnWrite').disabled = false;
           document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
@@ -4796,9 +4802,45 @@ function updateStoryState(apiKey, model, beat, sceneText) {
   }).catch(function(e) { dbg('State update error: ' + e.message); });
 }
 
-// ══════════════════════════════
-// AUTO-SAVE on input changes
-// ══════════════════════════════
+function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
+  var char1 = document.getElementById('char1').value.trim().slice(0, 300);
+  var char2 = document.getElementById('char2').value.trim().slice(0, 300);
+  var charSupport = document.getElementById('charSupport').value.trim().slice(0, 200);
+
+  var charNames = [char1, char2, charSupport]
+    .map(function(c) { return c.match(/^Name:\s*(\S+)/m); })
+    .map(function(m) { return m ? m[1] : null; })
+    .filter(Boolean);
+
+  var prompt = 'Extract the exact physical state at the END of this scene. Output ONLY a structured list — no prose, no commentary.\n\nFormat:\nLocation: [where they are]\nPresent: [who is in the scene]\n' +
+    charNames.map(function(n) { return n + ' clothing: [exactly what they are wearing, or "nude" / "undressed"]'; }).join('\n') +
+    '\n' + charNames.map(function(n) { return n + ' position: [physical position/activity at scene end]'; }).join('\n') +
+    '\nLast physical action: [one sentence — what physically just happened]\n\nScene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 1200);
+
+  fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey,
+      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+      'X-Title': 'Novella Studio'
+    },
+    body: JSON.stringify({
+      model: model, stream: false,
+      messages: [
+        { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Be precise about clothing — if an item was removed, say so. Never invent details not in the scene.' },
+        { role: 'user', content: prompt }
+      ]
+    })
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    var result = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content.trim() : '';
+    if (result) {
+      physicalContinuity = result;
+      saveCurrentStory();
+      dbg('Physical continuity updated');
+    }
+  }).catch(function(e) { dbg('Physical continuity update error: ' + e.message); });
+}
 let saveTimer;
 function debouncedSave() {
   clearTimeout(saveTimer);
