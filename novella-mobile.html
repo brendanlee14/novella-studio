@@ -1542,11 +1542,18 @@
   <div class="state-section">
     <span class="state-label">Current Story State</span>
     <textarea id="storyState" rows="6" placeholder="Where the story is right now — updated automatically after each scene…"></textarea>
-    <button onclick="resetStoryState()" style="margin-top:8px;padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">Reset</button>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="resetStoryState()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">Reset</button>
+      <button id="manualStateBtn" onclick="manualUpdateStoryState()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">↺ Update Now</button>
+    </div>
   </div>
   <div class="state-section">
     <span class="state-label">Physical Continuity</span>
     <div id="physicalContinuityDisplay" style="font-family:'Cormorant Garamond',serif;font-size:0.92rem;line-height:1.7;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:60px;white-space:pre-wrap;"><span style="color:var(--muted);font-style:italic;font-size:0.85rem;">Updated automatically after each scene is written…</span></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button onclick="resetPhysicalContinuity()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">Reset</button>
+      <button id="manualPhysBtn" onclick="manualUpdatePhysicalContinuity()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">↺ Update Now</button>
+    </div>
   </div>
   <div class="state-section">
     <span class="state-label">Scene Log</span>
@@ -1695,7 +1702,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v80</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v82</span>
     </div>
   </div>
 
@@ -3008,7 +3015,7 @@ ${loreCtx ? 'CHARACTER & TONE REFERENCE:\n' + loreCtx : ''}
 
 Output ONLY valid JSON — an array of exactly ${beatCount} beat objects:
 - "title": short evocative beat title (max 8 words) — specific about what happens
-- "desc": 2-3 sentences — what happens, what is felt, what shifts. Reflect heat level, don't fade to black.
+- "desc": 2-3 sentences — what happens, what is felt, what shifts. Reflect heat level, don't fade to black. Use character names rather than pronouns (he/she) to avoid confusion.
 - "pov": POV character name
 - "loc": location
 
@@ -3120,7 +3127,7 @@ ${ch.summary}
 
 ${i < total - 1 ? 'UPCOMING CHAPTER ' + (i+2) + ': ' + planSummaries[i+1].title + '\n' + (planSummaries[i+1].summary || '') + '\n\n' : ''}Output ONLY valid JSON — an array of ${beatCount} beat objects, each with:
 - "title": short evocative beat title (max 8 words) — be specific about what happens including intimate/explicit beats
-- "desc": 1-2 sentences describing the scene — reflect the heat level and tone, don't fade to black
+- "desc": 1-2 sentences describing the scene — reflect the heat level and tone, don't fade to black. Use character names rather than pronouns (he/she).
 - "pov": POV character name (if clear)
 - "loc": location (if clear)
 
@@ -3251,7 +3258,7 @@ ${loreCtx ? loreCtx + '\n\n' : ''}OVERALL STORY:\n${synopsis.slice(0, 400)}
 ${prevSummaries ? 'PREVIOUS CHAPTERS:\n' + prevSummaries + '\n\n' : ''}CHAPTER ${chIdx+1}: ${ch.title}
 ${ch.summary}
 
-Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", "pov", "loc". No markdown.`;
+Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", "pov", "loc". In "desc" use character names not pronouns. No markdown.`;
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
@@ -4551,6 +4558,62 @@ function resetStoryState() {
   showToast('Story state reset');
 }
 
+function resetPhysicalContinuity() {
+  physicalContinuity = '';
+  saveCurrentStory();
+  renderPhysicalContinuity();
+  showToast('Physical continuity reset');
+}
+
+function getLastWrittenScene() {
+  // Returns { beat, text } for the most recently written scene, or null
+  var lastKey = null;
+  var lastChIdx = -1, lastBIdx = -1;
+  chapters.forEach(function(ch, ci) {
+    (ch.beats || []).forEach(function(beat, bi) {
+      var key = ci + '-' + bi;
+      if (writtenScenes[key]) {
+        if (ci > lastChIdx || (ci === lastChIdx && bi > lastBIdx)) {
+          lastChIdx = ci; lastBIdx = bi; lastKey = key;
+        }
+      }
+    });
+  });
+  if (!lastKey) return null;
+  return {
+    beat: chapters[lastChIdx].beats[lastBIdx],
+    text: writtenScenes[lastKey]
+  };
+}
+
+function manualUpdateStoryState() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
+  var last = getLastWrittenScene();
+  if (!last) { showToast('No scenes written yet'); return; }
+  var model = document.getElementById('modelSelect').value;
+  var btn = document.getElementById('manualStateBtn');
+  btn.disabled = true; btn.textContent = 'Updating…';
+  showToast('Updating story state…');
+  updateStoryState(apiKey, model, last.beat, last.text, function() {
+    btn.disabled = false; btn.textContent = '↺ Update Now';
+  });
+}
+
+function manualUpdatePhysicalContinuity() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
+  var last = getLastWrittenScene();
+  if (!last) { showToast('No scenes written yet'); return; }
+  var model = document.getElementById('modelSelect').value;
+  var btn = document.getElementById('manualPhysBtn');
+  btn.disabled = true; btn.textContent = 'Updating…';
+  showToast('Updating physical continuity…');
+  updatePhysicalContinuity(apiKey, model, last.beat, last.text, function() {
+    btn.disabled = false; btn.textContent = '↺ Update Now';
+  });
+}
+
 function renderPhysicalContinuity() {
   var el = document.getElementById('physicalContinuityDisplay');
   if (!el) return;
@@ -5101,7 +5164,7 @@ function copyProse() {
 // ══════════════════════════════
 // UPDATE STORY STATE
 // ══════════════════════════════
-function updateStoryState(apiKey, model, beat, sceneText) {
+function updateStoryState(apiKey, model, beat, sceneText, onComplete) {
   const currentState = document.getElementById('storyState').value.trim();
   const prompt = 'Update this story state based on the scene just written.\n\nCurrent state:\n' + (currentState || '(none yet)') + '\n\nScene just written for beat "' + beat.title + '":\n' + sceneText.slice(0, 800) + '\n\nWrite a brief updated story state (3-5 sentences) describing where the story now stands. Focus on: character emotional states, what has changed, what tension remains.';
 
@@ -5115,6 +5178,7 @@ function updateStoryState(apiKey, model, beat, sceneText) {
           saveCurrentStory();
           showToast('Story state updated');
           dbg('Story state updated');
+          if (typeof onComplete === 'function') onComplete();
         }
       },
       onError: function(e) { dbg('State update error: ' + e.message); }
@@ -5122,7 +5186,7 @@ function updateStoryState(apiKey, model, beat, sceneText) {
   );
 }
 
-function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
+function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete) {
   var char1 = document.getElementById('char1').value.trim().slice(0, 300);
   var char2 = document.getElementById('char2').value.trim().slice(0, 300);
   var charSupport = document.getElementById('charSupport').value.trim().slice(0, 200);
@@ -5150,6 +5214,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText) {
           saveCurrentStory();
           renderPhysicalContinuity();
           dbg('Physical continuity updated');
+          if (typeof onComplete === 'function') onComplete();
         }
       },
       onError: function(e) { dbg('Physical continuity update error: ' + e.message); }
