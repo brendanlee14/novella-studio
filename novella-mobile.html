@@ -1383,15 +1383,22 @@
 
 <!-- ── LORE SCREEN ── -->
 <div class="screen lore-screen" id="screen-lore">
-  <div class="lore-section open">
-    <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🌸 Protagonist</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('char1')">✦ Wizard</button>
-        <span class="lore-chevron">▼</span>
+
+  <!-- Lore tab bar -->
+  <div class="plan-stages" style="background:var(--parchment);border-bottom:1px solid var(--border);">
+    <div class="plan-stage-tab active" id="lore-tab-1" onclick="loreGoTab(1)" style="font-size:0.58rem;">🌸<br>Protagonist</div>
+    <div class="plan-stage-tab" id="lore-tab-2" onclick="loreGoTab(2)" style="font-size:0.58rem;">💫<br>Love Interest</div>
+    <div class="plan-stage-tab" id="lore-tab-3" onclick="loreGoTab(3)" style="font-size:0.58rem;">👥<br>Support</div>
+    <div class="plan-stage-tab" id="lore-tab-4" onclick="loreGoTab(4)" style="font-size:0.58rem;">🏛<br>World</div>
+    <div class="plan-stage-tab" id="lore-tab-5" onclick="loreGoTab(5)" style="font-size:0.58rem;">🎭<br>Tone</div>
+  </div>
+
+  <!-- Panel 1: Protagonist -->
+  <div class="plan-stage active" id="lore-stage-1">
+    <div class="plan-body" style="padding:12px 16px;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button type="button" class="wizard-trigger-btn" onclick="openWizard('char1')">✦ Wizard</button>
       </div>
-    </div>
-    <div class="lore-body">
       <div class="portrait-card" id="portrait-char1">
         <div class="portrait-placeholder" id="portrait-char1-empty">
           <span class="portrait-icon">🌸</span>
@@ -1421,10 +1428,9 @@
         <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
           <span class="portrait-pose-label">Seed</span>
           <input type="number" id="portrait-char1-seed" placeholder="Random" min="1" max="999999999"
-            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);"
-            title="Lock seed for consistent portraits" />
-          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')" title="Use last generated seed">Lock</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')" title="Clear seed">Clear</button>
+            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')">Lock</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')">Clear</button>
         </div>
         <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
           <span class="portrait-pose-label">Preset</span>
@@ -1439,18 +1445,16 @@
           </button>
         </div>
       </div>
-      <textarea id="char1" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <textarea id="char1" rows="8" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;margin-top:12px;" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
-  <div class="lore-section">
-    <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">💫 Love Interest</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('char2')">✦ Wizard</button>
-        <span class="lore-chevron">▼</span>
+
+  <!-- Panel 2: Love Interest -->
+  <div class="plan-stage" id="lore-stage-2">
+    <div class="plan-body" style="padding:12px 16px;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button type="button" class="wizard-trigger-btn" onclick="openWizard('char2')">✦ Wizard</button>
       </div>
-    </div>
-    <div class="lore-body">
       <div class="portrait-card" id="portrait-char2">
         <div class="portrait-placeholder" id="portrait-char2-empty">
           <span class="portrait-icon">💫</span>
@@ -1497,18 +1501,16 @@
           </button>
         </div>
       </div>
-      <textarea id="char2" rows="6" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <textarea id="char2" rows="8" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;margin-top:12px;" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
-  <div class="lore-section">
-    <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">👥 Supporting Cast</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('charSupport')">✦ Wizard</button>
-        <span class="lore-chevron">▼</span>
+
+  <!-- Panel 3: Supporting Cast -->
+  <div class="plan-stage" id="lore-stage-3">
+    <div class="plan-body" style="padding:12px 16px;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button type="button" class="wizard-trigger-btn" onclick="openWizard('charSupport')">✦ Wizard</button>
       </div>
-    </div>
-    <div class="lore-body">
       <div class="portrait-card" id="portrait-charSupport">
         <div class="portrait-placeholder" id="portrait-charSupport-empty">
           <span class="portrait-icon">👥</span>
@@ -1555,31 +1557,31 @@
           </button>
         </div>
       </div>
-      <textarea id="charSupport" rows="4" placeholder="Secondary characters, their roles and relationships…"></textarea>
+      <textarea id="charSupport" rows="6" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;margin-top:12px;" placeholder="Secondary characters, their roles and relationships…"></textarea>
     </div>
   </div>
-  <div class="lore-section">
-    <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🏛 World & Setting</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('world')">✦ Wizard</button>
-        <span class="lore-chevron">▼</span>
-      </div>
-    </div>
-    <div class="lore-body"><textarea id="worldLore" rows="5" placeholder="Time period, location, atmosphere, rules of the world…"></textarea></div>
-  </div>
-  <div class="lore-section">
-    <div class="lore-section-header" onclick="toggleLore(this)">
-      <span class="lore-title">🎭 Tone & Style</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button type="button" class="wizard-trigger-btn" onclick="event.stopPropagation();openWizard('tone')">✦ Wizard</button>
-        <span class="lore-chevron">▼</span>
-      </div>
-    </div>
-    <div class="lore-body"><textarea id="toneStyle" rows="4" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea></div>
-  </div>
-</div>
 
+  <!-- Panel 4: World & Setting -->
+  <div class="plan-stage" id="lore-stage-4">
+    <div class="plan-body" style="padding:12px 16px;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button type="button" class="wizard-trigger-btn" onclick="openWizard('world')">✦ Wizard</button>
+      </div>
+      <textarea id="worldLore" rows="14" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;" placeholder="Time period, location, atmosphere, rules of the world…"></textarea>
+    </div>
+  </div>
+
+  <!-- Panel 5: Tone & Style -->
+  <div class="plan-stage" id="lore-stage-5">
+    <div class="plan-body" style="padding:12px 16px;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button type="button" class="wizard-trigger-btn" onclick="openWizard('tone')">✦ Wizard</button>
+      </div>
+      <textarea id="toneStyle" rows="14" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea>
+    </div>
+  </div>
+
+</div>
 <!-- ── STATE SCREEN ── -->
 <div class="screen" id="screen-state">
   <div class="state-section">
@@ -1764,7 +1766,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v87</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v88</span>
     </div>
   </div>
 
@@ -4343,9 +4345,19 @@ function goScreen(name) {
 }
 
 // ══════════════════════════════
-// LORE ACCORDION
+// LORE TAB NAVIGATION
 // ══════════════════════════════
-function toggleLore(header) { header.parentElement.classList.toggle('open'); }
+var loreCurrentTab = 1;
+
+function loreGoTab(n) {
+  loreCurrentTab = n;
+  for (var i = 1; i <= 5; i++) {
+    var tab = document.getElementById('lore-tab-' + i);
+    var stage = document.getElementById('lore-stage-' + i);
+    if (tab) tab.className = 'plan-stage-tab' + (i === n ? ' active' : '');
+    if (stage) stage.className = 'plan-stage' + (i === n ? ' active' : '');
+  }
+}
 
 // ══════════════════════════════
 // CHAPTER MODAL
