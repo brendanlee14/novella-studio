@@ -690,7 +690,7 @@
   .portrait-placeholder {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    height: 120px; gap: 8px; color: #5a4e48;
+    height: 200px; gap: 8px; color: #5a4e48;
   }
   .portrait-icon { font-size: 1.8rem; opacity: 0.4; }
   .portrait-hint { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -727,6 +727,29 @@
   }
   @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
   .portrait-spinner { animation: pulse 1.4s infinite; }
+
+  /* ── LORE PANELS ── */
+  .lore-panel {
+    display: flex; flex-direction: column; height: 100%; padding: 12px 16px;
+  }
+  .lore-panel-header {
+    display: flex; justify-content: flex-end; margin-bottom: 10px; flex-shrink: 0;
+  }
+  .lore-panel-portrait { flex-shrink: 0; }
+  .lore-panel-textarea {
+    flex: 1; width: 100%; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; color: var(--ink); background: var(--surface);
+    line-height: 1.75; resize: none; margin-top: 12px;
+    min-height: 180px;
+  }
+  .lore-panel-textarea-tall {
+    flex: 1; width: 100%; border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; color: var(--ink); background: var(--surface);
+    line-height: 1.75; resize: none;
+    min-height: 300px;
+  }
 
   /* ── PLAN SCREEN ── */
   .plan-screen { background: var(--parchment); }
@@ -1395,8 +1418,8 @@
 
   <!-- Panel 1: Protagonist -->
   <div class="plan-stage active" id="lore-stage-1">
-    <div class="plan-body" style="padding:12px 16px;">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div class="plan-body lore-panel">
+      <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char1')">✦ Wizard</button>
       </div>
       <div class="portrait-card" id="portrait-char1">
@@ -1445,14 +1468,14 @@
           </button>
         </div>
       </div>
-      <textarea id="char1" rows="8" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;margin-top:12px;" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <textarea id="char1" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
 
   <!-- Panel 2: Love Interest -->
   <div class="plan-stage" id="lore-stage-2">
-    <div class="plan-body" style="padding:12px 16px;">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div class="plan-body lore-panel">
+      <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char2')">✦ Wizard</button>
       </div>
       <div class="portrait-card" id="portrait-char2">
@@ -1501,14 +1524,14 @@
           </button>
         </div>
       </div>
-      <textarea id="char2" rows="8" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;margin-top:12px;" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <textarea id="char2" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
 
   <!-- Panel 3: Supporting Cast -->
   <div class="plan-stage" id="lore-stage-3">
-    <div class="plan-body" style="padding:12px 16px;">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div class="plan-body lore-panel">
+      <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('charSupport')">✦ Wizard</button>
       </div>
       <div class="portrait-card" id="portrait-charSupport">
@@ -1557,27 +1580,27 @@
           </button>
         </div>
       </div>
-      <textarea id="charSupport" rows="6" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;margin-top:12px;" placeholder="Secondary characters, their roles and relationships…"></textarea>
+      <textarea id="charSupport" class="lore-panel-textarea" placeholder="Secondary characters, their roles and relationships…"></textarea>
     </div>
   </div>
 
   <!-- Panel 4: World & Setting -->
   <div class="plan-stage" id="lore-stage-4">
-    <div class="plan-body" style="padding:12px 16px;">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div class="plan-body lore-panel">
+      <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('world')">✦ Wizard</button>
       </div>
-      <textarea id="worldLore" rows="14" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;" placeholder="Time period, location, atmosphere, rules of the world…"></textarea>
+      <textarea id="worldLore" class="lore-panel-textarea-tall" placeholder="Time period, location, atmosphere, rules of the world…"></textarea>
     </div>
   </div>
 
   <!-- Panel 5: Tone & Style -->
   <div class="plan-stage" id="lore-stage-5">
-    <div class="plan-body" style="padding:12px 16px;">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div class="plan-body lore-panel">
+      <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('tone')">✦ Wizard</button>
       </div>
-      <textarea id="toneStyle" rows="14" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink);background:var(--surface);line-height:1.6;resize:none;" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea>
+      <textarea id="toneStyle" class="lore-panel-textarea-tall" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea>
     </div>
   </div>
 
@@ -1766,7 +1789,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v88</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v89</span>
     </div>
   </div>
 
