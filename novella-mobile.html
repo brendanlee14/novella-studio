@@ -1556,6 +1556,13 @@
     </div>
   </div>
   <div class="state-section">
+    <span class="state-label">Scene to use for manual updates</span>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;line-height:1.5;">Select which written scene the ↺ Update Now buttons will use as context.</div>
+    <select id="manualBeatSelect" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'Jost',sans-serif;font-size:0.85rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="saveManualBeatSelection()">
+      <option value="">— select a written scene —</option>
+    </select>
+  </div>
+  <div class="state-section">
     <span class="state-label">Scene Log</span>
     <div id="sceneLog"><div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div></div>
   </div>
@@ -1702,7 +1709,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v83</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v85</span>
     </div>
   </div>
 
@@ -4152,6 +4159,7 @@ function goScreen(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'state') populateManualBeatSelect();
 }
 
 // ══════════════════════════════
@@ -4580,22 +4588,60 @@ function getLastWrittenScene() {
     });
   });
   if (!lastKey) return null;
-  return {
-    beat: chapters[lastChIdx].beats[lastBIdx],
-    text: writtenScenes[lastKey]
-  };
+  return { beat: chapters[lastChIdx].beats[lastBIdx], text: writtenScenes[lastKey] };
+}
+
+function getSelectedScene() {
+  // Returns { beat, text } for the beat selected in the picker, falling back to last written
+  var sel = document.getElementById('manualBeatSelect');
+  if (sel && sel.value) {
+    var parts = sel.value.split('-');
+    var ci = parseInt(parts[0]), bi = parseInt(parts[1]);
+    var key = ci + '-' + bi;
+    if (!isNaN(ci) && !isNaN(bi) && chapters[ci] && chapters[ci].beats[bi] && writtenScenes[key]) {
+      return { beat: chapters[ci].beats[bi], text: writtenScenes[key] };
+    }
+  }
+  return getLastWrittenScene();
+}
+
+function populateManualBeatSelect() {
+  var sel = document.getElementById('manualBeatSelect');
+  if (!sel) return;
+  var current = sel.value;
+  sel.innerHTML = '<option value="">— select a written scene —</option>';
+  chapters.forEach(function(ch, ci) {
+    (ch.beats || []).forEach(function(beat, bi) {
+      var key = ci + '-' + bi;
+      if (writtenScenes[key]) {
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = 'Ch.' + (ci+1) + ' B' + (bi+1) + ' — ' + (beat.title || 'Untitled');
+        if (key === current) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    });
+  });
+  // If nothing selected and there are options, auto-select last written
+  if (!sel.value && sel.options.length > 1) {
+    sel.selectedIndex = sel.options.length - 1;
+  }
+}
+
+function saveManualBeatSelection() {
+  // No-op — selection is read live from the select element
 }
 
 function manualUpdateStoryState() {
   var apiKey = document.getElementById('apiKey').value.trim();
   if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
-  var last = getLastWrittenScene();
-  if (!last) { showToast('No scenes written yet'); return; }
+  var scene = getSelectedScene();
+  if (!scene) { showToast('No scenes written yet'); return; }
   var model = document.getElementById('modelSelect').value;
   var btn = document.getElementById('manualStateBtn');
   btn.disabled = true; btn.textContent = 'Updating…';
   showToast('Updating story state…');
-  updateStoryState(apiKey, model, last.beat, last.text, function() {
+  updateStoryState(apiKey, model, scene.beat, scene.text, function() {
     btn.disabled = false; btn.textContent = '↺ Update Now';
   });
 }
@@ -4603,13 +4649,13 @@ function manualUpdateStoryState() {
 function manualUpdatePhysicalContinuity() {
   var apiKey = document.getElementById('apiKey').value.trim();
   if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
-  var last = getLastWrittenScene();
-  if (!last) { showToast('No scenes written yet'); return; }
+  var scene = getSelectedScene();
+  if (!scene) { showToast('No scenes written yet'); return; }
   var model = document.getElementById('modelSelect').value;
   var btn = document.getElementById('manualPhysBtn');
   btn.disabled = true; btn.textContent = 'Updating…';
   showToast('Updating physical continuity…');
-  updatePhysicalContinuity(apiKey, model, last.beat, last.text, function() {
+  updatePhysicalContinuity(apiKey, model, scene.beat, scene.text, function() {
     btn.disabled = false; btn.textContent = '↺ Update Now';
   });
 }
@@ -5109,6 +5155,7 @@ function writeScene() {
           document.getElementById('btnCopy').style.display = '';
           document.getElementById('btnRewrite').style.display = '';
           updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
+          populateManualBeatSelect();
           if (document.getElementById('autoUpdateState').checked) {
             showToast('Updating story state\u2026');
             updateStoryState(apiKey, model, beat, fullText);
@@ -5522,12 +5569,16 @@ function generateWizardNames() {
   );
 }
 
-function selectWizardName(el, name) {
+function selectWizardName(el) {
+  var name = el.dataset.name || el.textContent.trim();
   var chips = document.querySelectorAll('#wizNameChips .wiz-chip');
   chips.forEach(function(c) { c.classList.remove('selected'); });
   el.classList.add('selected');
   var input = document.getElementById('wiz_name');
   if (input) input.value = name;
+  // Save to wizardData so it persists if step re-renders
+  if (!wizardData['name_step']) wizardData['name_step'] = {};
+  wizardData['name_step']['wiz_name'] = name;
 }
 
 
@@ -6010,7 +6061,7 @@ function renderWizardStep() {
       body += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;" id="wizNameChips">';
       nameOptions.forEach(function(n) {
         var isSelected = savedName === n;
-        body += '<div class="wiz-chip' + (isSelected ? ' selected' : '') + '" onclick="selectWizardName(this, \'' + n.replace(/'/g,"\\'") + '\')" style="font-size:0.9rem;padding:8px 16px;">' + n + '</div>';
+        body += '<div class="wiz-chip' + (isSelected ? ' selected' : '') + '" data-name="' + escapeAttr(n) + '" onclick="selectWizardName(this)" style="font-size:0.9rem;padding:8px 16px;">' + escapeHtml(n) + '</div>';
       });
       body += '</div>';
       body += '<button type="button" onclick="generateWizardNames()" style="margin-bottom:16px;padding:8px 16px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:\'Jost\',sans-serif;font-size:0.8rem;cursor:pointer;">↺ New suggestions</button>';
