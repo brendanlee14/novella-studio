@@ -1764,7 +1764,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v86</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v87</span>
     </div>
   </div>
 
@@ -4171,11 +4171,14 @@ function applyPortraitPreset(charId, name) {
 }
 
 function lockPortraitSeed(charId) {
-  // Lock the last seed used — stored in portraitState
-  var lastSeed = portraitState[charId].lastSeed;
-  if (!lastSeed) { showToast('Generate a portrait first to get a seed to lock'); return; }
+  var lastSeed = portraitState[charId] && portraitState[charId].lastSeed;
+  if (!lastSeed) { showToast('Generate a portrait first'); return; }
   var input = document.getElementById('portrait-' + charId + '-seed');
-  if (input) { input.value = lastSeed; showToast('Seed ' + lastSeed + ' locked'); }
+  if (input) {
+    input.value = lastSeed;
+    showToast('Seed ' + lastSeed + ' locked — portraits will be consistent');
+    dbg('Seed locked for ' + charId + ': ' + lastSeed);
+  }
 }
 
 function clearPortraitSeed(charId) {
@@ -4231,6 +4234,10 @@ function generatePortrait(charId) {
     var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : null;
     dbg('[Venice] → generate model=' + model + ' promptChars=' + imagePrompt.length + (seedVal ? ' seed=' + seedVal : ' seed=random'));
     dbg('[Venice] prompt: ' + imagePrompt.slice(0, 120) + '…');
+    // Always use a seed — either the locked one or a freshly generated random seed
+    // This ensures Lock always has a seed to capture
+    if (!seedVal) seedVal = Math.floor(Math.random() * 999999999) + 1;
+    portraitState[charId].lastSeed = seedVal;
     var requestBody = {
       model: model,
       prompt: imagePrompt,
@@ -4240,9 +4247,9 @@ function generatePortrait(charId) {
       steps: 30,
       hide_watermark: true,
       return_binary: false,
-      safe_mode: false
+      safe_mode: false,
+      seed: seedVal
     };
-    if (seedVal) requestBody.seed = seedVal;
     fetch('https://api.venice.ai/api/v1/image/generate', {
       method: 'POST',
       headers: {
