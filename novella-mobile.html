@@ -1418,6 +1418,21 @@
           <button type="button" class="portrait-option-toggle" id="portrait-char1-holding-btn" onclick="togglePortraitOption('char1','holding')">Holding</button>
           <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char1')">Change</button>
         </div>
+        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+          <span class="portrait-pose-label">Seed</span>
+          <input type="number" id="portrait-char1-seed" placeholder="Random" min="1" max="999999999"
+            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);"
+            title="Lock seed for consistent portraits" />
+          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')" title="Use last generated seed">Lock</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')" title="Clear seed">Clear</button>
+        </div>
+        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+          <span class="portrait-pose-label">Preset</span>
+          <select id="portrait-char1-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char1', this.value)">
+            <option value="">— apply preset —</option>
+          </select>
+          <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char1')">Save</button>
+        </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
             <span id="portrait-char1-label">✦ Generate Portrait</span>
@@ -1462,6 +1477,20 @@
           <button type="button" class="portrait-option-toggle" id="portrait-char2-nipples-btn" onclick="togglePortraitOption('char2','nipples')">Hard nipples</button>
           <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char2')">Change</button>
         </div>
+        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+          <span class="portrait-pose-label">Seed</span>
+          <input type="number" id="portrait-char2-seed" placeholder="Random" min="1" max="999999999"
+            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char2')">Lock</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char2')">Clear</button>
+        </div>
+        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+          <span class="portrait-pose-label">Preset</span>
+          <select id="portrait-char2-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char2', this.value)">
+            <option value="">— apply preset —</option>
+          </select>
+          <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char2')">Save</button>
+        </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
             <span id="portrait-char2-label">✦ Generate Portrait</span>
@@ -1505,6 +1534,20 @@
           <span class="portrait-pose-current" id="portrait-charSupport-state-label">Nude</span>
           <button type="button" class="portrait-option-toggle" id="portrait-charSupport-nipples-btn" onclick="togglePortraitOption('charSupport','nipples')">Hard nipples</button>
           <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport')">Change</button>
+        </div>
+        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+          <span class="portrait-pose-label">Seed</span>
+          <input type="number" id="portrait-charSupport-seed" placeholder="Random" min="1" max="999999999"
+            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport')">Lock</button>
+          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport')">Clear</button>
+        </div>
+        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+          <span class="portrait-pose-label">Preset</span>
+          <select id="portrait-charSupport-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('charSupport', this.value)">
+            <option value="">— apply preset —</option>
+          </select>
+          <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport')">Save</button>
         </div>
         <div class="portrait-actions">
           <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
@@ -1695,6 +1738,18 @@
         <option value="chapter">~1500 words</option>
       </select>
     </div>
+    <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div class="setting-label">Heat Level</div><div class="setting-sub">Explicit intensity of scenes</div></div>
+        <span id="heatLevelLabel" style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);min-width:80px;text-align:right;">3 — Explicit</span>
+      </div>
+      <input type="range" id="heatLevel" min="1" max="5" value="3" step="1"
+        style="width:100%;accent-color:var(--rose);cursor:pointer;"
+        oninput="updateHeatLabel(this.value)" onchange="debouncedSave()" />
+      <div style="display:flex;justify-content:space-between;font-size:0.62rem;color:var(--muted);letter-spacing:0.05em;">
+        <span>Sensual</span><span>Suggestive</span><span>Explicit</span><span>Graphic</span><span>Unrestricted</span>
+      </div>
+    </div>
     <div class="setting-row">
       <div><div class="setting-label">Auto-update State</div><div class="setting-sub">After each scene is written</div></div>
       <label class="toggle"><input type="checkbox" id="autoUpdateState" checked /><span class="toggle-slider"></span></label>
@@ -1709,7 +1764,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v85</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v86</span>
     </div>
   </div>
 
@@ -1818,6 +1873,18 @@
       <div>
         <label class="field-label">Location</label>
         <input class="sheet-input" id="modalLoc" type="text" placeholder="e.g. Singapore apartment" />
+      </div>
+    </div>
+    <div class="sheet-row">
+      <div style="flex:1;">
+        <label class="field-label">Scene Length Override</label>
+        <select class="sheet-input" id="modalLength" style="width:100%;appearance:none;-webkit-appearance:none;">
+          <option value="">Use global setting</option>
+          <option value="short">~300 words</option>
+          <option value="medium">~600 words</option>
+          <option value="long">~1000 words</option>
+          <option value="chapter">~1500 words</option>
+        </select>
       </div>
     </div>
     <div class="sheet-actions">
@@ -2142,6 +2209,7 @@ function saveCurrentStory() {
       veniceImageModel: document.getElementById('veniceImageModel').value,
       model: document.getElementById('modelSelect').value,
       length: document.getElementById('lengthTarget').value,
+      heatLevel: document.getElementById('heatLevel').value,
       autoUpdate: document.getElementById('autoUpdateState').checked,
       includeHistory: document.getElementById('includeHistory').checked,
       systemPrefix: document.getElementById('systemPrefix').value,
@@ -2178,6 +2246,8 @@ function loadStoryIntoApp(story) {
   document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream';
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
   document.getElementById('lengthTarget').value = s.length || 'medium';
+  document.getElementById('heatLevel').value = s.heatLevel || '3';
+  updateHeatLabel(s.heatLevel || '3');
   document.getElementById('autoUpdateState').checked = s.autoUpdate !== false;
   document.getElementById('includeHistory').checked = s.includeHistory !== false;
   document.getElementById('systemPrefix').value = s.systemPrefix || 'You are a skilled romance novelist. Write in third-person limited POV. Focus on emotional interiority, sensory detail, and romantic tension. Avoid clichés. Each scene should advance either the plot or the relationship. End scenes at a compelling moment.';
@@ -2200,7 +2270,7 @@ function loadStoryIntoApp(story) {
     return Promise.all(promises);
   }).catch(function() {
     // Fallback — render empty carousels
-    ['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); });
+    ['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); renderPortraitPresetSelect(id); });
   });
 
   // Restore plan
@@ -4017,6 +4087,102 @@ function poseToSDTerm(pose) {
   return map[pose] || 'half body shot, from waist up';
 }
 
+
+// ══════════════════════════════
+// PORTRAIT PRESETS + SEED
+// ══════════════════════════════
+var PORTRAIT_PRESETS_KEY = 'novella_studio_portrait_presets_v1';
+
+function loadPortraitPresets() {
+  try {
+    return JSON.parse(localStorage.getItem(PORTRAIT_PRESETS_KEY) || '{}');
+  } catch(e) { return {}; }
+}
+
+function savePortraitPresets(presets) {
+  try { localStorage.setItem(PORTRAIT_PRESETS_KEY, JSON.stringify(presets)); } catch(e) {}
+}
+
+function renderPortraitPresetSelect(charId) {
+  var sel = document.getElementById('portrait-' + charId + '-preset');
+  if (!sel) return;
+  var presets = loadPortraitPresets();
+  var charPresets = presets[charId] || {};
+  sel.innerHTML = '<option value="">— apply preset —</option>';
+  Object.keys(charPresets).forEach(function(name) {
+    var opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+}
+
+function savePortraitPreset(charId) {
+  var name = prompt('Preset name (e.g. "Office look", "Beach scene"):');
+  if (!name || !name.trim()) return;
+  name = name.trim();
+  var state = portraitState[charId];
+  var presets = loadPortraitPresets();
+  if (!presets[charId]) presets[charId] = {};
+  presets[charId][name] = {
+    pose: state.pose,
+    clothing: state.clothing,
+    dressedState: state.dressedState,
+    sheer: state.sheer,
+    hardNipples: state.hardNipples,
+    erect: state.erect,
+    holding: state.holding,
+  };
+  savePortraitPresets(presets);
+  renderPortraitPresetSelect(charId);
+  showToast('Preset "' + name + '" saved');
+}
+
+function applyPortraitPreset(charId, name) {
+  if (!name) return;
+  var presets = loadPortraitPresets();
+  var preset = presets[charId] && presets[charId][name];
+  if (!preset) return;
+  var state = portraitState[charId];
+  if (preset.pose !== undefined) {
+    state.pose = preset.pose;
+    var poseLabel = document.getElementById('portrait-' + charId + '-pose-label');
+    if (poseLabel) poseLabel.textContent = preset.pose;
+  }
+  if (preset.clothing !== undefined) {
+    state.clothing = preset.clothing;
+    var clothLabel = document.getElementById('portrait-' + charId + '-clothing-label');
+    if (clothLabel) clothLabel.textContent = preset.clothing;
+  }
+  if (preset.dressedState !== undefined) {
+    state.dressedState = preset.dressedState;
+    var stateLabel = document.getElementById('portrait-' + charId + '-state-label');
+    if (stateLabel) stateLabel.textContent = preset.dressedState;
+  }
+  state.sheer = !!preset.sheer;
+  state.hardNipples = !!preset.hardNipples;
+  state.erect = !!preset.erect;
+  state.holding = !!preset.holding;
+  ['sheer','nipples','erect','holding'].forEach(function(opt) { updateToggleBtn(charId, opt); });
+  // Reset select to placeholder
+  var sel = document.getElementById('portrait-' + charId + '-preset');
+  if (sel) sel.value = '';
+  showToast('Preset "' + name + '" applied');
+}
+
+function lockPortraitSeed(charId) {
+  // Lock the last seed used — stored in portraitState
+  var lastSeed = portraitState[charId].lastSeed;
+  if (!lastSeed) { showToast('Generate a portrait first to get a seed to lock'); return; }
+  var input = document.getElementById('portrait-' + charId + '-seed');
+  if (input) { input.value = lastSeed; showToast('Seed ' + lastSeed + ' locked'); }
+}
+
+function clearPortraitSeed(charId) {
+  var input = document.getElementById('portrait-' + charId + '-seed');
+  if (input) { input.value = ''; showToast('Seed cleared — next generation will be random'); }
+}
+
 function generatePortrait(charId) {
   var veniceKey = document.getElementById('veniceApiKey').value.trim();
   if (!veniceKey) {
@@ -4061,25 +4227,29 @@ function generatePortrait(charId) {
 
   function doGenerate(imagePrompt) {
     var veniceT0 = Date.now();
-    dbg('[Venice] → generate model=' + model + ' promptChars=' + imagePrompt.length);
+    var seedInput = document.getElementById('portrait-' + charId + '-seed');
+    var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : null;
+    dbg('[Venice] → generate model=' + model + ' promptChars=' + imagePrompt.length + (seedVal ? ' seed=' + seedVal : ' seed=random'));
     dbg('[Venice] prompt: ' + imagePrompt.slice(0, 120) + '…');
+    var requestBody = {
+      model: model,
+      prompt: imagePrompt,
+      negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus',
+      width: 832,
+      height: 1216,
+      steps: 30,
+      hide_watermark: true,
+      return_binary: false,
+      safe_mode: false
+    };
+    if (seedVal) requestBody.seed = seedVal;
     fetch('https://api.venice.ai/api/v1/image/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + veniceKey
       },
-      body: JSON.stringify({
-        model: model,
-        prompt: imagePrompt,
-        negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus',
-        width: 832,
-        height: 1216,
-        steps: 30,
-        hide_watermark: true,
-        return_binary: false,
-        safe_mode: false
-      })
+      body: JSON.stringify(requestBody)
     }).then(function(res) {
       dbg('[Venice] status=' + res.status + ' (' + (Date.now() - veniceT0) + 'ms)');
       if (!res.ok) {
@@ -4100,7 +4270,10 @@ function generatePortrait(charId) {
 
       var images = data.images || (data.data && data.data.images);
       dbg('[Venice] ← done keys=' + Object.keys(data).join(',') + ' elapsed=' + (Date.now() - veniceT0) + 'ms');
-      if (data.metadata) dbg('[Venice] metadata: ' + JSON.stringify(data.metadata).slice(0, 120));
+      if (data.metadata) {
+        dbg('[Venice] metadata: ' + JSON.stringify(data.metadata).slice(0, 120));
+        if (data.metadata.seed) { portraitState[charId].lastSeed = data.metadata.seed; dbg('[Venice] seed=' + data.metadata.seed); }
+      }
       if (!images || !images[0]) throw new Error('No image returned');
 
       var b64 = images[0];
@@ -4242,6 +4415,7 @@ function openBeatModal(beatIdx, chIdx) {
   document.getElementById('modalDesc').value = beat ? beat.desc || '' : '';
   document.getElementById('modalPOV').value = beat ? beat.pov || '' : '';
   document.getElementById('modalLoc').value = beat ? beat.loc || '' : '';
+  document.getElementById('modalLength').value = beat ? beat.length || '' : '';
   document.getElementById('beatModal').style.display = 'flex';
   wireExpandBeatFields();
   setTimeout(() => document.getElementById('modalTitle').focus(), 350);
@@ -4257,6 +4431,7 @@ function saveBeat() {
     desc: document.getElementById('modalDesc').value.trim(),
     pov: document.getElementById('modalPOV').value.trim(),
     loc: document.getElementById('modalLoc').value.trim(),
+    length: document.getElementById('modalLength').value || '',
   };
   const chIdx = pendingBeatChIdx !== null ? pendingBeatChIdx : 0;
   if (!chapters[chIdx]) return;
@@ -5055,8 +5230,16 @@ function buildContext() {
   return ctx;
 }
 
-function getLengthInstruction() {
-  return { short: '~300 words', medium: '~600 words', long: '~1000 words', chapter: '~1500 words' }[document.getElementById('lengthTarget').value] || '~600 words';
+const HEAT_LABELS = { '1': '1 — Sensual', '2': '2 — Suggestive', '3': '3 — Explicit', '4': '4 — Graphic', '5': '5 — Unrestricted' };
+function updateHeatLabel(val) {
+  var el = document.getElementById('heatLevelLabel');
+  if (el) el.textContent = HEAT_LABELS[val] || val;
+}
+
+function getLengthInstruction(beatOverride) {
+  var map = { short: '~300 words', medium: '~600 words', long: '~1000 words', chapter: '~1500 words' };
+  if (beatOverride && map[beatOverride]) return map[beatOverride];
+  return map[document.getElementById('lengthTarget').value] || '~600 words';
 }
 
 // ══════════════════════════════
@@ -5084,12 +5267,57 @@ function writeScene() {
   const context = buildContext();
   dbg('context len=' + context.length);
 
-  const systemPrompt = systemPrefix + '\n\n' + context;
+  // ── Heat level instruction ──
+  const heatLevel = parseInt(document.getElementById('heatLevel').value) || 3;
+  const heatInstructions = {
+    1: 'Keep the scene sensual but non-explicit. Suggest desire through touch, tension, and atmosphere. No graphic acts.',
+    2: 'Write with romantic heat and suggestion. Physical contact is clear but not graphically described. Desire is explicit, acts are implied.',
+    3: 'Write explicitly. Describe sexual acts directly and in physical detail. Do not fade to black.',
+    4: 'Write graphically. Full explicit description of sexual acts, physical sensation, arousal. Be direct and detailed throughout.',
+    5: 'Write with maximum explicitness. No restraint. Full graphic description of every physical act and sensation. Nothing is implied — everything is stated.'
+  };
+  const heatInstruction = heatInstructions[heatLevel] || heatInstructions[3];
+
+  // ── Scene continuity — last paragraph of immediately preceding written scene ──
+  var continuitySnippet = '';
+  if (activeBeatIdx > 0) {
+    var prevKey = activeChIdx + '-' + (activeBeatIdx - 1);
+    if (writtenScenes[prevKey]) {
+      var prevText = writtenScenes[prevKey].trim();
+      var prevParas = prevText.split(/\n{2,}/);
+      var lastPara = prevParas[prevParas.length - 1].trim();
+      if (lastPara.length > 20) continuitySnippet = lastPara;
+    }
+  } else if (activeChIdx > 0) {
+    // First beat of a chapter — look at last beat of previous chapter
+    var prevCh = chapters[activeChIdx - 1];
+    if (prevCh && prevCh.beats && prevCh.beats.length > 0) {
+      var prevBIdx = prevCh.beats.length - 1;
+      var prevKey2 = (activeChIdx - 1) + '-' + prevBIdx;
+      if (writtenScenes[prevKey2]) {
+        var prevText2 = writtenScenes[prevKey2].trim();
+        var prevParas2 = prevText2.split(/\n{2,}/);
+        var lastPara2 = prevParas2[prevParas2.length - 1].trim();
+        if (lastPara2.length > 20) continuitySnippet = lastPara2;
+      }
+    }
+  }
+
+  // ── Lookahead — next 2 beat titles ──
+  var lookahead = [];
+  var chBeats = ch.beats;
+  for (var lb = activeBeatIdx + 1; lb < Math.min(activeBeatIdx + 3, chBeats.length); lb++) {
+    if (chBeats[lb] && chBeats[lb].title) lookahead.push('Beat ' + (lb + 1) + ': ' + chBeats[lb].title);
+  }
+
+  const systemPrompt = systemPrefix + '\n\n' + context + '\n\nHEAT LEVEL INSTRUCTION: ' + heatInstruction;
   const userPrompt = 'Write the next scene for ' + ch.title + ', Beat ' + (activeBeatIdx + 1) + ': "' + beat.title + '"'
     + (beat.desc ? '\nWhat happens: ' + beat.desc : '')
     + (beat.pov ? '\nPOV: ' + beat.pov : '')
     + (beat.loc ? '\nLocation: ' + beat.loc : '')
-    + '\n\nTarget length: ' + getLengthInstruction()
+    + (continuitySnippet ? '\n\nCONTINUITY — this scene picks up immediately after:\n"' + continuitySnippet + '"' : '')
+    + (lookahead.length ? '\n\nCOMING UP NEXT (do NOT write these yet — they happen in future beats):\n' + lookahead.join('\n') : '')
+    + '\n\nTarget length: ' + getLengthInstruction(beat.length)
     + '\nOutput only prose — no titles, labels, or commentary.';
 
   const proseOut = document.getElementById('proseOutput');
@@ -5307,7 +5535,7 @@ document.getElementById('storySaveBtn').addEventListener('click', saveStoryModal
 document.getElementById('backToStoriesBtn').addEventListener('click', goHome);
 
 // Auto-save inputs
-const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','veniceImageModel','modelSelect','lengthTarget','autoUpdateState','includeHistory','planSynopsis'];
+const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','veniceImageModel','modelSelect','lengthTarget','heatLevel','autoUpdateState','includeHistory','planSynopsis'];
 watchIds.forEach(id => {
   const el = document.getElementById(id);
   if (el) { el.addEventListener('input', debouncedSave); el.addEventListener('change', debouncedSave); }
