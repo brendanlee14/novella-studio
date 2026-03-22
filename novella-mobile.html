@@ -1788,7 +1788,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v92</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v94</span>
     </div>
   </div>
 
@@ -3087,7 +3087,7 @@ function generateChapterBeats(chIdx) {
   ].filter(Boolean).join('\n\n');
 
   const systemMsg = (persona || 'You are a story structure expert for adult romance fiction.')
-    + '\n\nGenerate story beats. Each beat must reflect the tone, heat level, and explicitness in the lore. Do not sanitise — clearly describe what happens including sexual or intimate scenes.';
+    + '\n\nGenerate story beats. Each beat must reflect the tone, heat level, and explicitness in the lore. Do not sanitise — clearly describe what happens including sexual or intimate scenes. CRITICAL: Always refer to characters by name, never by pronoun (he/she/him/her). Use role if name unknown.';
 
   // Previous chapters as context
   const prevCtx = chIdx > 0
@@ -3116,7 +3116,7 @@ ${loreCtx ? 'CHARACTER & TONE REFERENCE:\n' + loreCtx : ''}
 
 Output ONLY valid JSON — an array of exactly ${beatCount} beat objects:
 - "title": short evocative beat title (max 8 words) — specific about what happens
-- "desc": 2-3 sentences — what happens, what is felt, what shifts. Reflect heat level, don't fade to black. Use character names rather than pronouns (he/she) to avoid confusion.
+- "desc": 3-4 sentences — what happens, what is felt, what shifts. Reflect heat level, don't fade to black. Use character names rather than pronouns (he/she) to avoid confusion.
 - "pov": POV character name
 - "loc": location
 
@@ -3198,7 +3198,7 @@ function doGenerateBeatsSequential(apiKey, model, append) {
   ].filter(Boolean).join('\n\n');
 
   const systemMsg = (persona || 'You are a story structure expert for adult romance fiction.')
-    + '\n\nYou are generating story beats. Each beat must reflect the tone, heat level, and explicitness in the lore. Do not sanitise or soften beats — clearly indicate what happens including sexual or intimate scenes.';
+    + '\n\nYou are generating story beats. Each beat must reflect the tone, heat level, and explicitness in the lore. Do not sanitise or soften beats — clearly indicate what happens including sexual or intimate scenes. CRITICAL: Always refer to characters by name, never by pronoun (he/she/him/her). Use role if name unknown.';
 
   const total = planSummaries.length;
   const results = new Array(total).fill(null);
@@ -3228,7 +3228,7 @@ ${ch.summary}
 
 ${i < total - 1 ? 'UPCOMING CHAPTER ' + (i+2) + ': ' + planSummaries[i+1].title + '\n' + (planSummaries[i+1].summary || '') + '\n\n' : ''}Output ONLY valid JSON — an array of ${beatCount} beat objects, each with:
 - "title": short evocative beat title (max 8 words) — be specific about what happens including intimate/explicit beats
-- "desc": 1-2 sentences describing the scene — reflect the heat level and tone, don't fade to black. Use character names rather than pronouns (he/she).
+- "desc": 3-4 sentences describing the scene — reflect the heat level and tone, don't fade to black. Use character names rather than pronouns (he/she).
 - "pov": POV character name (if clear)
 - "loc": location (if clear)
 
@@ -3347,7 +3347,7 @@ function retryChapterBeats(chIdx) {
   ].filter(Boolean).join('\n\n');
 
   const systemMsg = (persona || 'You are a story structure expert for adult romance fiction.')
-    + '\n\nGenerate story beats. Reflect tone and heat level including explicit content. Do not sanitise.';
+    + '\n\nGenerate story beats. Reflect tone and heat level including explicit content. Do not sanitise. CRITICAL: Always refer to characters by name, never by pronoun (he/she/him/her). Use role if name unknown.';
 
   const prevSummaries = planSummaries.slice(0, chIdx).map((s, idx) => 'Chapter ' + (idx+1) + ': ' + s.title + '\n' + s.summary).join('\n\n');
   const beatCount = ch.beatCount || 4;
