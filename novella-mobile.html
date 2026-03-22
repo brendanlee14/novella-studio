@@ -1788,7 +1788,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v91</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v92</span>
     </div>
   </div>
 
@@ -4983,15 +4983,17 @@ function openReadingMode() {
     scroll.removeEventListener('scroll', onReadingScroll);
     scroll.addEventListener('scroll', onReadingScroll, { passive: true });
 
-    // Restore saved scroll position
-    if (readingScrollPosition > 0) {
-      scroll.scrollTop = readingScrollPosition;
-    } else {
-      scroll.scrollTop = 0;
-    }
+    // Restore saved scroll position — defer to let DOM layout settle
+    setTimeout(function() {
+      if (readingScrollPosition > 0) {
+        scroll.scrollTop = readingScrollPosition;
+      } else {
+        scroll.scrollTop = 0;
+      }
+    }, 60);
 
     // Initial chapter bar update
-    setTimeout(updateReadingChapterBar, 100);
+    setTimeout(updateReadingChapterBar, 180);
   }
 
   readingHeaderVisible = true;
