@@ -1788,7 +1788,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v94</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v95</span>
     </div>
   </div>
 
@@ -3122,12 +3122,19 @@ Output ONLY valid JSON — an array of exactly ${beatCount} beat objects:
 
 No markdown, no commentary, just the JSON array.`;
 
+  var beatT0 = Date.now();
+  var statusEl = document.getElementById('beat-status-' + chIdx);
+  if (statusEl) statusEl.textContent = '⏳ Generating beats…';
+  dbg('[Beats] Ch.' + (chIdx+1) + ' starting — ' + beatCount + ' beats, promptChars=' + (systemMsg.length + prompt.length));
+
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-    { maxTokens: 3000, label: 'chapterBeats',
+    { maxTokens: 10000, label: 'chapterBeats',
       onDone: function(raw) {
         if (btn) { btn.disabled = false; }
         raw = raw.trim();
+        var elapsed = ((Date.now() - beatT0) / 1000).toFixed(1);
+        dbg('[Beats] Ch.' + (chIdx+1) + ' response received — responseChars=' + raw.length + ' elapsed=' + elapsed + 's');
         const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
         try {
           const parsed = JSON.parse(cleaned);
@@ -3145,19 +3152,22 @@ No markdown, no commentary, just the JSON array.`;
           }));
           saveCurrentStory();
           refreshBeatCard(chIdx);
+          dbg('[Beats] Ch.' + (chIdx+1) + ' ✓ ' + parsed.length + ' beats parsed in ' + elapsed + 's');
           showToast('Ch.' + (chIdx+1) + ' — ' + parsed.length + ' beats ✓');
         } catch(e) {
           lastBeatResults[chIdx] = { ok: false };
           refreshBeatCard(chIdx);
+          dbg('[Beats] Ch.' + (chIdx+1) + ' ✗ parse error: ' + e.message + ' raw: ' + raw.slice(0, 80));
           showToast('Ch.' + (chIdx+1) + ' failed — try again');
         }
       },
       onError: function(err) {
         if (btn) { btn.disabled = false; }
         lastBeatResults[chIdx] = { ok: false };
+        if (statusEl) statusEl.textContent = '✗ Failed — tap Generate to retry';
         refreshBeatCard(chIdx);
+        dbg('[Beats] Ch.' + (chIdx+1) + ' ✗ network error: ' + err.message);
         showToast('Network error — try again');
-        dbg('generateChapterBeats error: ' + err.message);
       }
     }
   );
@@ -3234,19 +3244,23 @@ ${i < total - 1 ? 'UPCOMING CHAPTER ' + (i+2) + ': ' + planSummaries[i+1].title 
 
 No markdown, no commentary, just the JSON array.`;
 
+    var batchT0 = Date.now();
+    dbg('[Beats] Batch Ch.' + (i+1) + '/' + total + ' starting — ' + beatCount + ' beats');
     streamingFetch(apiKey, model,
       [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-      { maxTokens: 3000, label: 'batchBeats',
+      { maxTokens: 10000, label: 'batchBeats',
         onDone: function(raw) {
           raw = raw.trim();
+          var elapsed = ((Date.now() - batchT0) / 1000).toFixed(1);
+          dbg('[Beats] Batch Ch.' + (i+1) + ' response — responseChars=' + raw.length + ' elapsed=' + elapsed + 's');
           const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
           try {
             const parsed = JSON.parse(cleaned);
             if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Empty array');
             results[i] = parsed;
-            dbg('Ch' + (i+1) + ' beats ok: ' + parsed.length);
+            dbg('[Beats] Batch Ch.' + (i+1) + ' ✓ ' + parsed.length + ' beats in ' + elapsed + 's');
           } catch(e) {
-            dbg('Ch' + (i+1) + ' parse error: ' + e.message + ' — raw: ' + raw.slice(0, 80));
+            dbg('[Beats] Batch Ch.' + (i+1) + ' ✗ parse error: ' + e.message + ' raw: ' + raw.slice(0, 80));
             results[i] = null;
           }
           previousChapterSummaries.push({ title: ch.title, summary: ch.summary });
@@ -3361,11 +3375,15 @@ ${ch.summary}
 
 Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", "pov", "loc". In "desc" use character names not pronouns. No markdown.`;
 
+  var retryT0 = Date.now();
+  dbg('[Beats] Retry Ch.' + (chIdx+1) + ' starting — ' + beatCount + ' beats');
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-    { maxTokens: 2000, label: 'retryBeats',
+    { maxTokens: 10000, label: 'retryBeats',
       onDone: function(raw) {
         raw = raw.trim();
+        var elapsed = ((Date.now() - retryT0) / 1000).toFixed(1);
+        dbg('[Beats] Retry Ch.' + (chIdx+1) + ' response — responseChars=' + raw.length + ' elapsed=' + elapsed + 's');
         const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
         try {
           const parsed = JSON.parse(cleaned);
@@ -3376,16 +3394,16 @@ Output ONLY valid JSON array of ${beatCount} beat objects with "title", "desc", 
           renderChapters();
           saveCurrentStory();
           renderBeatCountList();
+          dbg('[Beats] Retry Ch.' + (chIdx+1) + ' ✓ ' + beats.length + ' beats in ' + elapsed + 's');
           showToast('Ch' + (chIdx+1) + ' beats generated ✓');
-          dbg('Retry ch' + (chIdx+1) + ' ok: ' + beats.length + ' beats');
         } catch(e) {
-          dbg('Retry ch' + (chIdx+1) + ' parse failed: ' + e.message);
+          dbg('[Beats] Retry Ch.' + (chIdx+1) + ' ✗ parse failed: ' + e.message);
           showToast('Ch' + (chIdx+1) + ' retry failed — check debug log');
           if (retryBtn) { retryBtn.disabled = false; retryBtn.textContent = '↺ Retry'; }
         }
       },
       onError: function(err) {
-        dbg('Retry ch' + (chIdx+1) + ' failed: ' + err.message);
+        dbg('[Beats] Retry Ch.' + (chIdx+1) + ' ✗ network error: ' + err.message);
         showToast('Ch' + (chIdx+1) + ' retry failed — check debug log');
         if (retryBtn) { retryBtn.disabled = false; retryBtn.textContent = '↺ Retry'; }
       }
