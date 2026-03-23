@@ -1235,6 +1235,15 @@
 
   ::-webkit-scrollbar { width: 0; }
 
+  /* ── PRINT / PDF STYLES ── */
+  #printFrame {
+    display: none;
+  }
+  @media print {
+    body > * { display: none !important; }
+    #printFrame { display: block !important; position: fixed; inset: 0; background: white; z-index: 99999; overflow: visible; }
+  }
+
   /* ── SEQUEL OVERLAY ── */
   .sequel-step {
     display: flex; align-items: center; gap: 14px;
@@ -1788,7 +1797,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v95</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v97</span>
     </div>
   </div>
 
@@ -2049,9 +2058,13 @@
       <span class="export-option-icon">📄</span>
       <div><div class="export-option-label">Plain Text</div><div class="export-option-sub">Download .txt — paste anywhere</div></div>
     </div>
+    <div class="export-option" onclick="exportAsPDF()">
+      <span class="export-option-icon">📕</span>
+      <div><div class="export-option-label">Save as PDF</div><div class="export-option-sub">Opens print dialog — tap Save as PDF</div></div>
+    </div>
     <div class="export-option" onclick="exportAsHTML()">
       <span class="export-option-icon">🖨️</span>
-      <div><div class="export-option-label">Formatted HTML</div><div class="export-option-sub">Open in browser → Print to PDF</div></div>
+      <div><div class="export-option-label">Formatted HTML</div><div class="export-option-sub">Download .html file</div></div>
     </div>
     <button type="button" onclick="closeExportSheet()" style="width:100%;margin-top:10px;padding:14px;background:none;border:1px solid var(--border);border-radius:12px;font-family:'Jost',sans-serif;font-size:0.9rem;color:var(--muted);cursor:pointer;">Cancel</button>
   </div>
@@ -5124,6 +5137,64 @@ function closeExportSheet() {
   document.getElementById('exportSheet').classList.remove('open');
 }
 
+function exportAsPDF() {
+  const story = getActiveStory();
+  const title = story ? story.title : 'My Story';
+  const data = buildManuscriptData();
+  if (!data.length) { showToast('No written scenes to export'); closeExportSheet(); return; }
+
+  // Build print-friendly HTML
+  let body = '';
+  data.forEach(ch => {
+    body += '<div class="chapter">';
+    body += '<p class="chapter-num">Chapter ' + ch.chapterNum + '</p>';
+    body += '<h2>' + escapeHtml(ch.chapterTitle) + '</h2>';
+    ch.scenes.forEach((scene, si) => {
+      if (si > 0) body += '<p class="scene-break">· · ·</p>';
+      scene.text.split(/\n{2,}/).forEach(function(para) {
+        var trimmed = para.trim();
+        if (trimmed) body += '<p>' + escapeHtml(trimmed).replace(/\n/g, '<br>') + '</p>';
+      });
+    });
+    body += '</div>';
+  });
+
+  const wc = getTotalWordCount();
+  const printHTML = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + escapeHtml(title) + '</title>' +
+    '<style>' +
+    '* { box-sizing: border-box; margin: 0; padding: 0; }' +
+    'body { font-family: Georgia, serif; font-size: 12pt; line-height: 1.8; color: #000; background: #fff; padding: 40px; max-width: 700px; margin: 0 auto; }' +
+    'h1 { font-size: 22pt; text-align: center; font-style: italic; margin-bottom: 8px; }' +
+    '.divider { text-align: center; color: #888; letter-spacing: 0.3em; margin-bottom: 48px; }' +
+    '.chapter { margin-bottom: 48px; page-break-inside: avoid; }' +
+    '.chapter-num { font-size: 8pt; text-transform: uppercase; letter-spacing: 0.2em; color: #888; text-align: center; margin-bottom: 6px; }' +
+    'h2 { font-size: 14pt; text-align: center; font-style: italic; color: #333; margin-bottom: 24px; font-weight: normal; }' +
+    'p { margin-bottom: 1em; text-indent: 1.5em; }' +
+    'p.scene-break { text-align: center; text-indent: 0; color: #ccc; letter-spacing: 0.4em; margin: 24px 0; }' +
+    '.footer { border-top: 1px solid #ddd; padding-top: 16px; margin-top: 48px; font-size: 8pt; color: #aaa; text-align: center; }' +
+    '@media print { body { padding: 0; } }' +
+    '</style></head><body>' +
+    '<h1>' + escapeHtml(title) + '</h1>' +
+    '<p class="divider">✦ ✦ ✦</p>' +
+    body +
+    '<div class="footer">' + wc.toLocaleString() + ' words · ' + new Date().toLocaleDateString() + '</div>' +
+    '</body></html>';
+
+  // Open in a new window and trigger print dialog
+  closeExportSheet();
+  var printWin = window.open('', '_blank');
+  if (!printWin) {
+    showToast('Allow pop-ups to use PDF export');
+    return;
+  }
+  printWin.document.write(printHTML);
+  printWin.document.close();
+  printWin.focus();
+  setTimeout(function() {
+    printWin.print();
+  }, 500);
+}
+
 function exportAsText() {
   const story = getActiveStory();
   const title = story ? story.title : 'My Story';
@@ -5500,7 +5571,8 @@ function copyProse() {
 // ══════════════════════════════
 // UPDATE STORY STATE
 // ══════════════════════════════
-function updateStoryState(apiKey, model, beat, sceneText, onComplete) {
+function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount) {
+  retryCount = retryCount || 0;
   const currentState = document.getElementById('storyState').value.trim();
   const prompt = 'Update this story state based on the scene just written.\n\nCurrent state:\n' + (currentState || '(none yet)') + '\n\nScene just written for beat "' + beat.title + '":\n' + sceneText.slice(0, 800) + '\n\nWrite a brief updated story state (3-5 sentences) describing where the story now stands. Focus on: character emotional states, what has changed, what tension remains.';
 
@@ -5517,12 +5589,18 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete) {
           if (typeof onComplete === 'function') onComplete();
         }
       },
-      onError: function(e) { dbg('State update error: ' + e.message); }
+      onError: function(e) {
+        dbg('State update error: ' + e.message + (retryCount < 1 ? ' — retrying in 5s' : ' — giving up'));
+        if (retryCount < 1) {
+          setTimeout(function() { updateStoryState(apiKey, model, beat, sceneText, onComplete, 1); }, 5000);
+        }
+      }
     }
   );
 }
 
-function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete) {
+function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, retryCount) {
+  retryCount = retryCount || 0;
   var char1 = document.getElementById('char1').value.trim().slice(0, 300);
   var char2 = document.getElementById('char2').value.trim().slice(0, 300);
   var charSupport = document.getElementById('charSupport').value.trim().slice(0, 200);
@@ -5553,7 +5631,12 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete) {
           if (typeof onComplete === 'function') onComplete();
         }
       },
-      onError: function(e) { dbg('Physical continuity update error: ' + e.message); }
+      onError: function(e) {
+        dbg('Physical continuity update error: ' + e.message + (retryCount < 1 ? ' — retrying in 5s' : ' — giving up'));
+        if (retryCount < 1) {
+          setTimeout(function() { updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, 1); }, 5000);
+        }
+      }
     }
   );
 }
