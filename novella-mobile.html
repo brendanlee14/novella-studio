@@ -1493,61 +1493,8 @@
   <div class="plan-stage active" id="gallery-stage-1">
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
 
-      <!-- Protagonist portraits -->
-      <div style="padding:14px 16px 4px;">
-        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">🌸 Protagonist</span>
-      </div>
-      <div style="padding:0 16px 16px;">
-        <div class="portrait-card" id="portrait-char1">
-          <div class="portrait-placeholder" id="portrait-char1-empty">
-            <span class="portrait-icon">🌸</span>
-            <span class="portrait-hint">Generate Portrait</span>
-          </div>
-          <div class="portrait-carousel" id="portrait-char1-carousel" style="display:none">
-            <div class="portrait-carousel-track" id="portrait-char1-track"></div>
-          </div>
-          <div class="portrait-dots" id="portrait-char1-dots" style="display:none"></div>
-          <div class="portrait-pose-row">
-            <span class="portrait-pose-label">Pose</span>
-            <span class="portrait-pose-current" id="portrait-char1-pose-label">Half body front</span>
-            <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char1')">Change</button>
-          </div>
-          <div class="portrait-pose-row">
-            <span class="portrait-pose-label">Clothing</span>
-            <span class="portrait-pose-current" id="portrait-char1-clothing-label">Nude</span>
-            <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char1')">Change</button>
-          </div>
-          <div class="portrait-pose-row">
-            <span class="portrait-pose-label">State</span>
-            <span class="portrait-pose-current" id="portrait-char1-state-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-char1-erect-btn" onclick="togglePortraitOption('char1','erect')">Erect</button>
-            <button type="button" class="portrait-option-toggle" id="portrait-char1-holding-btn" onclick="togglePortraitOption('char1','holding')">Holding</button>
-            <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char1')">Change</button>
-          </div>
-          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-            <span class="portrait-pose-label">Seed</span>
-            <input type="number" id="portrait-char1-seed" placeholder="Random" min="1" max="999999999"
-              style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
-            <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')">Lock</button>
-            <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')">Clear</button>
-          </div>
-          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-            <span class="portrait-pose-label">Preset</span>
-            <select id="portrait-char1-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char1', this.value)">
-              <option value="">— apply preset —</option>
-            </select>
-            <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char1')">Save</button>
-          </div>
-          <div class="portrait-actions">
-            <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
-              <span id="portrait-char1-label">✦ Generate Portrait</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- Love Interest portraits -->
-      <div style="padding:14px 16px 4px;border-top:1px solid var(--border);">
+      <div style="padding:14px 16px 4px;">
         <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">💫 Love Interest</span>
       </div>
       <div style="padding:0 16px 16px;">
@@ -1652,6 +1599,60 @@
         </div>
       </div>
 
+    </div>
+  </div>
+      <!-- Protagonist portraits -->
+      <div style="padding:14px 16px 4px;border-top:1px solid var(--border);">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">🌸 Protagonist</span>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="portrait-card" id="portrait-char1">
+          <div class="portrait-placeholder" id="portrait-char1-empty">
+            <span class="portrait-icon">🌸</span>
+            <span class="portrait-hint">Generate Portrait</span>
+          </div>
+          <div class="portrait-carousel" id="portrait-char1-carousel" style="display:none">
+            <div class="portrait-carousel-track" id="portrait-char1-track"></div>
+          </div>
+          <div class="portrait-dots" id="portrait-char1-dots" style="display:none"></div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Pose</span>
+            <span class="portrait-pose-current" id="portrait-char1-pose-label">Half body front</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char1')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Clothing</span>
+            <span class="portrait-pose-current" id="portrait-char1-clothing-label">Nude</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char1')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">State</span>
+            <span class="portrait-pose-current" id="portrait-char1-state-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-char1-erect-btn" onclick="togglePortraitOption('char1','erect')">Erect</button>
+            <button type="button" class="portrait-option-toggle" id="portrait-char1-holding-btn" onclick="togglePortraitOption('char1','holding')">Holding</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char1')">Change</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Seed</span>
+            <input type="number" id="portrait-char1-seed" placeholder="Random" min="1" max="999999999"
+              style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+            <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')">Lock</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')">Clear</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Preset</span>
+            <select id="portrait-char1-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char1', this.value)">
+              <option value="">— apply preset —</option>
+            </select>
+            <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char1')">Save</button>
+          </div>
+          <div class="portrait-actions">
+            <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
+              <span id="portrait-char1-label">✦ Generate Portrait</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1851,7 +1852,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v109</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v110</span>
     </div>
   </div>
 
@@ -4278,8 +4279,10 @@ function buildFallbackPrompt(lore, charId, pose) {
   // Clothing and state
   parts.push(buildClothingPromptTerms(charId));
 
+  var isMale = charId === 'char1';
+  parts.push(isMale ? '1man, male' : '1woman, female');
   var ageMatch = lore.match(/\b(\d{2})\b.*?(year|yo\b)/i) || lore.match(/age[:\s]+(\d{2})/i);
-  if (ageMatch) parts.push(ageMatch[1] + ' year old woman');
+  if (ageMatch) parts.push(ageMatch[1] + ' year old ' + (isMale ? 'man' : 'woman'));
   var cleaned = lore
     .replace(/\b(wife|husband|mistress|lover|affair|submissive|dominant|role|protagonist|story|chapter|scene|narrative|relationship)\b/gi, '')
     .replace(/["\[\]{}()]/g, '')
@@ -4296,8 +4299,12 @@ function buildFallbackPrompt(lore, charId, pose) {
 function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
   var poseInstruction = poseToSDTerm(pose || 'Half body front');
   var clothingInstruction = buildClothingPromptTerms(charId);
+  var genderTag = charId === 'char1' ? '1man, male, ' : '1woman, female, ';
+  var genderInstruction = charId === 'char1'
+    ? 'IMPORTANT: This is a MALE character. Output male-specific tags only. Do NOT use female anatomy terms.'
+    : 'IMPORTANT: This is a FEMALE character.';
 
-  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\nRequired composition: ' + poseInstruction + '\nRequired clothing/state: ' + clothingInstruction + '\n\nInclude: approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type, breast size and shape. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\n' + genderInstruction + '\n\nRequired composition: ' + poseInstruction + '\nRequired clothing/state: ' + clothingInstruction + '\n\nInclude: gender, approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type' + (charId !== 'char1' ? ', breast size and shape' : ', build, chest') + '. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
 }
 
 // ══════════════════════════════
