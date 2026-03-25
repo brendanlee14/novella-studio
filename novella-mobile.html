@@ -1783,10 +1783,10 @@
     <div class="setting-row">
       <div class="setting-label">Portrait Model</div>
       <select id="veniceImageModel">
-        <option value="hidream-i1-full">HiDream Full ⭐ (best)</option>
-        <option value="hidream-i1-fast">HiDream Fast</option>
-        <option value="hidream">HiDream (latest)</option>
-        <option value="lustify-sdxl">Lustify SDXL (explicit)</option>
+        <option value="hidream">HiDream ⭐ (best, img2img)</option>
+        <option value="seedream-v5-lite">Seedream V5 Lite (img2img)</option>
+        <option value="seedream-v4">Seedream V4 (img2img)</option>
+        <option value="lustify-sdxl">Lustify SDXL (explicit, fast)</option>
         <option value="fluently-xl">Fluently XL</option>
         <option value="nano-banana-pro">Nano Banana Pro</option>
       </select>
@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v106</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v107</span>
     </div>
   </div>
 
@@ -2846,7 +2846,7 @@ function generateSceneImage() {
 
   // Get reference portrait for img2img (most recent portrait for detected character)
   // Only attempt img2img on models that support it — lustify-sdxl and fluently-xl do not
-  var IMG2IMG_MODELS = ['hidream-i1-full', 'hidream-i1-fast', 'hidream', 'nano-banana-pro'];
+  var IMG2IMG_MODELS = ['hidream', 'seedream-v5-lite', 'seedream-v4', 'nano-banana-pro'];
   var modelSupportsImg2Img = IMG2IMG_MODELS.indexOf(model) > -1;
   var refPortrait = (modelSupportsImg2Img && portraitState[charId] && portraitState[charId].images && portraitState[charId].images.length)
     ? portraitState[charId].images[portraitState[charId].images.length - 1]
