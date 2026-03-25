@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v101</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v102</span>
     </div>
   </div>
 
@@ -2746,16 +2746,20 @@ function detectSceneCharacter(beat, sceneText) {
   dbg('[SceneImg] Name counts — char1(' + (names.char1||'?') + ')=' + counts.char1 + ' char2(' + (names.char2||'?') + ')=' + counts.char2 + ' charSupport(' + (names.charSupport||'?') + ')=' + counts.charSupport);
 
   // Scene images show the visual SUBJECT — the protagonist is the observer not the subject.
-  // Priority: char2 > charSupport > char1
-  // Only fall back to char1 if neither char2 nor charSupport are present in the scene.
-  if (lores.char2 && (counts.char2 > 0 || counts.charSupport === 0)) {
-    // char2 present, or no other non-protagonist — use char2
-    if (counts.charSupport > counts.char2 && lores.charSupport) return 'charSupport';
-    return 'char2';
+  // If charSupport is in the scene and char2 is not, use charSupport.
+  // If both present, use whoever appears more.
+  // Default to char2 only if neither char2 nor charSupport are explicitly identified.
+  var char2Present = counts.char2 > 0;
+  var supportPresent = counts.charSupport > 0;
+
+  if (char2Present && supportPresent) {
+    return counts.charSupport > counts.char2 ? 'charSupport' : 'char2';
   }
-  if (lores.charSupport && counts.charSupport > 0) return 'charSupport';
-  if (lores.char2) return 'char2'; // default to char2 if lore exists even if not mentioned by name
-  return 'char1'; // protagonist-only scene
+  if (supportPresent && lores.charSupport) return 'charSupport';
+  if (char2Present && lores.char2) return 'char2';
+  // Neither identified by name — default to char2 if lore exists, else char1
+  if (lores.char2) return 'char2';
+  return 'char1';
 }
 
 // ══════════════════════════════
@@ -2892,25 +2896,27 @@ function generateSceneImage() {
 
   // Build prompt via OR if key available, else fallback
   if (apiKey) {
-    var orModel = 'openai/gpt-4o-mini';
+    var orModel = 'deepseek/deepseek-v3.2-20251201';
 
     var orSystem = 'You are a Stable Diffusion prompt engineer for photorealistic adult scene generation. ' +
       'Output ONLY comma-separated SD tags. No sentences, no explanation, no markdown, no labels. ' +
       'Output tags in this exact priority order:\n' +
-      '1. SCENE ACTION — what is physically happening right now (the most important element)\n' +
-      '2. SETTING — specific location, environment, furniture, props, time of day\n' +
-      '3. LIGHTING & MOOD — light source, colour temperature, atmosphere\n' +
-      '4. CHARACTER APPEARANCE — only the subject character (not the protagonist/observer): skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
-      '5. CLOTHING or NUDITY — exactly what the subject is wearing or not wearing, be explicit\n' +
-      '6. EXPLICIT CONTENT — match the heat level exactly\n' +
-      'Rules: Do NOT describe the male protagonist/observer. Do NOT use pronouns. Do NOT repeat tags. Do NOT add generic quality tags.';
+      '1. SCENE ACTION — describe exactly what is physically happening right now, be specific\n' +
+      '2. SETTING — you MUST extract the specific named location from the scene text (e.g. "marble hotel lobby", "glass-walled boardroom", "sunlit bedroom with floor-to-ceiling windows") — never use "unknown interior" or vague terms\n' +
+      '3. ENVIRONMENT DETAILS — furniture, objects, architectural features, time of day, weather if relevant\n' +
+      '4. LIGHTING — exact light source and quality (e.g. "warm afternoon sunlight through blinds", "cool fluorescent office lighting", "candlelight")\n' +
+      '5. MOOD & ATMOSPHERE — the emotional and sensory quality of the scene\n' +
+      '6. CHARACTER APPEARANCE — subject character only (not the protagonist/observer): ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
+      '7. CLOTHING or NUDITY — exactly what the subject is wearing or not wearing, be explicit and specific\n' +
+      '8. EXPLICIT CONTENT — match the heat level exactly\n' +
+      'Rules: Read the full scene text carefully before writing tags. Extract real details from the text — do not invent. Do NOT describe the male protagonist/observer. Do NOT use pronouns. Do NOT use vague generic terms.';
 
     var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
-      '== SUBJECT CHARACTER (describe this person) ==\n' + charLore + '\n\n' +
-      (physCtx ? '== PHYSICAL STATE RIGHT NOW ==\n' + physCtx + '\n\n' : '') +
-      '== SCENE BEAT ==\n' + beat.title + '\n\n' +
-      '== FULL SCENE TEXT (extract the action, setting and mood from this) ==\n' + sceneText.slice(0, 1200) + '\n\n' +
-      'Generate SD prompt tags now, starting with what is happening in the scene:';
+      '== SUBJECT CHARACTER (describe this person visually) ==\n' + charLore + '\n\n' +
+      (physCtx ? '== PHYSICAL STATE AT SCENE END ==\n' + physCtx + '\n\n' : '') +
+      '== BEAT TITLE ==\n' + beat.title + '\n\n' +
+      '== FULL SCENE TEXT — read carefully and extract the location, environment, action and mood ==\n' + sceneText + '\n\n' +
+      'Generate SD prompt tags now. Start with the scene action, then the specific named location:';
 
     dbg('[SceneImg] OR prompt chars=' + (orSystem.length + orPrompt.length) + ' charId=' + charId + ' heat=' + heatLevel);
 
