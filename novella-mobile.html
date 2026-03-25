@@ -1369,6 +1369,9 @@
   <button class="nav-item" onclick="goScreen('lore')" id="nav-lore">
     <span class="nav-icon">🌹</span><span class="nav-label">Lore</span>
   </button>
+  <button class="nav-item" onclick="goScreen('gallery')" id="nav-gallery">
+    <span class="nav-icon">🖼️</span><span class="nav-label">Gallery</span>
+  </button>
   <button class="nav-item" onclick="goScreen('plan')" id="nav-plan">
     <span class="nav-icon">🗺️</span><span class="nav-label">Plan</span>
   </button>
@@ -1407,6 +1410,7 @@
       <button class="btn-write" id="btnWrite" onclick="writeScene()">✦ Write Scene</button>
       <button class="btn-small" id="btnRewrite" style="display:none" onclick="rewriteScene()">↺</button>
       <button class="btn-small" id="btnCopy" style="display:none" onclick="copyProse()">Copy</button>
+      <button class="btn-small" id="btnSceneImg" style="display:none" onclick="generateSceneImage()" title="Generate scene image">🖼️</button>
     </div>
     <div id="proseOutput" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
   </div>
@@ -1430,52 +1434,6 @@
       <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char1')">✦ Wizard</button>
       </div>
-      <div class="portrait-card" id="portrait-char1">
-        <div class="portrait-placeholder" id="portrait-char1-empty">
-          <span class="portrait-icon">🌸</span>
-          <span class="portrait-hint">Generate Portrait</span>
-        </div>
-        <div class="portrait-carousel" id="portrait-char1-carousel" style="display:none">
-          <div class="portrait-carousel-track" id="portrait-char1-track"></div>
-        </div>
-        <div class="portrait-dots" id="portrait-char1-dots" style="display:none"></div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">Pose</span>
-          <span class="portrait-pose-current" id="portrait-char1-pose-label">Half body front</span>
-          <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char1')">Change</button>
-        </div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">Clothing</span>
-          <span class="portrait-pose-current" id="portrait-char1-clothing-label">Nude</span>
-          <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char1')">Change</button>
-        </div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">State</span>
-          <span class="portrait-pose-current" id="portrait-char1-state-label">Nude</span>
-          <button type="button" class="portrait-option-toggle" id="portrait-char1-erect-btn" onclick="togglePortraitOption('char1','erect')">Erect</button>
-          <button type="button" class="portrait-option-toggle" id="portrait-char1-holding-btn" onclick="togglePortraitOption('char1','holding')">Holding</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char1')">Change</button>
-        </div>
-        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-          <span class="portrait-pose-label">Seed</span>
-          <input type="number" id="portrait-char1-seed" placeholder="Random" min="1" max="999999999"
-            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
-          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')">Lock</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')">Clear</button>
-        </div>
-        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-          <span class="portrait-pose-label">Preset</span>
-          <select id="portrait-char1-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char1', this.value)">
-            <option value="">— apply preset —</option>
-          </select>
-          <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char1')">Save</button>
-        </div>
-        <div class="portrait-actions">
-          <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
-            <span id="portrait-char1-label">✦ Generate Portrait</span>
-          </button>
-        </div>
-      </div>
       <textarea id="char1" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
@@ -1486,52 +1444,6 @@
       <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char2')">✦ Wizard</button>
       </div>
-      <div class="portrait-card" id="portrait-char2">
-        <div class="portrait-placeholder" id="portrait-char2-empty">
-          <span class="portrait-icon">💫</span>
-          <span class="portrait-hint">Generate Portrait</span>
-        </div>
-        <div class="portrait-carousel" id="portrait-char2-carousel" style="display:none">
-          <div class="portrait-carousel-track" id="portrait-char2-track"></div>
-        </div>
-        <div class="portrait-dots" id="portrait-char2-dots" style="display:none"></div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">Pose</span>
-          <span class="portrait-pose-current" id="portrait-char2-pose-label">Half body front</span>
-          <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char2')">Change</button>
-        </div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">Clothing</span>
-          <span class="portrait-pose-current" id="portrait-char2-clothing-label">Nude</span>
-          <button type="button" class="portrait-option-toggle" id="portrait-char2-sheer-btn" onclick="togglePortraitOption('char2','sheer')">Sheer</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char2')">Change</button>
-        </div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">State</span>
-          <span class="portrait-pose-current" id="portrait-char2-state-label">Nude</span>
-          <button type="button" class="portrait-option-toggle" id="portrait-char2-nipples-btn" onclick="togglePortraitOption('char2','nipples')">Hard nipples</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char2')">Change</button>
-        </div>
-        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-          <span class="portrait-pose-label">Seed</span>
-          <input type="number" id="portrait-char2-seed" placeholder="Random" min="1" max="999999999"
-            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
-          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char2')">Lock</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char2')">Clear</button>
-        </div>
-        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-          <span class="portrait-pose-label">Preset</span>
-          <select id="portrait-char2-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char2', this.value)">
-            <option value="">— apply preset —</option>
-          </select>
-          <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char2')">Save</button>
-        </div>
-        <div class="portrait-actions">
-          <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
-            <span id="portrait-char2-label">✦ Generate Portrait</span>
-          </button>
-        </div>
-      </div>
       <textarea id="char2" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
     </div>
   </div>
@@ -1541,52 +1453,6 @@
     <div class="plan-body lore-panel">
       <div class="lore-panel-header">
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('charSupport')">✦ Wizard</button>
-      </div>
-      <div class="portrait-card" id="portrait-charSupport">
-        <div class="portrait-placeholder" id="portrait-charSupport-empty">
-          <span class="portrait-icon">👥</span>
-          <span class="portrait-hint">Generate Portrait</span>
-        </div>
-        <div class="portrait-carousel" id="portrait-charSupport-carousel" style="display:none">
-          <div class="portrait-carousel-track" id="portrait-charSupport-track"></div>
-        </div>
-        <div class="portrait-dots" id="portrait-charSupport-dots" style="display:none"></div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">Pose</span>
-          <span class="portrait-pose-current" id="portrait-charSupport-pose-label">Half body front</span>
-          <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('charSupport')">Change</button>
-        </div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">Clothing</span>
-          <span class="portrait-pose-current" id="portrait-charSupport-clothing-label">Nude</span>
-          <button type="button" class="portrait-option-toggle" id="portrait-charSupport-sheer-btn" onclick="togglePortraitOption('charSupport','sheer')">Sheer</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport')">Change</button>
-        </div>
-        <div class="portrait-pose-row">
-          <span class="portrait-pose-label">State</span>
-          <span class="portrait-pose-current" id="portrait-charSupport-state-label">Nude</span>
-          <button type="button" class="portrait-option-toggle" id="portrait-charSupport-nipples-btn" onclick="togglePortraitOption('charSupport','nipples')">Hard nipples</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport')">Change</button>
-        </div>
-        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-          <span class="portrait-pose-label">Seed</span>
-          <input type="number" id="portrait-charSupport-seed" placeholder="Random" min="1" max="999999999"
-            style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
-          <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport')">Lock</button>
-          <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport')">Clear</button>
-        </div>
-        <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
-          <span class="portrait-pose-label">Preset</span>
-          <select id="portrait-charSupport-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('charSupport', this.value)">
-            <option value="">— apply preset —</option>
-          </select>
-          <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport')">Save</button>
-        </div>
-        <div class="portrait-actions">
-          <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
-            <span id="portrait-charSupport-label">✦ Generate Portrait</span>
-          </button>
-        </div>
       </div>
       <textarea id="charSupport" class="lore-panel-textarea" placeholder="Secondary characters, their roles and relationships…"></textarea>
     </div>
@@ -1609,6 +1475,194 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('tone')">✦ Wizard</button>
       </div>
       <textarea id="toneStyle" class="lore-panel-textarea-tall" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── GALLERY SCREEN ── -->
+<div class="screen" id="screen-gallery">
+
+  <!-- Gallery sub-tabs -->
+  <div class="plan-stages" style="background:var(--parchment);border-bottom:1px solid var(--border);">
+    <div class="plan-stage-tab active" id="gallery-tab-1" onclick="galleryGoTab(1)" style="font-size:0.65rem;">Portraits</div>
+    <div class="plan-stage-tab" id="gallery-tab-2" onclick="galleryGoTab(2)" style="font-size:0.65rem;">Scenes</div>
+  </div>
+
+  <!-- Portraits panel -->
+  <div class="plan-stage active" id="gallery-stage-1">
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
+
+      <!-- Protagonist portraits -->
+      <div style="padding:14px 16px 4px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">🌸 Protagonist</span>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="portrait-card" id="portrait-char1">
+          <div class="portrait-placeholder" id="portrait-char1-empty">
+            <span class="portrait-icon">🌸</span>
+            <span class="portrait-hint">Generate Portrait</span>
+          </div>
+          <div class="portrait-carousel" id="portrait-char1-carousel" style="display:none">
+            <div class="portrait-carousel-track" id="portrait-char1-track"></div>
+          </div>
+          <div class="portrait-dots" id="portrait-char1-dots" style="display:none"></div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Pose</span>
+            <span class="portrait-pose-current" id="portrait-char1-pose-label">Half body front</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char1')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Clothing</span>
+            <span class="portrait-pose-current" id="portrait-char1-clothing-label">Nude</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char1')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">State</span>
+            <span class="portrait-pose-current" id="portrait-char1-state-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-char1-erect-btn" onclick="togglePortraitOption('char1','erect')">Erect</button>
+            <button type="button" class="portrait-option-toggle" id="portrait-char1-holding-btn" onclick="togglePortraitOption('char1','holding')">Holding</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char1')">Change</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Seed</span>
+            <input type="number" id="portrait-char1-seed" placeholder="Random" min="1" max="999999999"
+              style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+            <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')">Lock</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')">Clear</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Preset</span>
+            <select id="portrait-char1-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char1', this.value)">
+              <option value="">— apply preset —</option>
+            </select>
+            <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char1')">Save</button>
+          </div>
+          <div class="portrait-actions">
+            <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
+              <span id="portrait-char1-label">✦ Generate Portrait</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Love Interest portraits -->
+      <div style="padding:14px 16px 4px;border-top:1px solid var(--border);">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">💫 Love Interest</span>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="portrait-card" id="portrait-char2">
+          <div class="portrait-placeholder" id="portrait-char2-empty">
+            <span class="portrait-icon">💫</span>
+            <span class="portrait-hint">Generate Portrait</span>
+          </div>
+          <div class="portrait-carousel" id="portrait-char2-carousel" style="display:none">
+            <div class="portrait-carousel-track" id="portrait-char2-track"></div>
+          </div>
+          <div class="portrait-dots" id="portrait-char2-dots" style="display:none"></div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Pose</span>
+            <span class="portrait-pose-current" id="portrait-char2-pose-label">Half body front</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('char2')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Clothing</span>
+            <span class="portrait-pose-current" id="portrait-char2-clothing-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-char2-sheer-btn" onclick="togglePortraitOption('char2','sheer')">Sheer</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char2')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">State</span>
+            <span class="portrait-pose-current" id="portrait-char2-state-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-char2-nipples-btn" onclick="togglePortraitOption('char2','nipples')">Hard nipples</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char2')">Change</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Seed</span>
+            <input type="number" id="portrait-char2-seed" placeholder="Random" min="1" max="999999999"
+              style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+            <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char2')">Lock</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char2')">Clear</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Preset</span>
+            <select id="portrait-char2-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('char2', this.value)">
+              <option value="">— apply preset —</option>
+            </select>
+            <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char2')">Save</button>
+          </div>
+          <div class="portrait-actions">
+            <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
+              <span id="portrait-char2-label">✦ Generate Portrait</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Supporting Cast portraits -->
+      <div style="padding:14px 16px 4px;border-top:1px solid var(--border);">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">👥 Supporting Cast</span>
+      </div>
+      <div style="padding:0 16px 32px;">
+        <div class="portrait-card" id="portrait-charSupport">
+          <div class="portrait-placeholder" id="portrait-charSupport-empty">
+            <span class="portrait-icon">👥</span>
+            <span class="portrait-hint">Generate Portrait</span>
+          </div>
+          <div class="portrait-carousel" id="portrait-charSupport-carousel" style="display:none">
+            <div class="portrait-carousel-track" id="portrait-charSupport-track"></div>
+          </div>
+          <div class="portrait-dots" id="portrait-charSupport-dots" style="display:none"></div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Pose</span>
+            <span class="portrait-pose-current" id="portrait-charSupport-pose-label">Half body front</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('charSupport')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Clothing</span>
+            <span class="portrait-pose-current" id="portrait-charSupport-clothing-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-charSupport-sheer-btn" onclick="togglePortraitOption('charSupport','sheer')">Sheer</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">State</span>
+            <span class="portrait-pose-current" id="portrait-charSupport-state-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-charSupport-nipples-btn" onclick="togglePortraitOption('charSupport','nipples')">Hard nipples</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport')">Change</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Seed</span>
+            <input type="number" id="portrait-charSupport-seed" placeholder="Random" min="1" max="999999999"
+              style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+            <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport')">Lock</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport')">Clear</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Preset</span>
+            <select id="portrait-charSupport-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('charSupport', this.value)">
+              <option value="">— apply preset —</option>
+            </select>
+            <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport')">Save</button>
+          </div>
+          <div class="portrait-actions">
+            <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
+              <span id="portrait-charSupport-label">✦ Generate Portrait</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scenes panel -->
+  <div class="plan-stage" id="gallery-stage-2">
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding:16px;">
+      <div id="sceneGalleryGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+      <div id="sceneGalleryEmpty" style="padding:40px 20px;text-align:center;color:var(--muted);">
+        <div style="font-size:2rem;opacity:0.4;margin-bottom:12px;">🖼️</div>
+        <p style="font-size:0.85rem;line-height:1.6;">No scene images yet.<br>Write a scene then tap 🖼️ in the Write tab.</p>
+      </div>
     </div>
   </div>
 
@@ -1797,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v97</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v98</span>
     </div>
   </div>
 
@@ -2142,6 +2196,45 @@ function idbDeletePortraits(storyId, charId) {
   }).catch(function() {});
 }
 
+// ══════════════════════════════
+// INDEXEDDB — SCENE IMAGES
+// ══════════════════════════════
+function idbSaveSceneImage(storyId, chIdx, bIdx, imageData) {
+  var key = storyId + '_scene_' + chIdx + '_' + bIdx;
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      var store = tx.objectStore(IDB_STORE);
+      var req = store.put(imageData, key);
+      req.onsuccess = function() { resolve(); };
+      req.onerror = function(e) { reject(e); };
+    });
+  }).catch(function(e) { console.warn('IDB scene save failed', e); });
+}
+
+function idbLoadSceneImage(storyId, chIdx, bIdx) {
+  var key = storyId + '_scene_' + chIdx + '_' + bIdx;
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(IDB_STORE, 'readonly');
+      var req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = function() { resolve(req.result || null); };
+      req.onerror = function() { resolve(null); };
+    });
+  }).catch(function() { return null; });
+}
+
+function idbDeleteSceneImage(storyId, chIdx, bIdx) {
+  var key = storyId + '_scene_' + chIdx + '_' + bIdx;
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(key);
+      tx.oncomplete = resolve;
+    });
+  }).catch(function() {});
+}
+
 // Migrate portraits from localStorage story data into IndexedDB
 function migratePortraitsToIDB(story) {
   if (!story.data || !story.data.portraits) return Promise.resolve();
@@ -2193,6 +2286,7 @@ let chapters = [];
 let writtenScenes = {};
 let scenePersonas = {};
 let physicalContinuity = ''; // tracks clothing, position, who is present — updated after each scene
+var sceneImages = {}; // keyed chIdx-bIdx, value: {b64, prompt, charId, createdAt}
 let activeChIdx = null;
 let activeBeatIdx = null;
 let editingChIdx = null;
@@ -2295,6 +2389,7 @@ function loadStoryIntoApp(story) {
   renderChapters();
   rebuildSceneLog();
   renderPhysicalContinuity();
+  sceneImages = {}; // reset, load lazily from IDB when gallery opened
 
   // Restore portraits from IndexedDB (with migration from localStorage if needed)
   migratePortraitsToIDB(story).then(function() {
@@ -2521,6 +2616,290 @@ function createSequel(sourceId) {
       }
     }
   );
+}
+
+
+// ══════════════════════════════
+// GALLERY TAB NAVIGATION
+// ══════════════════════════════
+var galleryCurrentTab = 1;
+
+function galleryGoTab(n) {
+  galleryCurrentTab = n;
+  for (var i = 1; i <= 2; i++) {
+    var tab = document.getElementById('gallery-tab-' + i);
+    var stage = document.getElementById('gallery-stage-' + i);
+    if (tab) tab.className = 'plan-stage-tab' + (i === n ? ' active' : '');
+    if (stage) stage.className = 'plan-stage' + (i === n ? ' active' : '');
+  }
+  if (n === 2) {
+    // Load any scene images from IDB not yet in memory
+    if (!activeStoryId) { renderSceneGallery(); return; }
+    var loadPromises = [];
+    chapters.forEach(function(ch, ci) {
+      (ch.beats || []).forEach(function(beat, bi) {
+        var key = ci + '-' + bi;
+        if (!sceneImages[key]) {
+          loadPromises.push(
+            idbLoadSceneImage(activeStoryId, ci, bi).then(function(img) {
+              if (img) sceneImages[key] = img;
+            })
+          );
+        }
+      });
+    });
+    Promise.all(loadPromises).then(function() { renderSceneGallery(); });
+  }
+}
+
+// ══════════════════════════════
+// SCENE GALLERY
+// ══════════════════════════════
+function renderSceneGallery() {
+  var grid = document.getElementById('sceneGalleryGrid');
+  var empty = document.getElementById('sceneGalleryEmpty');
+  if (!grid) return;
+  grid.innerHTML = '';
+  var keys = Object.keys(sceneImages);
+  if (!keys.length) {
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  keys.forEach(function(key) {
+    var img = sceneImages[key];
+    if (!img) return;
+    var parts = key.split('-');
+    var ci = parseInt(parts[0]), bi = parseInt(parts[1]);
+    var beatTitle = (chapters[ci] && chapters[ci].beats[bi]) ? chapters[ci].beats[bi].title : 'Scene';
+    var label = 'Ch.' + (ci+1) + ' B' + (bi+1);
+
+    var card = document.createElement('div');
+    card.style.cssText = 'border-radius:10px;overflow:hidden;background:var(--ink);cursor:pointer;position:relative;';
+    card.innerHTML = '<img src="data:image/jpeg;base64,' + img.b64 + '" style="width:100%;display:block;aspect-ratio:2/3;object-fit:cover;" />' +
+      '<div style="padding:6px 8px;background:#1a120d;">' +
+      '<div style="font-size:0.6rem;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;">' + label + '</div>' +
+      '<div style="font-size:0.72rem;color:var(--parchment);font-family:\'Cormorant Garamond\',serif;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(beatTitle) + '</div>' +
+      '</div>' +
+      '<button type="button" onclick="deleteSceneImage(\'' + key + '\')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.55);border:none;border-radius:6px;color:white;font-size:0.7rem;padding:4px 8px;cursor:pointer;">✕</button>';
+    card.querySelector('img').addEventListener('click', function() { openSceneImagePopup(img.b64, label + ' — ' + beatTitle); });
+    grid.appendChild(card);
+  });
+}
+
+function deleteSceneImage(key) {
+  if (!confirm('Delete this scene image?')) return;
+  var parts = key.split('-');
+  delete sceneImages[key];
+  if (activeStoryId) idbDeleteSceneImage(activeStoryId, parseInt(parts[0]), parseInt(parts[1]));
+  renderSceneGallery();
+  showToast('Scene image deleted');
+}
+
+function openSceneImagePopup(b64, label) {
+  var popup = document.getElementById('portraitPopup');
+  var img = document.getElementById('popupImg');
+  var counter = document.getElementById('popupCounter');
+  img.src = 'data:image/jpeg;base64,' + b64;
+  if (counter) counter.textContent = label;
+  // Hide delete button for scene images
+  var toolbar = document.getElementById('popupToolbarNormal');
+  if (toolbar) {
+    var delBtn = toolbar.querySelector('.danger');
+    if (delBtn) delBtn.style.display = 'none';
+  }
+  popup.classList.add('open');
+}
+
+// ══════════════════════════════
+// CHARACTER DETECTION FOR SCENE
+// ══════════════════════════════
+function detectSceneCharacter(beat, sceneText) {
+  // Extract names from lore
+  var lores = {
+    char1: document.getElementById('char1').value.trim(),
+    char2: document.getElementById('char2').value.trim(),
+    charSupport: document.getElementById('charSupport').value.trim()
+  };
+
+  function extractName(lore) {
+    var m = lore.match(/Name:\s*([^\n,]+)/i);
+    return m ? m[1].trim() : null;
+  }
+
+  var names = {
+    char1: extractName(lores.char1),
+    char2: extractName(lores.char2),
+    charSupport: extractName(lores.charSupport)
+  };
+
+  // Check beat POV first
+  var pov = (beat.pov || '').trim().toLowerCase();
+  if (pov) {
+    if (names.char2 && pov.includes(names.char2.toLowerCase())) return 'char2';
+    if (names.charSupport && pov.includes(names.charSupport.toLowerCase())) return 'charSupport';
+    if (names.char1 && pov.includes(names.char1.toLowerCase())) return 'char1';
+  }
+
+  // Count name mentions in scene text
+  var text = (sceneText || '').toLowerCase();
+  var counts = { char1: 0, char2: 0, charSupport: 0 };
+  ['char1', 'char2', 'charSupport'].forEach(function(id) {
+    if (names[id]) {
+      var re = new RegExp('\\b' + names[id].toLowerCase() + '\\b', 'g');
+      var m = text.match(re);
+      counts[id] = m ? m.length : 0;
+    }
+  });
+
+  // Non-protagonist takes priority if present (they're typically the visual subject)
+  if (counts.char2 > 0 && counts.charSupport > 0) {
+    return counts.char2 >= counts.charSupport ? 'char2' : 'charSupport';
+  }
+  if (counts.char2 > 0) return 'char2';
+  if (counts.charSupport > 0) return 'charSupport';
+  if (counts.char1 > 0) return 'char1';
+
+  // Default to char2 if love interest lore exists, else char1
+  return lores.char2 ? 'char2' : 'char1';
+}
+
+// ══════════════════════════════
+// GENERATE SCENE IMAGE
+// ══════════════════════════════
+function generateSceneImage() {
+  var veniceKey = document.getElementById('veniceApiKey').value.trim();
+  if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
+
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (activeChIdx === null || activeBeatIdx === null) { showToast('No beat selected'); return; }
+
+  var ch = chapters[activeChIdx];
+  var beat = ch.beats[activeBeatIdx];
+  var key = activeChIdx + '-' + activeBeatIdx;
+  var sceneText = writtenScenes[key];
+  if (!sceneText) { showToast('Write the scene first'); return; }
+
+  var model = document.getElementById('veniceImageModel').value;
+  var heatLevel = parseInt(document.getElementById('heatLevel').value) || 3;
+
+  // Detect character
+  var charId = detectSceneCharacter(beat, sceneText);
+  var charLore = document.getElementById(charId).value.trim().slice(0, 400);
+  var physCtx = physicalContinuity ? physicalContinuity.slice(0, 300) : '';
+
+  dbg('[SceneImg] Generating for beat: ' + beat.title + ' | charId=' + charId);
+
+  // Show generating state on button
+  var btn = document.getElementById('btnSceneImg');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+
+  // Get reference portrait for img2img (most recent portrait for detected character)
+  var refPortrait = portraitState[charId] && portraitState[charId].images && portraitState[charId].images.length
+    ? portraitState[charId].images[portraitState[charId].images.length - 1]
+    : null;
+
+  var seedInput = document.getElementById('portrait-' + charId + '-seed');
+  var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : Math.floor(Math.random() * 999999999) + 1;
+  portraitState[charId].lastSeed = seedVal;
+
+  // Explicit level instructions for the prompt builder
+  var explicitLevels = {
+    1: 'tasteful, non-explicit, no nudity',
+    2: 'suggestive, partially clothed, no explicit acts',
+    3: 'explicit, mature content, clear physical description',
+    4: 'very explicit, graphic, detailed adult content',
+    5: 'maximally explicit, unrestricted adult content'
+  };
+  var explicitInstruction = explicitLevels[heatLevel] || explicitLevels[3];
+
+  function doVeniceGenerate(imagePrompt, refB64) {
+    var veniceT0 = Date.now();
+    dbg('[Venice] → sceneImage promptChars=' + imagePrompt.length + ' seed=' + seedVal + (refB64 ? ' img2img=yes' : ' img2img=no'));
+
+    var requestBody = {
+      model: model,
+      prompt: imagePrompt,
+      negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text, logo',
+      width: 832, height: 1216, steps: 30,
+      hide_watermark: true, return_binary: false, safe_mode: false,
+      seed: seedVal
+    };
+
+    if (refB64) {
+      requestBody.init_image = refB64;
+      requestBody.strength = 0.62; // anchor to character while allowing scene variation
+    }
+
+    fetch('https://api.venice.ai/api/v1/image/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
+      body: JSON.stringify(requestBody)
+    }).then(function(res) {
+      dbg('[Venice] sceneImage status=' + res.status + ' (' + (Date.now() - veniceT0) + 'ms)');
+      if (!res.ok) throw new Error('Venice error ' + res.status);
+      return res.json();
+    }).then(function(data) {
+      var images = data.images || (data.data && data.data.images);
+      if (!images || !images[0]) throw new Error('No image returned');
+      var b64 = images[0];
+      if (b64.indexOf(',') > -1) b64 = b64.split(',')[1];
+      if (data.metadata && data.metadata.seed) { portraitState[charId].lastSeed = data.metadata.seed; }
+
+      // Store scene image
+      sceneImages[key] = { b64: b64, charId: charId, prompt: imagePrompt.slice(0, 120), createdAt: Date.now() };
+      if (activeStoryId) idbSaveSceneImage(activeStoryId, activeChIdx, activeBeatIdx, sceneImages[key]);
+
+      if (btn) { btn.disabled = false; btn.textContent = '🖼️'; }
+      showToast('Scene image generated \u2713 — view in Gallery');
+      dbg('[Venice] \u2190 sceneImage done elapsed=' + (Date.now() - veniceT0) + 'ms');
+
+      // Switch to gallery scenes tab
+      goScreen('gallery');
+      galleryGoTab(2);
+    }).catch(function(err) {
+      dbg('[Venice] \u2717 sceneImage error=' + err.message);
+      if (btn) { btn.disabled = false; btn.textContent = '🖼️'; }
+      showToast('Scene image failed: ' + err.message.slice(0, 50));
+    });
+  }
+
+  // Build prompt via OR if key available, else fallback
+  if (apiKey) {
+    var orModel = 'openai/gpt-4o-mini';
+    var orPrompt = 'Convert this scene and character description into a Stable Diffusion image prompt. Output ONLY comma-separated descriptor tags — no explanation, no sentences.\n\n' +
+      'Explicit level: ' + explicitInstruction + '\n\n' +
+      'Character lore:\n' + charLore + '\n\n' +
+      (physCtx ? 'Physical state at scene end:\n' + physCtx + '\n\n' : '') +
+      'Scene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 600) + '\n\n' +
+      'Include: character physical description, clothing or lack thereof, pose, setting, lighting, mood. Max 80 words.';
+
+    streamingFetch(apiKey, orModel,
+      [{ role: 'user', content: orPrompt }],
+      { maxTokens: 200, label: 'sceneImgPrompt',
+        onDone: function(prompt) {
+          prompt = prompt.replace(/```[\s\S]*?```/g, '').trim();
+          if (!prompt || prompt.length < 10) {
+            dbg('[SceneImg] OR prompt too short, using fallback');
+            prompt = (charLore.slice(0, 150) + ', ' + beat.title + ', ' + explicitInstruction + ', photorealistic, detailed, 8k').replace(/\n/g, ', ');
+          }
+          prompt = sanitiseVenicePrompt(prompt + ', photorealistic, sharp focus, detailed skin, 8k');
+          var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
+          doVeniceGenerate(prompt, refB64);
+        },
+        onError: function(err) {
+          dbg('[SceneImg] OR prompt failed: ' + err.message + ' — using fallback');
+          var prompt = sanitiseVenicePrompt((charLore.slice(0, 150) + ', ' + beat.title + ', ' + explicitInstruction + ', photorealistic, detailed, 8k').replace(/\n/g, ', '));
+          var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
+          doVeniceGenerate(prompt, refB64);
+        }
+      }
+    );
+  } else {
+    var prompt = sanitiseVenicePrompt((charLore.slice(0, 150) + ', ' + beat.title + ', ' + explicitInstruction + ', photorealistic, detailed, 8k').replace(/\n/g, ', '));
+    var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
+    doVeniceGenerate(prompt, refB64);
+  }
 }
 
 function renderStoriesList() {
@@ -4395,6 +4774,7 @@ function goScreen(name) {
   document.getElementById('screen-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
   if (name === 'state') populateManualBeatSelect();
+  if (name === 'gallery' && galleryCurrentTab === 2) renderSceneGallery();
 }
 
 // ══════════════════════════════
@@ -4629,6 +5009,7 @@ function selectBeat(chIdx, bIdx) {
     proseOut.innerHTML = '<div class="prose-area">' + escapeHtml(writtenScenes[key]) + '</div>';
     document.getElementById('btnCopy').style.display = '';
     document.getElementById('btnRewrite').style.display = '';
+    document.getElementById('btnSceneImg').style.display = '';
   } else {
     proseOut.innerHTML = '<div class="prose-placeholder"><div class="p-icon">♡</div><h3>' + escapeHtml(beat.title) + '</h3><p>' + (beat.desc ? escapeHtml(beat.desc) : 'Tap <strong>Write Scene</strong> to generate this beat.') + '</p></div>';
     document.getElementById('btnCopy').style.display = 'none';
@@ -5307,8 +5688,9 @@ function exportAsHTML() {
 // ══════════════════════════════
 function clearStoryData() {
   if (!confirm('Clear all chapters, beats, lore and scenes for this story? This cannot be undone.')) return;
-  chapters = []; writtenScenes = {}; scenePersonas = {}; physicalContinuity = ''; activeChIdx = null; activeBeatIdx = null;
+  chapters = []; writtenScenes = {}; scenePersonas = {}; sceneImages = {}; physicalContinuity = ''; activeChIdx = null; activeBeatIdx = null;
   renderPhysicalContinuity();
+  renderSceneGallery();
   ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
   ['char1','char2','charSupport'].forEach(id => clearPortraitImage(id));
   document.getElementById('sceneLog').innerHTML = '<div style="padding:14px;color:var(--muted);font-size:0.85rem;font-style:italic;">No scenes written yet</div>';
@@ -5466,6 +5848,7 @@ function writeScene() {
   document.getElementById('btnWrite').textContent = 'Writing\u2026';
   document.getElementById('btnCopy').style.display = 'none';
   document.getElementById('btnRewrite').style.display = 'none';
+  document.getElementById('btnSceneImg').style.display = 'none';
 
   let fullText = '';
   var wsT0 = Date.now();
@@ -5514,6 +5897,7 @@ function writeScene() {
           saveCurrentStory();
           document.getElementById('btnCopy').style.display = '';
           document.getElementById('btnRewrite').style.display = '';
+          document.getElementById('btnSceneImg').style.display = '';
           updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
           populateManualBeatSelect();
           if (document.getElementById('autoUpdateState').checked) {
