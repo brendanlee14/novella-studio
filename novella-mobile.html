@@ -1783,10 +1783,10 @@
     <div class="setting-row">
       <div class="setting-label">Portrait Model</div>
       <select id="veniceImageModel">
-        <option value="hidream">HiDream ⭐ (best, img2img)</option>
-        <option value="seedream-v5-lite">Seedream V5 Lite (img2img)</option>
-        <option value="seedream-v4">Seedream V4 (img2img)</option>
-        <option value="lustify-sdxl">Lustify SDXL (explicit, fast)</option>
+        <option value="lustify-sdxl">Lustify SDXL ⭐ (explicit)</option>
+        <option value="hidream">HiDream</option>
+        <option value="seedream-v5-lite">Seedream V5 Lite</option>
+        <option value="seedream-v4">Seedream V4</option>
         <option value="fluently-xl">Fluently XL</option>
         <option value="nano-banana-pro">Nano Banana Pro</option>
       </select>
@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v107</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v109</span>
     </div>
   </div>
 
@@ -2844,14 +2844,9 @@ function generateSceneImage() {
   var btn = document.getElementById('btnSceneImg');
   if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
 
-  // Get reference portrait for img2img (most recent portrait for detected character)
-  // Only attempt img2img on models that support it — lustify-sdxl and fluently-xl do not
-  var IMG2IMG_MODELS = ['hidream', 'seedream-v5-lite', 'seedream-v4', 'nano-banana-pro'];
-  var modelSupportsImg2Img = IMG2IMG_MODELS.indexOf(model) > -1;
-  var refPortrait = (modelSupportsImg2Img && portraitState[charId] && portraitState[charId].images && portraitState[charId].images.length)
-    ? portraitState[charId].images[portraitState[charId].images.length - 1]
-    : null;
-  dbg('[SceneImg] model=' + model + ' img2img support=' + (modelSupportsImg2Img ? 'YES' : 'NO') + ' portrait ref=' + (refPortrait ? 'yes' : 'none'));
+  // Scene images always use text-to-image — img2img disabled (Venice model compatibility issues)
+  var refPortrait = null;
+  dbg('[SceneImg] model=' + model + ' mode=text-to-image');
 
   var seedInput = document.getElementById('portrait-' + charId + '-seed');
   var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : Math.floor(Math.random() * 999999999) + 1;
@@ -2880,29 +2875,13 @@ function generateSceneImage() {
       seed: seedVal
     };
 
-    if (refB64) {
-      requestBody.init_image = refB64;
-      requestBody.strength = 0.62; // anchor to character while allowing scene variation
-    }
+
 
     dbg('[Venice] → sceneImage model=' + model + ' seed=' + seedVal + ' img2img=' + (requestBody.init_image ? 'yes strength=' + requestBody.strength : 'no'));
     fetch('https://api.venice.ai/api/v1/image/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
       body: JSON.stringify(requestBody)
-    }).then(function(res) {
-      // If img2img returns 400, retry without the reference image
-      if (res.status === 400 && requestBody.init_image) {
-        dbg('[Venice] img2img 400 — retrying as text-to-image without reference');
-        delete requestBody.init_image;
-        delete requestBody.strength;
-        return fetch('https://api.venice.ai/api/v1/image/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
-          body: JSON.stringify(requestBody)
-        });
-      }
-      return res;
     }).then(function(res) {
       dbg('[Venice] sceneImage status=' + res.status + ' (' + (Date.now() - veniceT0) + 'ms)');
       if (!res.ok) {
@@ -2984,7 +2963,12 @@ function generateSceneImage() {
             dbg('[SceneImg] OR prompt too short — using fallback');
             sdPrompt = buildSceneImgFallback(charLore, beat, explicitInstruction);
           }
-          var finalPrompt = sanitiseVenicePrompt(sdPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic');
+          // Strip DeepSeek section labels (SCENE ACTION:, SETTING:, etc.) — not valid SD tags
+          var cleanedPrompt = sdPrompt
+            .replace(/\b(SCENE ACTION|SETTING|ENVIRONMENT DETAILS|LIGHTING|MOOD & ATMOSPHERE|SUBJECT CHARACTER APPEARANCE|SUBJECT CLOTHING or NUDITY|SECONDARY CHARACTER|EXPLICIT CONTENT|EX EXPLICIT CONTENT)[:\s]*/gi, '')
+            .replace(/\s{2,}/g, ' ').trim();
+          dbg('[SceneImg] Cleaned prompt (labels stripped): ' + cleanedPrompt.slice(0, 200));
+          var finalPrompt = sanitiseVenicePrompt(cleanedPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic');
           dbg('[SceneImg] Final Venice prompt (' + finalPrompt.length + ' chars): ' + finalPrompt);
           var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
           dbg('[SceneImg] img2img ref=' + (refB64 ? 'yes (portrait exists)' : 'no (text-to-image)') + ' seed=' + seedVal);
