@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v105</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v106</span>
     </div>
   </div>
 
@@ -2837,6 +2837,8 @@ function generateSceneImage() {
   }
 
   dbg('[SceneImg] Generating for beat: ' + beat.title + ' | charId=' + charId);
+  dbg('[SceneImg] Protagonist physical: ' + (protagonistPhysical || '(none — char1 is subject or no lore)'));
+  dbg('[SceneImg] Subject lore (first 150): ' + charLore.slice(0, 150));
 
   // Show generating state on button
   var btn = document.getElementById('btnSceneImg');
@@ -2849,7 +2851,7 @@ function generateSceneImage() {
   var refPortrait = (modelSupportsImg2Img && portraitState[charId] && portraitState[charId].images && portraitState[charId].images.length)
     ? portraitState[charId].images[portraitState[charId].images.length - 1]
     : null;
-  if (!modelSupportsImg2Img) dbg('[SceneImg] model=' + model + ' does not support img2img — using text-to-image');
+  dbg('[SceneImg] model=' + model + ' img2img support=' + (modelSupportsImg2Img ? 'YES' : 'NO') + ' portrait ref=' + (refPortrait ? 'yes' : 'none'));
 
   var seedInput = document.getElementById('portrait-' + charId + '-seed');
   var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : Math.floor(Math.random() * 999999999) + 1;
@@ -2966,6 +2968,8 @@ function generateSceneImage() {
       'Generate SD prompt tags now. Start with the scene action, then the specific named location:';
 
     dbg('[SceneImg] OR prompt chars=' + (orSystem.length + orPrompt.length) + ' charId=' + charId + ' heat=' + heatLevel);
+    dbg('[SceneImg] OR system prompt: ' + orSystem.slice(0, 400));
+    dbg('[SceneImg] OR user prompt (first 400): ' + orPrompt.slice(0, 400));
 
     streamingFetch(apiKey, orModel,
       [
@@ -2975,14 +2979,13 @@ function generateSceneImage() {
       { maxTokens: 2000, label: 'sceneImgPrompt',
         onDone: function(sdPrompt) {
           sdPrompt = sdPrompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|tags:)/i, '').trim();
-          dbg('[SceneImg] OR raw SD prompt: ' + sdPrompt.slice(0, 300));
-          dbg('[SceneImg] OR full prompt length: ' + sdPrompt.length + ' chars');
+          dbg('[SceneImg] OR full SD prompt (' + sdPrompt.length + ' chars): ' + sdPrompt);
           if (!sdPrompt || sdPrompt.length < 15) {
             dbg('[SceneImg] OR prompt too short — using fallback');
             sdPrompt = buildSceneImgFallback(charLore, beat, explicitInstruction);
           }
           var finalPrompt = sanitiseVenicePrompt(sdPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic');
-          dbg('[SceneImg] Final Venice prompt (' + finalPrompt.length + ' chars): ' + finalPrompt.slice(0, 300));
+          dbg('[SceneImg] Final Venice prompt (' + finalPrompt.length + ' chars): ' + finalPrompt);
           var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
           dbg('[SceneImg] img2img ref=' + (refB64 ? 'yes (portrait exists)' : 'no (text-to-image)') + ' seed=' + seedVal);
           doVeniceGenerate(finalPrompt, refB64);
@@ -2990,7 +2993,7 @@ function generateSceneImage() {
         onError: function(err) {
           dbg('[SceneImg] OR failed: ' + err.message + ' — using fallback');
           var finalPrompt = sanitiseVenicePrompt(buildSceneImgFallback(charLore, beat, explicitInstruction));
-          dbg('[SceneImg] Fallback prompt: ' + finalPrompt.slice(0, 150));
+          dbg('[SceneImg] Fallback prompt: ' + finalPrompt);
           var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
           doVeniceGenerate(finalPrompt, refB64);
         }
