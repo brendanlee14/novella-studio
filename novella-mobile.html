@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v98</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v99</span>
     </div>
   </div>
 
@@ -2767,6 +2767,15 @@ function detectSceneCharacter(beat, sceneText) {
 // ══════════════════════════════
 // GENERATE SCENE IMAGE
 // ══════════════════════════════
+function buildSceneImgFallback(charLore, beat, explicitInstruction) {
+  // Extract key visual tokens from lore for a basic SD prompt
+  var lines = charLore.split('\n').slice(0, 8).join(', ');
+  var cleaned = lines
+    .replace(/\b(Name|Age|Role|Ethnicity|Build|Face|Body|History|Orientation|Voice|Dynamic|Kink|Erogenous|Wardrobe|Scent|Gesture|Protagonist|Love Interest|Supporting)\b[:\s][^,\n]*/gi, '')
+    .replace(/[.!?]/g, ',').replace(/,\s*,+/g, ',').trim().slice(0, 200);
+  return cleaned + ', ' + beat.title.replace(/[^\w\s]/g,'').slice(0, 40) + ', ' + explicitInstruction + ', photorealistic, detailed, 8k';
+}
+
 function generateSceneImage() {
   var veniceKey = document.getElementById('veniceApiKey').value.trim();
   if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
@@ -2831,6 +2840,7 @@ function generateSceneImage() {
       requestBody.strength = 0.62; // anchor to character while allowing scene variation
     }
 
+    dbg('[Venice] → sceneImage model=' + model + ' seed=' + seedVal + ' img2img=' + (requestBody.init_image ? 'yes strength=' + requestBody.strength : 'no'));
     fetch('https://api.venice.ai/api/v1/image/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
@@ -2867,38 +2877,61 @@ function generateSceneImage() {
   // Build prompt via OR if key available, else fallback
   if (apiKey) {
     var orModel = 'openai/gpt-4o-mini';
-    var orPrompt = 'Convert this scene and character description into a Stable Diffusion image prompt. Output ONLY comma-separated descriptor tags — no explanation, no sentences.\n\n' +
-      'Explicit level: ' + explicitInstruction + '\n\n' +
-      'Character lore:\n' + charLore + '\n\n' +
-      (physCtx ? 'Physical state at scene end:\n' + physCtx + '\n\n' : '') +
-      'Scene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 600) + '\n\n' +
-      'Include: character physical description, clothing or lack thereof, pose, setting, lighting, mood. Max 80 words.';
+
+    // Structured system prompt — forces physical-first SD tag output
+    var orSystem = 'You are a Stable Diffusion prompt engineer specialising in photorealistic portrait and scene generation. ' +
+      'Your output must be comma-separated SD tags only — no sentences, no explanation, no markdown. ' +
+      'ALWAYS output tags in this exact order: ' +
+      '1) Character physical appearance (ethnicity, age, skin tone, hair colour+length+style, eye colour, face shape, body type, breast size if female) ' +
+      '2) Clothing or nudity state (be explicit and specific — exactly what is worn or not worn) ' +
+      '3) Pose and physical position ' +
+      '4) Scene setting and location details ' +
+      '5) Lighting and mood ' +
+      '6) Explicit content tags matching the heat level instruction. ' +
+      'Do NOT invent details not present in the source material. Do NOT use pronouns. Max 120 words total.';
+
+    var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
+      '== CHARACTER REFERENCE ==\n' + charLore + '\n\n' +
+      (physCtx ? '== PHYSICAL STATE AT SCENE END ==\n' + physCtx + '\n\n' : '') +
+      '== BEAT TITLE ==\n' + beat.title + '\n\n' +
+      '== SCENE TEXT ==\n' + sceneText.slice(0, 800) + '\n\n' +
+      'Generate the SD prompt tags now:';
+
+    dbg('[SceneImg] OR prompt chars=' + (orSystem.length + orPrompt.length) + ' charId=' + charId + ' heat=' + heatLevel);
 
     streamingFetch(apiKey, orModel,
-      [{ role: 'user', content: orPrompt }],
-      { maxTokens: 200, label: 'sceneImgPrompt',
-        onDone: function(prompt) {
-          prompt = prompt.replace(/```[\s\S]*?```/g, '').trim();
-          if (!prompt || prompt.length < 10) {
-            dbg('[SceneImg] OR prompt too short, using fallback');
-            prompt = (charLore.slice(0, 150) + ', ' + beat.title + ', ' + explicitInstruction + ', photorealistic, detailed, 8k').replace(/\n/g, ', ');
+      [
+        { role: 'system', content: orSystem },
+        { role: 'user', content: orPrompt }
+      ],
+      { maxTokens: 400, label: 'sceneImgPrompt',
+        onDone: function(sdPrompt) {
+          sdPrompt = sdPrompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|tags:)/i, '').trim();
+          dbg('[SceneImg] OR raw SD prompt: ' + sdPrompt.slice(0, 200));
+          if (!sdPrompt || sdPrompt.length < 15) {
+            dbg('[SceneImg] OR prompt too short — using fallback');
+            sdPrompt = buildSceneImgFallback(charLore, beat, explicitInstruction);
           }
-          prompt = sanitiseVenicePrompt(prompt + ', photorealistic, sharp focus, detailed skin, 8k');
+          var finalPrompt = sanitiseVenicePrompt(sdPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic');
+          dbg('[SceneImg] Final Venice prompt (' + finalPrompt.length + ' chars): ' + finalPrompt.slice(0, 200));
           var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
-          doVeniceGenerate(prompt, refB64);
+          dbg('[SceneImg] img2img ref=' + (refB64 ? 'yes (portrait exists)' : 'no (text-to-image)') + ' seed=' + seedVal);
+          doVeniceGenerate(finalPrompt, refB64);
         },
         onError: function(err) {
-          dbg('[SceneImg] OR prompt failed: ' + err.message + ' — using fallback');
-          var prompt = sanitiseVenicePrompt((charLore.slice(0, 150) + ', ' + beat.title + ', ' + explicitInstruction + ', photorealistic, detailed, 8k').replace(/\n/g, ', '));
+          dbg('[SceneImg] OR failed: ' + err.message + ' — using fallback');
+          var finalPrompt = sanitiseVenicePrompt(buildSceneImgFallback(charLore, beat, explicitInstruction));
+          dbg('[SceneImg] Fallback prompt: ' + finalPrompt.slice(0, 150));
           var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
-          doVeniceGenerate(prompt, refB64);
+          doVeniceGenerate(finalPrompt, refB64);
         }
       }
     );
   } else {
-    var prompt = sanitiseVenicePrompt((charLore.slice(0, 150) + ', ' + beat.title + ', ' + explicitInstruction + ', photorealistic, detailed, 8k').replace(/\n/g, ', '));
+    var finalPrompt = sanitiseVenicePrompt(buildSceneImgFallback(charLore, beat, explicitInstruction));
+    dbg('[SceneImg] No OR key — fallback prompt: ' + finalPrompt.slice(0, 150));
     var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
-    doVeniceGenerate(prompt, refB64);
+    doVeniceGenerate(finalPrompt, refB64);
   }
 }
 
