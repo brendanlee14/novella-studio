@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v104</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v105</span>
     </div>
   </div>
 
@@ -2843,9 +2843,13 @@ function generateSceneImage() {
   if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
 
   // Get reference portrait for img2img (most recent portrait for detected character)
-  var refPortrait = portraitState[charId] && portraitState[charId].images && portraitState[charId].images.length
+  // Only attempt img2img on models that support it — lustify-sdxl and fluently-xl do not
+  var IMG2IMG_MODELS = ['hidream-i1-full', 'hidream-i1-fast', 'hidream', 'nano-banana-pro'];
+  var modelSupportsImg2Img = IMG2IMG_MODELS.indexOf(model) > -1;
+  var refPortrait = (modelSupportsImg2Img && portraitState[charId] && portraitState[charId].images && portraitState[charId].images.length)
     ? portraitState[charId].images[portraitState[charId].images.length - 1]
     : null;
+  if (!modelSupportsImg2Img) dbg('[SceneImg] model=' + model + ' does not support img2img — using text-to-image');
 
   var seedInput = document.getElementById('portrait-' + charId + '-seed');
   var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : Math.floor(Math.random() * 999999999) + 1;
@@ -2947,10 +2951,11 @@ function generateSceneImage() {
       '3. ENVIRONMENT DETAILS — furniture, objects, architectural features, time of day, weather if relevant\n' +
       '4. LIGHTING — exact light source and quality (e.g. "warm afternoon sunlight through blinds", "cool fluorescent office lighting", "candlelight")\n' +
       '5. MOOD & ATMOSPHERE — the emotional and sensory quality of the scene\n' +
-      '6. CHARACTER APPEARANCE — subject character only (not the protagonist/observer): ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
-      '7. CLOTHING or NUDITY — exactly what the subject is wearing or not wearing, be explicit and specific\n' +
-      '8. EXPLICIT CONTENT — match the heat level exactly\n' +
-      'Rules: Read the full scene text carefully before writing tags. Extract real details from the text — do not invent. Do NOT describe the male protagonist/observer. Do NOT use pronouns. Do NOT use vague generic terms.';
+      '6. SUBJECT CHARACTER APPEARANCE — subject character only: ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
+      '7. SUBJECT CLOTHING or NUDITY — exactly what the subject is wearing or not wearing, be explicit and specific\n' +
+      '8. SECONDARY CHARACTER (if provided) — include their specific physical appearance tags: name, ethnicity, build, face, hair. Label clearly e.g. "man: Chinese-Australian, lean build, sharp jaw, dark short hair"\n' +
+      '9. EXPLICIT CONTENT — match the heat level exactly\n' +
+      'Rules: Read the full scene text carefully before writing tags. Extract real details — do not invent. If a secondary character section is provided you MUST include their physical description tags. Do NOT use pronouns. Do NOT use vague generic terms.';
 
     var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
       '== SUBJECT CHARACTER (primary visual focus — describe this person in detail) ==\n' + charLore + '\n\n' +
