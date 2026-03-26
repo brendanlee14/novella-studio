@@ -1304,7 +1304,7 @@
 
 <!-- ── SEQUEL GENERATION OVERLAY ── -->
 <div id="sequelOverlay" style="display:none;position:fixed;inset:0;background:#0a0a0f;z-index:600;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;">
-  <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:#c9a05a;font-style:italic;margin-bottom:8px;">Creating Sequel</div>
+  <div style="font-family:var(--serif,serif);font-size:1.8rem;color:#c9a05a;font-style:italic;margin-bottom:8px;">Creating Sequel</div>
   <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:48px;" id="sequelSourceTitle"></div>
   <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:16px;" id="sequelSteps">
     <div class="sequel-step" id="seq-step-1">
@@ -1332,12 +1332,12 @@
 <div id="storyModal">
   <div class="story-modal-sheet">
     <div style="width:40px;height:4px;background:#ddd4c8;border-radius:2px;margin:0 auto 20px;"></div>
-    <div id="storyModalTitle" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#8c3d47;font-style:italic;margin-bottom:16px;">New Story</div>
+    <div id="storyModalTitle" style="font-family:var(--serif,serif);font-size:1.3rem;color:#8c3d47;font-style:italic;margin-bottom:16px;">New Story</div>
     <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">Story Title</label>
-    <input id="storyNameInput" type="text" placeholder="e.g. The Singapore Affair" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:'Cormorant Garamond',serif;font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
+    <input id="storyNameInput" type="text" placeholder="e.g. The Singapore Affair" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:var(--serif,serif);font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
     <div style="display:flex;gap:10px;margin-top:24px;">
       <button type="button" id="storyCancelBtn" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
-      <button type="button" id="storySaveBtn" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;">Save Story</button>
+      <button type="button" id="storySaveBtn" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:var(--serif,serif);font-size:1.05rem;font-style:italic;">Save Story</button>
     </div>
   </div>
 </div>
@@ -1657,7 +1657,7 @@
   <!-- Scenes panel -->
   <div class="plan-stage" id="gallery-stage-2">
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding:16px;">
-      <div id="sceneGalleryGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+      <div id="sceneGalleryList"></div>
       <div id="sceneGalleryEmpty" style="padding:40px 20px;text-align:center;color:var(--muted);">
         <div style="font-size:2rem;opacity:0.4;margin-bottom:12px;">🖼️</div>
         <p style="font-size:0.85rem;line-height:1.6;">No scene images yet.<br>Write a scene then tap 🖼️ in the Write tab.</p>
@@ -1678,7 +1678,7 @@
   </div>
   <div class="state-section">
     <span class="state-label">Physical Continuity</span>
-    <div id="physicalContinuityDisplay" style="font-family:'Cormorant Garamond',serif;font-size:0.92rem;line-height:1.7;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:60px;white-space:pre-wrap;"><span style="color:var(--muted);font-style:italic;font-size:0.85rem;">Updated automatically after each scene is written…</span></div>
+    <div id="physicalContinuityDisplay" style="font-family:var(--serif,serif);font-size:0.92rem;line-height:1.7;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:60px;white-space:pre-wrap;"><span style="color:var(--muted);font-style:italic;font-size:0.85rem;">Updated automatically after each scene is written…</span></div>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button onclick="resetPhysicalContinuity()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">Reset</button>
       <button id="manualPhysBtn" onclick="manualUpdatePhysicalContinuity()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">↺ Update Now</button>
@@ -1850,7 +1850,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v112</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v113</span>
     </div>
   </div>
 
@@ -1919,7 +1919,7 @@
   <div class="settings-group">
     <div class="settings-group-title">AI Persona</div>
     <div style="padding: 0 14px 14px;">
-      <textarea id="systemPrefix" rows="4" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Cormorant Garamond',serif;font-size:0.95rem;background:var(--parchment);color:var(--ink);line-height:1.55;resize:none;margin-top:8px;">You are a skilled romance novelist. Write in third-person limited POV. Focus on emotional interiority, sensory detail, and romantic tension. Avoid clichés. Each scene should advance either the plot or the relationship. End scenes at a compelling moment.</textarea>
+      <textarea id="systemPrefix" rows="4" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:var(--serif,serif);font-size:0.95rem;background:var(--parchment);color:var(--ink);line-height:1.55;resize:none;margin-top:8px;">You are a skilled romance novelist. Write in third-person limited POV. Focus on emotional interiority, sensory detail, and romantic tension. Avoid clichés. Each scene should advance either the plot or the relationship. End scenes at a compelling moment.</textarea>
     </div>
   </div>
 
@@ -2001,7 +2001,7 @@
 <div id="personaModal">
   <div class="persona-sheet">
     <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--rose-deep);font-style:italic;margin-bottom:4px;" id="personaModalTitle">Edit Persona</div>
+    <div style="font-family:var(--serif,serif);font-size:1.25rem;color:var(--rose-deep);font-style:italic;margin-bottom:4px;" id="personaModalTitle">Edit Persona</div>
     <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;">Tap a chip to activate · Long-press to edit</div>
     <label class="field-label">Preset Name</label>
     <input class="sheet-input" id="personaNameInput" type="text" placeholder="e.g. Explicit Smut" maxlength="28" style="margin-bottom:12px;" />
@@ -2105,7 +2105,7 @@
 <div id="exportSheet">
   <div class="export-modal-body">
     <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;"></div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--rose-deep);font-style:italic;margin-bottom:6px;">Export Manuscript</div>
+    <div style="font-family:var(--serif,serif);font-size:1.3rem;color:var(--rose-deep);font-style:italic;margin-bottom:6px;">Export Manuscript</div>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:20px;" id="exportWordCount"></div>
     <div class="export-option" onclick="exportAsText()">
       <span class="export-option-icon">📄</span>
@@ -2654,35 +2654,93 @@ function galleryGoTab(n) {
 // ══════════════════════════════
 // SCENE GALLERY
 // ══════════════════════════════
+// Track which chapter sections are collapsed in scene gallery
+var sceneGalleryCollapsed = {};
+
+function toggleSceneChapter(ci) {
+  sceneGalleryCollapsed[ci] = !sceneGalleryCollapsed[ci];
+  renderSceneGallery();
+}
+
 function renderSceneGallery() {
-  var grid = document.getElementById('sceneGalleryGrid');
+  var list = document.getElementById('sceneGalleryList');
   var empty = document.getElementById('sceneGalleryEmpty');
-  if (!grid) return;
-  grid.innerHTML = '';
-  var keys = Object.keys(sceneImages);
+  if (!list) return;
+  list.innerHTML = '';
+
+  // Sort keys by chapter then beat
+  var keys = Object.keys(sceneImages).filter(function(k) { return sceneImages[k]; });
+  keys.sort(function(a, b) {
+    var ap = a.split('-'), bp = b.split('-');
+    var ci = parseInt(ap[0]) - parseInt(bp[0]);
+    return ci !== 0 ? ci : parseInt(ap[1]) - parseInt(bp[1]);
+  });
+
   if (!keys.length) {
     if (empty) empty.style.display = 'block';
     return;
   }
   if (empty) empty.style.display = 'none';
-  keys.forEach(function(key) {
-    var img = sceneImages[key];
-    if (!img) return;
-    var parts = key.split('-');
-    var ci = parseInt(parts[0]), bi = parseInt(parts[1]);
-    var beatTitle = (chapters[ci] && chapters[ci].beats[bi]) ? chapters[ci].beats[bi].title : 'Scene';
-    var label = 'Ch.' + (ci+1) + ' B' + (bi+1);
 
-    var card = document.createElement('div');
-    card.style.cssText = 'border-radius:10px;overflow:hidden;background:var(--ink);cursor:pointer;position:relative;';
-    card.innerHTML = '<img src="data:image/jpeg;base64,' + img.b64 + '" style="width:100%;display:block;aspect-ratio:2/3;object-fit:cover;" />' +
-      '<div style="padding:6px 8px;background:#1a120d;">' +
-      '<div style="font-size:0.6rem;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;">' + label + '</div>' +
-      '<div style="font-size:0.72rem;color:var(--parchment);font-family:\'Cormorant Garamond\',serif;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(beatTitle) + '</div>' +
+  // Group by chapter
+  var byChapter = {};
+  keys.forEach(function(key) {
+    var ci = parseInt(key.split('-')[0]);
+    if (!byChapter[ci]) byChapter[ci] = [];
+    byChapter[ci].push(key);
+  });
+
+  Object.keys(byChapter).sort(function(a,b){return parseInt(a)-parseInt(b);}).forEach(function(ciStr) {
+    var ci = parseInt(ciStr);
+    var chapterKeys = byChapter[ciStr];
+    var chTitle = (chapters[ci] && chapters[ci].title) ? chapters[ci].title : 'Chapter ' + (ci+1);
+    var isCollapsed = !!sceneGalleryCollapsed[ci];
+    var count = chapterKeys.length;
+
+    // Chapter header
+    var header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--ink);border-radius:10px;margin-bottom:8px;cursor:pointer;user-select:none;';
+    header.innerHTML =
+      '<div>' +
+        '<div style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);margin-bottom:2px;">Chapter ' + (ci+1) + ' · ' + count + ' image' + (count !== 1 ? 's' : '') + '</div>' +
+        '<div style="font-family:var(--serif,serif);font-size:0.95rem;font-style:italic;color:var(--parchment);">' + escapeHtml(chTitle) + '</div>' +
       '</div>' +
-      '<button type="button" onclick="deleteSceneImage(\'' + key + '\')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.55);border:none;border-radius:6px;color:white;font-size:0.7rem;padding:4px 8px;cursor:pointer;">✕</button>';
-    card.querySelector('img').addEventListener('click', function() { openSceneImagePopup(img.b64, label + ' — ' + beatTitle); });
-    grid.appendChild(card);
+      '<span style="color:var(--muted);font-size:0.85rem;transition:transform 0.2s;display:inline-block;transform:rotate(' + (isCollapsed ? '-90' : '0') + 'deg);">▼</span>';
+    header.addEventListener('click', function() { toggleSceneChapter(ci); });
+    list.appendChild(header);
+
+    if (!isCollapsed) {
+      // 2-column grid for this chapter's images
+      var grid = document.createElement('div');
+      grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;';
+
+      chapterKeys.forEach(function(key) {
+        var img = sceneImages[key];
+        var bi = parseInt(key.split('-')[1]);
+        var beatTitle = (chapters[ci] && chapters[ci].beats[bi]) ? chapters[ci].beats[bi].title : 'Scene';
+        var label = 'Ch.' + (ci+1) + ' B' + (bi+1);
+
+        var card = document.createElement('div');
+        card.style.cssText = 'border-radius:10px;overflow:hidden;background:var(--ink);position:relative;';
+        card.innerHTML =
+          '<img src="data:image/jpeg;base64,' + img.b64 + '" style="width:100%;display:block;aspect-ratio:2/3;object-fit:cover;cursor:pointer;" />' +
+          '<div style="padding:6px 8px;background:#1a120d;">' +
+            '<div style="font-size:0.6rem;color:var(--gold);letter-spacing:0.08em;text-transform:uppercase;">' + label + '</div>' +
+            '<div style="font-size:0.72rem;color:var(--parchment);font-family:var(--serif,serif);font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(beatTitle) + '</div>' +
+          '</div>' +
+          '<button type="button" onclick="deleteSceneImage(\'' + key + '\')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.55);border:none;border-radius:6px;color:white;font-size:0.7rem;padding:4px 8px;cursor:pointer;">✕</button>';
+
+        (function(b64, lbl, title) {
+          card.querySelector('img').addEventListener('click', function() {
+            openSceneImagePopup(b64, lbl + ' — ' + title);
+          });
+        })(img.b64, label, beatTitle);
+
+        grid.appendChild(card);
+      });
+
+      list.appendChild(grid);
+    }
   });
 }
 
@@ -2968,7 +3026,14 @@ function generateSceneImage() {
             .replace(/(SCENE ACTION|SETTING|ENVIRONMENT DETAILS|LIGHTING|MOOD & ATMOSPHERE|SUBJECT CHARACTER APPEARANCE|SUBJECT CLOTHING or NUDITY|SECONDARY CHARACTER|EXPLICIT CONTENT|EX EXPLICIT CONTENT)\s*:/gi, '')
             .replace(/\s{2,}/g, ' ').trim();
           dbg('[SceneImg] Cleaned prompt (labels stripped, ' + cleanedPrompt.length + ' chars): ' + cleanedPrompt);
-          var finalPrompt = sanitiseVenicePrompt(cleanedPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic');
+          // Deduplicate comma-separated tags before sending
+          var rawFinal = cleanedPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic';
+          var seen = {}, dedupedTags = [];
+          rawFinal.split(',').forEach(function(t) {
+            var tag = t.trim().toLowerCase();
+            if (tag && !seen[tag]) { seen[tag] = true; dedupedTags.push(t.trim()); }
+          });
+          var finalPrompt = sanitiseVenicePrompt(dedupedTags.join(', '));
           dbg('[SceneImg] Final Venice prompt (' + finalPrompt.length + ' chars): ' + finalPrompt);
           var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
           dbg('[SceneImg] img2img ref=' + (refB64 ? 'yes (portrait exists)' : 'no (text-to-image)') + ' seed=' + seedVal);
