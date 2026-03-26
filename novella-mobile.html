@@ -1850,7 +1850,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v114</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v115</span>
     </div>
   </div>
 
@@ -5910,6 +5910,44 @@ function buildContext() {
   return ctx;
 }
 
+// ══════════════════════════════
+// WAKE LOCK — keeps screen on during generation
+// ══════════════════════════════
+var wakeLock = null;
+
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator)) {
+    dbg('[WakeLock] not supported on this browser');
+    return;
+  }
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    dbg('[WakeLock] acquired — screen will stay on during generation');
+    wakeLock.addEventListener('release', function() {
+      dbg('[WakeLock] released');
+    });
+  } catch(e) {
+    dbg('[WakeLock] failed to acquire: ' + e.message);
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) {
+    wakeLock.release().catch(function() {});
+    wakeLock = null;
+    dbg('[WakeLock] released after generation');
+  }
+}
+
+// Re-acquire wake lock if page becomes visible again (e.g. user switches back)
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible' && wakeLock === null) {
+    // Only re-acquire if a generation is in progress (btnWrite is disabled)
+    var btn = document.getElementById('btnWrite');
+    if (btn && btn.disabled) acquireWakeLock();
+  }
+});
+
 const HEAT_LABELS = { '1': '1 — Sensual', '2': '2 — Suggestive', '3': '3 — Explicit', '4': '4 — Graphic', '5': '5 — Unrestricted' };
 function updateHeatLabel(val) {
   var el = document.getElementById('heatLevelLabel');
@@ -6015,6 +6053,7 @@ function writeScene() {
   document.getElementById('btnCopy').style.display = 'none';
   document.getElementById('btnRewrite').style.display = 'none';
   document.getElementById('btnSceneImg').style.display = 'none';
+  acquireWakeLock();
 
   let fullText = '';
   var wsT0 = Date.now();
@@ -6075,6 +6114,7 @@ function writeScene() {
           showToast('\u2713 Scene written \u2014 ' + fullText.split(/\s+/).length + ' words');
           document.getElementById('btnWrite').disabled = false;
           document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
+          releaseWakeLock();
           return;
         }
         buf += decoder.decode(result.value, { stream: true });
@@ -6104,6 +6144,7 @@ function writeScene() {
     showToast('Error: ' + err.message.slice(0, 60));
     document.getElementById('btnWrite').disabled = false;
     document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
+    releaseWakeLock();
   });
 }
 
