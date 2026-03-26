@@ -1850,7 +1850,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v111</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v112</span>
     </div>
   </div>
 
@@ -2931,11 +2931,11 @@ function generateSceneImage() {
       '3. ENVIRONMENT DETAILS — furniture, objects, architectural features, time of day, weather if relevant\n' +
       '4. LIGHTING — exact light source and quality (e.g. "warm afternoon sunlight through blinds", "cool fluorescent office lighting", "candlelight")\n' +
       '5. MOOD & ATMOSPHERE — the emotional and sensory quality of the scene\n' +
-      '6. SUBJECT CHARACTER APPEARANCE — subject character only: ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
+      '6. SUBJECT CHARACTER APPEARANCE — use role tag not name: start with "1woman," then ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
       '7. SUBJECT CLOTHING or NUDITY — exactly what the subject is wearing or not wearing, be explicit and specific\n' +
-      '8. SECONDARY CHARACTER (if provided) — include their specific physical appearance tags: name, ethnicity, build, face, hair. Label clearly e.g. "man: Chinese-Australian, lean build, sharp jaw, dark short hair"\n' +
-      '9. EXPLICIT CONTENT — match the heat level exactly\n' +
-      'Rules: Read the full scene text carefully before writing tags. Extract real details — do not invent. If a secondary character section is provided you MUST include their physical description tags. Do NOT use pronouns. Do NOT use vague generic terms.';
+      '8. SECONDARY CHARACTER (if provided) — use role tag not name: start with "1man," then ethnicity, build, face, hair. Keep brief — 4-5 tags only\n' +
+      '9. EXPLICIT CONTENT — match the heat level exactly. Do NOT use "extreme close-up" or "close-up" when both characters are present — this causes the image to crop out the scene. Use "medium shot" or "full body" instead\n' +
+      'Rules: Read the full scene text carefully before writing tags. Extract real details — do not invent. NEVER use character names as labels (Gemma:, Brendan: etc) — SD models ignore names. Always use role tags (1woman, 1man). If a secondary character section is provided you MUST include their appearance. Do NOT use pronouns. Do NOT use vague generic terms.';
 
     var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
       '== SUBJECT CHARACTER (primary visual focus — describe this person in detail) ==\n' + charLore + '\n\n' +
@@ -2963,10 +2963,11 @@ function generateSceneImage() {
             sdPrompt = buildSceneImgFallback(charLore, beat, explicitInstruction);
           }
           // Strip DeepSeek section labels (SCENE ACTION:, SETTING:, etc.) — not valid SD tags
+          // Strip section labels only when followed by colon — avoids hitting words like "explicit" mid-prompt
           var cleanedPrompt = sdPrompt
-            .replace(/\b(SCENE ACTION|SETTING|ENVIRONMENT DETAILS|LIGHTING|MOOD & ATMOSPHERE|SUBJECT CHARACTER APPEARANCE|SUBJECT CLOTHING or NUDITY|SECONDARY CHARACTER|EXPLICIT CONTENT|EX EXPLICIT CONTENT)[:\s]*/gi, '')
+            .replace(/(SCENE ACTION|SETTING|ENVIRONMENT DETAILS|LIGHTING|MOOD & ATMOSPHERE|SUBJECT CHARACTER APPEARANCE|SUBJECT CLOTHING or NUDITY|SECONDARY CHARACTER|EXPLICIT CONTENT|EX EXPLICIT CONTENT)\s*:/gi, '')
             .replace(/\s{2,}/g, ' ').trim();
-          dbg('[SceneImg] Cleaned prompt (labels stripped): ' + cleanedPrompt.slice(0, 200));
+          dbg('[SceneImg] Cleaned prompt (labels stripped, ' + cleanedPrompt.length + ' chars): ' + cleanedPrompt);
           var finalPrompt = sanitiseVenicePrompt(cleanedPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic');
           dbg('[SceneImg] Final Venice prompt (' + finalPrompt.length + ' chars): ' + finalPrompt);
           var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
