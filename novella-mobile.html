@@ -1850,7 +1850,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v113</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v114</span>
     </div>
   </div>
 
@@ -2981,27 +2981,33 @@ function generateSceneImage() {
   if (apiKey) {
     var orModel = 'deepseek/deepseek-v3.2-20251201';
 
-    var orSystem = 'You are a Stable Diffusion prompt engineer for photorealistic adult scene generation. ' +
+    // Two-character scene: focus entirely on female, imply male through POV/hands/context
+    var maleInScene = !!protagonistPhysical;
+
+    var orSystem = 'You are a Stable Diffusion prompt engineer for photorealistic adult scene generation specialising in lustify-sdxl. ' +
       'Output ONLY comma-separated SD tags. No sentences, no explanation, no markdown, no labels. ' +
       'Output tags in this exact priority order:\n' +
-      '1. SCENE ACTION — describe exactly what is physically happening right now, be specific\n' +
+      '1. SCENE ACTION — describe what is physically happening, focused entirely on the female subject. ' +
+      (maleInScene ? 'The male presence must be implied through context only — use tags like "male hands", "hands gripping hips", "POV shot", "from behind", "disembodied hands", "unseen man". Do NOT render his face or full body.\n' : '\n') +
       '2. SETTING — you MUST extract the specific named location from the scene text (e.g. "marble hotel lobby", "glass-walled boardroom", "sunlit bedroom with floor-to-ceiling windows") — never use "unknown interior" or vague terms\n' +
       '3. ENVIRONMENT DETAILS — furniture, objects, architectural features, time of day, weather if relevant\n' +
       '4. LIGHTING — exact light source and quality (e.g. "warm afternoon sunlight through blinds", "cool fluorescent office lighting", "candlelight")\n' +
       '5. MOOD & ATMOSPHERE — the emotional and sensory quality of the scene\n' +
-      '6. SUBJECT CHARACTER APPEARANCE — use role tag not name: start with "1woman," then ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
+      '6. SUBJECT CHARACTER APPEARANCE — start with "1woman," then ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size\n' +
       '7. SUBJECT CLOTHING or NUDITY — exactly what the subject is wearing or not wearing, be explicit and specific\n' +
-      '8. SECONDARY CHARACTER (if provided) — use role tag not name: start with "1man," then ethnicity, build, face, hair. Keep brief — 4-5 tags only\n' +
-      '9. EXPLICIT CONTENT — match the heat level exactly. Do NOT use "extreme close-up" or "close-up" when both characters are present — this causes the image to crop out the scene. Use "medium shot" or "full body" instead\n' +
-      'Rules: Read the full scene text carefully before writing tags. Extract real details — do not invent. NEVER use character names as labels (Gemma:, Brendan: etc) — SD models ignore names. Always use role tags (1woman, 1man). If a secondary character section is provided you MUST include their appearance. Do NOT use pronouns. Do NOT use vague generic terms.';
+      (maleInScene ? '8. MALE PRESENCE — do NOT describe his face, ethnicity or full body. Use only: "male hands", "male torso partial", "masculine hands", or similar minimal tags\n' : '') +
+      (maleInScene ? '9.' : '8.') + ' EXPLICIT CONTENT — match the heat level exactly. Use "medium shot" or "full body" framing. Do NOT use "extreme close-up"\n' +
+      'Rules: The female subject is the ONLY fully rendered character. NEVER describe the male face or ethnicity — this causes SD to blend ethnicities across characters. NEVER use character names as tags. Do NOT use pronouns.';
 
     var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
-      '== SUBJECT CHARACTER (primary visual focus — describe this person in detail) ==\n' + charLore + '\n\n' +
-      (protagonistPhysical ? '== SECONDARY CHARACTER (also present in scene — include briefly, do not make them the focus) ==\n' + protagonistPhysical + '\n\n' : '') +
+      '== FEMALE SUBJECT (full visual focus — describe in detail) ==\n' + charLore + '\n\n' +
+      (maleInScene ? '== MALE PRESENCE (implied only — do NOT render his face or full body) ==\nMale is present in the scene. Imply through hands, POV, or partial torso only.\n\n' : '') +
       (physCtx ? '== PHYSICAL STATE AT SCENE END ==\n' + physCtx + '\n\n' : '') +
       '== BEAT TITLE ==\n' + beat.title + '\n\n' +
-      '== FULL SCENE TEXT — read carefully and extract the location, environment, action and mood ==\n' + sceneText + '\n\n' +
-      'Generate SD prompt tags now. Start with the scene action, then the specific named location:';
+      '== FULL SCENE TEXT — extract location, environment, action and mood ==\n' + sceneText + '\n\n' +
+      'Generate SD prompt tags now. Female is the sole visual subject' + (maleInScene ? ', male presence implied through hands/POV only' : '') + ':';
+
+    dbg('[SceneImg] maleInScene=' + maleInScene);
 
     dbg('[SceneImg] OR prompt chars=' + (orSystem.length + orPrompt.length) + ' charId=' + charId + ' heat=' + heatLevel);
     dbg('[SceneImg] OR system prompt: ' + orSystem.slice(0, 400));
