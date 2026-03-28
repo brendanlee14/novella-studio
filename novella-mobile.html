@@ -1850,7 +1850,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v116</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v117</span>
     </div>
   </div>
 
@@ -5747,22 +5747,18 @@ function exportAsText() {
   const data = buildManuscriptData();
   if (!data.length) { showToast('No written scenes to export'); closeExportSheet(); return; }
 
-  let text = title.toUpperCase() + '\n' + '═'.repeat(title.length) + '\n\n';
+  let text = title + '\n\n';
   data.forEach(ch => {
-    text += 'CHAPTER ' + ch.chapterNum + '\n';
-    text += ch.chapterTitle + '\n';
-    text += '─'.repeat(40) + '\n\n';
+    text += 'Chapter ' + ch.chapterNum + ': ' + ch.chapterTitle + '\n\n';
     ch.scenes.forEach((scene, si) => {
       text += scene.text + '\n';
-      if (si < ch.scenes.length - 1) text += '\n· · ·\n\n';
+      if (si < ch.scenes.length - 1) text += '\n';
     });
     text += '\n\n';
   });
 
   const wc = getTotalWordCount();
-  text += '─'.repeat(40) + '\n';
-  text += 'Word count: ' + wc.toLocaleString() + '\n';
-  text += 'Exported from Novella Studio · ' + new Date().toLocaleDateString();
+  text += new Date().toLocaleDateString() + ' — ' + wc.toLocaleString() + ' words';
 
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
