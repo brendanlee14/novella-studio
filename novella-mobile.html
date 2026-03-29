@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v118</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v119</span>
     </div>
   </div>
 
@@ -3429,16 +3429,22 @@ function refineSynopsis() {
   var toneStyle = document.getElementById('toneStyle').value.trim().slice(0, 200);
 
   var systemMsg = 'You are a story development editor for adult romance and erotica fiction. ' +
-    'Your job is to take a rough story plot and expand and refine it into a rich, detailed synopsis. ' +
-    'Strengthen the narrative arc, deepen character motivations, sharpen turning points, and make the escalation and resolution more compelling. ' +
-    'Preserve all the author original ideas, characters, setting and intent — only improve the depth and clarity. ' +
-    'Output only the refined synopsis — no commentary, no explanation, no labels.';
+    'Your job is to take a rough story plot and expand it into a rich, detailed narrative synopsis in flowing prose. ' +
+    'The synopsis will be used to generate chapter-by-chapter summaries, so it must clearly convey five essential elements: ' +
+    '1. OPENING — the exact starting situation, setting, mood, and who is present at the very beginning of the story. ' +
+    '2. ESCALATION BEATS — the key turning points where the dynamic or intensity between characters meaningfully shifts, in chronological order. ' +
+    '3. SEXUAL PROGRESSION — how far the physical relationship goes and when, paced across the story so chapters can escalate appropriately. Do not fade to black or soften — be explicit about what happens and at what point in the story. ' +
+    '4. EMOTIONAL ARC — how the protagonist and love interest change emotionally across the story, what they want, what holds them back, what breaks that barrier. ' +
+    '5. RESOLUTION — how the story ends, what the final state of the relationship or situation is. ' +
+    'Write in flowing narrative prose. Preserve all the author original ideas, characters, setting and intent. ' +
+    'Output only the refined synopsis — no headings, no labels, no commentary.';
 
-  var userMsg = 'Refine and expand this story plot into a richer, more detailed synopsis:\n\n' + synopsis +
-    (char1 ? '\n\nProtagonist context:\n' + char1 : '') +
-    (char2 ? '\n\nLove interest context:\n' + char2 : '') +
-    (toneStyle ? '\n\nTone & style:\n' + toneStyle : '') +
-    '\n\nOutput only the refined synopsis.';
+  var userMsg = 'Refine and expand this story plot. Ensure the output clearly covers: the opening situation, escalation turning points, sexual progression across the story, emotional arc, and resolution.\n\n' +
+    'STORY PLOT:\n' + synopsis +
+    (char1 ? '\n\nPROTAGONIST:\n' + char1 : '') +
+    (char2 ? '\n\nLOVE INTEREST:\n' + char2 : '') +
+    (toneStyle ? '\n\nTONE & STYLE:\n' + toneStyle : '') +
+    '\n\nOutput only the refined synopsis in flowing prose:';
 
   var textarea = document.getElementById('planSynopsis');
   textarea.value = '';
