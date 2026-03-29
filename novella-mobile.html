@@ -1722,7 +1722,8 @@
         </div>
       </div>
     </div>
-    <div class="plan-footer">
+    <div class="plan-footer" style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn-plan-regen" id="planRefineSynopsisBtn" onclick="refineSynopsis()">↺ Refine Full Story Plot</button>
       <button class="btn-plan-next" id="planGenChBtn" onclick="generateChapterSummaries()">✦ Generate Chapter Summaries</button>
     </div>
   </div>
@@ -1850,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v117</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v118</span>
     </div>
   </div>
 
@@ -3397,7 +3398,10 @@ function streamingFetch(apiKey, model, messages, opts) {
           try {
             var json = JSON.parse(data);
             var delta = json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content ? json.choices[0].delta.content : '';
-            fullText += delta;
+            if (delta) {
+              fullText += delta;
+              if (opts.onChunk) opts.onChunk(delta, fullText);
+            }
           } catch(e) {}
         }
         return read();
@@ -3408,6 +3412,64 @@ function streamingFetch(apiKey, model, messages, opts) {
     dbg('[OR] ✗ ' + label + ' err=' + err.message + ' elapsed=' + (Date.now() - t0) + 'ms');
     opts.onError(err);
   });
+}
+
+function refineSynopsis() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  var synopsis = document.getElementById('planSynopsis').value.trim();
+  if (!synopsis || synopsis.length < 30) { showToast('Write your story plot first'); return; }
+
+  var btn = document.getElementById('planRefineSynopsisBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Refining…'; }
+
+  var model = document.getElementById('modelSelect').value;
+  var char1 = document.getElementById('char1').value.trim().slice(0, 300);
+  var char2 = document.getElementById('char2').value.trim().slice(0, 300);
+  var toneStyle = document.getElementById('toneStyle').value.trim().slice(0, 200);
+
+  var systemMsg = 'You are a story development editor for adult romance and erotica fiction. ' +
+    'Your job is to take a rough story plot and expand and refine it into a rich, detailed synopsis. ' +
+    'Strengthen the narrative arc, deepen character motivations, sharpen turning points, and make the escalation and resolution more compelling. ' +
+    'Preserve all the author original ideas, characters, setting and intent — only improve the depth and clarity. ' +
+    'Output only the refined synopsis — no commentary, no explanation, no labels.';
+
+  var userMsg = 'Refine and expand this story plot into a richer, more detailed synopsis:\n\n' + synopsis +
+    (char1 ? '\n\nProtagonist context:\n' + char1 : '') +
+    (char2 ? '\n\nLove interest context:\n' + char2 : '') +
+    (toneStyle ? '\n\nTone & style:\n' + toneStyle : '') +
+    '\n\nOutput only the refined synopsis.';
+
+  var textarea = document.getElementById('planSynopsis');
+  textarea.value = '';
+  textarea.style.opacity = '0.5';
+
+  var refineT0 = Date.now();
+  dbg('[Plan] refineSynopsis starting promptChars=' + (systemMsg.length + userMsg.length));
+
+  streamingFetch(apiKey, model,
+    [{ role: 'system', content: systemMsg }, { role: 'user', content: userMsg }],
+    { maxTokens: 2000, label: 'refineSynopsis',
+      onChunk: function(delta, full) {
+        textarea.value = full;
+      },
+      onDone: function(full) {
+        textarea.value = full.trim();
+        textarea.style.opacity = '1';
+        saveCurrentStory();
+        debouncedSave();
+        dbg('[Plan] refineSynopsis done responseChars=' + full.length + ' elapsed=' + ((Date.now() - refineT0) / 1000).toFixed(1) + 's');
+        showToast('Story plot refined ✓');
+        if (btn) { btn.disabled = false; btn.textContent = '↺ Refine Full Story Plot'; }
+      },
+      onError: function(err) {
+        textarea.style.opacity = '1';
+        dbg('[Plan] refineSynopsis error: ' + err.message);
+        showToast('Refine failed — try again');
+        if (btn) { btn.disabled = false; btn.textContent = '↺ Refine Full Story Plot'; }
+      }
+    }
+  );
 }
 
 function generateChapterSummaries() {
