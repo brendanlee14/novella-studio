@@ -1416,6 +1416,9 @@
   </div>
 </div>
 
+<!-- Hidden file input for lore photo upload -->
+<input type="file" id="lorePhotoInput" accept="image/*" style="display:none" onchange="handleLorePhotoSelected(event)" />
+
 <!-- ── LORE SCREEN ── -->
 <div class="screen lore-screen" id="screen-lore">
 
@@ -1432,6 +1435,7 @@
   <div class="plan-stage active" id="lore-stage-1">
     <div class="plan-body lore-panel">
       <div class="lore-panel-header">
+        <button type="button" class="wizard-trigger-btn" onclick="openLorePhotoUpload('char1')" style="margin-right:6px;">📷 From Photo</button>
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char1')">✦ Wizard</button>
       </div>
       <textarea id="char1" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
@@ -1442,6 +1446,7 @@
   <div class="plan-stage" id="lore-stage-2">
     <div class="plan-body lore-panel">
       <div class="lore-panel-header">
+        <button type="button" class="wizard-trigger-btn" onclick="openLorePhotoUpload('char2')" style="margin-right:6px;">📷 From Photo</button>
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char2')">✦ Wizard</button>
       </div>
       <textarea id="char2" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
@@ -1452,6 +1457,7 @@
   <div class="plan-stage" id="lore-stage-3">
     <div class="plan-body lore-panel">
       <div class="lore-panel-header">
+        <button type="button" class="wizard-trigger-btn" onclick="openLorePhotoUpload('charSupport')" style="margin-right:6px;">📷 From Photo</button>
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('charSupport')">✦ Wizard</button>
       </div>
       <textarea id="charSupport" class="lore-panel-textarea" placeholder="Secondary characters, their roles and relationships…"></textarea>
@@ -1851,7 +1857,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v127</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v128</span>
     </div>
   </div>
 
@@ -3061,6 +3067,114 @@ function generateSceneImage() {
     var refB64 = refPortrait ? (refPortrait.b64 || refPortrait) : null;
     doVeniceGenerate(finalPrompt, refB64);
   }
+}
+
+
+// ══════════════════════════════
+// LORE FROM PHOTO
+// ══════════════════════════════
+var lorePhotoTargetCharId = null;
+
+function openLorePhotoUpload(charId) {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
+  lorePhotoTargetCharId = charId;
+  var input = document.getElementById('lorePhotoInput');
+  if (input) input.click();
+}
+
+function handleLorePhotoSelected(event) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+  // Reset input so same file can be selected again
+  event.target.value = '';
+
+  var apiKey = document.getElementById('apiKey').value.trim();
+  var charId = lorePhotoTargetCharId;
+  if (!charId || !apiKey) return;
+
+  var charLabels = { char1: 'Protagonist', char2: 'Love Interest', charSupport: 'Supporting Character' };
+  var isProtagonist = charId === 'char1';
+
+  showToast('Analysing photo…');
+  dbg('[LorePhoto] Reading photo for ' + charId + ' (' + file.name + ' ' + Math.round(file.size/1024) + 'KB)');
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    var b64 = dataUrl.split(',')[1];
+    var mimeType = file.type || 'image/jpeg';
+
+    var systemMsg = 'You are a character description writer for an adult fiction writing tool. ' +
+      'Your job is to describe a person in a photo for use as a character reference sheet. ' +
+      'Output ONLY a structured description — no commentary, no preamble, no fiction. ' +
+      'Focus entirely on observable physical appearance.';
+
+    var userMsg = 'Describe this ' + (isProtagonist ? 'male' : 'female') + ' character physical appearance for a character reference sheet.\n\n' +
+      'Include:\n' +
+      '- Approximate age\n' +
+      '- Ethnicity / background\n' +
+      '- Height impression (tall / average / short)\n' +
+      '- Build and body type\n' +
+      (isProtagonist ? '' : '- Breast size impression\n') +
+      '- Face shape\n' +
+      '- Eye colour\n' +
+      '- Hair colour, length and style\n' +
+      '- Any distinctive features\n\n' +
+      'Write in plain descriptive sentences. Be specific and direct. No fiction or narrative — just physical description.';
+
+    dbg('[LorePhoto] Sending to vision model…');
+
+    fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+        'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+        'X-Title': 'Novella Studio'
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-4o-mini',
+        max_tokens: 600,
+        messages: [
+          { role: 'system', content: systemMsg },
+          {
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: 'data:' + mimeType + ';base64,' + b64 } },
+              { type: 'text', text: userMsg }
+            ]
+          }
+        ]
+      })
+    }).then(function(res) {
+      dbg('[LorePhoto] status=' + res.status);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(data) {
+      var desc = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      if (!desc) throw new Error('No description returned');
+      desc = desc.trim();
+      dbg('[LorePhoto] description received ' + desc.length + ' chars');
+
+      var textarea = document.getElementById(charId);
+      if (!textarea) return;
+
+      // Append to existing lore or set if empty
+      var existing = textarea.value.trim();
+      if (existing) {
+        textarea.value = existing + '\n\n--- From Photo ---\n' + desc;
+      } else {
+        textarea.value = desc;
+      }
+      debouncedSave();
+      showToast('Physical description added to ' + charLabels[charId] + ' lore ✓');
+    }).catch(function(err) {
+      dbg('[LorePhoto] error: ' + err.message);
+      showToast('Photo analysis failed: ' + err.message.slice(0, 50));
+    });
+  };
+  reader.readAsDataURL(file);
 }
 
 function renderStoriesList() {
