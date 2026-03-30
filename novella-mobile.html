@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v125</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v127</span>
     </div>
   </div>
 
@@ -4038,7 +4038,6 @@ function escapeAttr(str) {
 // ══════════════════════════════
 // PORTRAIT CAROUSEL
 // ══════════════════════════════
-const PORTRAIT_MAX = 10;
 const PORTRAIT_POSE_GROUPS = {
   'Studio': [
     'Half body front',
@@ -4276,7 +4275,7 @@ function renderPortraitCarousel(charId, images) {
     }
   }
 
-  if (label) label.textContent = state.images.length >= PORTRAIT_MAX ? '✦ Gallery Full (10)' : '✦ Add Portrait';
+  if (label) label.textContent = '✦ Add Portrait';
 }
 
 function setCarouselPosition(charId, animate) {
@@ -4355,10 +4354,6 @@ function savePortraitToStory(charId) {
 
 function addPortraitImage(charId, b64, pose) {
   var state = portraitState[charId];
-  if (state.images.length >= PORTRAIT_MAX) {
-    showToast('Gallery full — delete an image first');
-    return;
-  }
   state.images.push({ b64: b64, pose: pose || 'Half body front', createdAt: Date.now() });
   state.currentIdx = state.images.length - 1;
   renderPortraitCarousel(charId, state.images);
@@ -5059,10 +5054,6 @@ function generatePortrait(charId) {
   }
 
   // Check gallery capacity
-  if (portraitState[charId].images.length >= PORTRAIT_MAX) {
-    showToast('Gallery full (10) — delete a portrait first');
-    return;
-  }
 
   var card = document.getElementById('portrait-' + charId);
   var btnLabel = document.getElementById('portrait-' + charId + '-label');
