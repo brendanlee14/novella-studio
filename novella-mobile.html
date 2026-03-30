@@ -1851,7 +1851,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v120</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v122</span>
     </div>
   </div>
 
@@ -4082,6 +4082,42 @@ const PORTRAIT_POSE_GROUPS = {
     'Reading — distracted',
     'At a bar — holding drink',
     'Over the shoulder looking back',
+  ],
+  'Explicit — Solo': [
+    'Topless — chest forward',
+    'Nude — hands above head',
+    'Nude — arched back',
+    'Nude — lying on back open',
+    'Nude — kneeling upright',
+    'Nude — kneeling all fours',
+    'Nude — seated legs spread',
+    'Nude — standing legs apart',
+    'Touching herself — standing',
+    'Touching herself — lying',
+    'Fingers in mouth — eye contact',
+    'Biting lip — close up',
+    'Pulling top down — caught',
+    'Skirt lifted — looking back',
+    'Bent over — rear view',
+    'Nude — over the knee',
+    'Against the wall — full body',
+    'On knees — looking up',
+  ],
+  'Explicit — Scene': [
+    'On knees — mouth open upward',
+    'Straddling — facing camera',
+    'Straddling — facing away',
+    'Hands and knees — rear view',
+    'Lying face up — legs raised',
+    'Pinned against wall',
+    'Held from behind — standing',
+    'Bent over desk',
+    'Bent over bed edge',
+    'Sitting on edge of bed — legs apart',
+    'Standing — hands behind back',
+    'Hands tied above head — standing',
+    'On all fours — looking back submissive',
+    'Leaning over — from behind',
   ]
 };
 
@@ -4302,6 +4338,10 @@ function openPortraitPopup(charId, idx) {
 
   var counter = document.getElementById('popupCounter');
   counter.textContent = (idx + 1) + ' / ' + state.images.length + (state.images[idx].pose ? '  ·  ' + state.images[idx].pose : '');
+
+  // Ensure delete button is visible (may have been hidden by openSceneImagePopup)
+  var delBtn = document.querySelector('#popupToolbarNormal .danger');
+  if (delBtn) delBtn.style.display = '';
 
   var popup = document.getElementById('portraitPopup');
   popup.classList.add('open');
@@ -4753,6 +4793,38 @@ function poseToSDTerm(pose) {
     'Reading — distracted': 'seated reading, looking up distracted, natural light',
     'At a bar — holding drink': 'standing at bar, holding drink, half body',
     'Over the shoulder looking back': 'walking, turned looking back over shoulder, full body',
+    'Topless — chest forward': 'topless, chest forward, confident, half body, facing camera, breasts visible',
+    'Nude — hands above head': 'nude, arms raised above head, full body, facing camera, breasts visible, elongated pose',
+    'Nude — arched back': 'nude, arched back, head tilted back, full body, breasts thrust forward, sensual',
+    'Nude — lying on back open': 'nude, lying on back, legs slightly apart, looking at camera, full body, breasts visible',
+    'Nude — kneeling upright': 'nude, kneeling upright on floor, full body, facing camera, breasts visible, submissive',
+    'Nude — kneeling all fours': 'nude, on hands and knees, rear view, looking back over shoulder, intimate',
+    'Nude — seated legs spread': 'nude, seated, legs spread, facing camera, full body, explicit, breasts visible',
+    'Nude — standing legs apart': 'nude, standing, legs apart, full body, facing camera, confident, breasts visible',
+    'Touching herself — standing': 'nude, standing, hand between legs touching herself, eyes closed or half-open, self-pleasure, facing camera',
+    'Touching herself — lying': 'nude, lying on bed, hand between legs, pleasuring herself, breasts visible, facing camera',
+    'Fingers in mouth — eye contact': 'close up portrait, fingers in mouth, intense direct eye contact, suggestive, sultry',
+    'Biting lip — close up': 'close up face portrait, biting lower lip, heavy lidded eyes, intimate, sultry',
+    'Pulling top down — caught': 'half body, pulling neckline down, one breast exposed, caught mid-undress, surprised expression',
+    'Skirt lifted — looking back': 'full body, skirt or dress lifted from behind, looking back over shoulder, intimate rear view',
+    'Bent over — rear view': 'full body, bent forward at waist, rear view, looking back over shoulder, explicit',
+    'Nude — over the knee': 'nude, draped over knee face down, rear view, intimate, submissive',
+    'Against the wall — full body': 'full body, pressed against wall, facing camera, nude or lingerie, arms above head or at sides',
+    'On knees — looking up': 'nude, kneeling on floor, looking up at camera, submissive, breasts visible, full body',
+    'On knees — mouth open upward': 'nude, kneeling, mouth open, looking up, submissive, close to camera, explicit oral ready',
+    'Straddling — facing camera': 'nude or lingerie, straddling, facing camera, breasts visible, full body, riding position',
+    'Straddling — facing away': 'nude, straddling, facing away from camera, rear view, looking back over shoulder',
+    'Hands and knees — rear view': 'nude, on all fours, rear view, full body, explicit, doggy style position',
+    'Lying face up — legs raised': 'nude, lying on back, legs raised, facing camera, full body, explicit missionary position',
+    'Pinned against wall': 'full body, pressed against wall from behind, looking sideways at camera, intimate, restrained',
+    'Held from behind — standing': 'full body, held from behind by unseen figure, facing camera, breasts visible, hands on her body',
+    'Bent over desk': 'bent over desk or table, rear view, looking back, explicit, full body',
+    'Bent over bed edge': 'bent over edge of bed, rear view, nude, looking back over shoulder, explicit',
+    'Sitting on edge of bed — legs apart': 'nude, sitting on edge of bed, legs apart, facing camera, breasts visible, explicit',
+    'Standing — hands behind back': 'nude, standing, hands clasped behind back, chest forward, full body, facing camera, submissive',
+    'Hands tied above head — standing': 'nude, wrists bound above head, standing, full body, facing camera, vulnerable, breasts visible',
+    'On all fours — looking back submissive': 'nude, on all fours, head turned looking back submissively, rear three-quarter view, explicit',
+    'Leaning over — from behind': 'nude, leaning over surface, viewed from behind at angle, rear view, intimate',
   };
   return map[pose] || 'half body shot, from waist up';
 }
