@@ -1857,7 +1857,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v130</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v132</span>
     </div>
   </div>
 
@@ -3569,7 +3569,7 @@ function refineSynopsis() {
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: userMsg }],
-    { maxTokens: 2000, label: 'refineSynopsis',
+    { maxTokens: 10000, label: 'refineSynopsis',
       onChunk: function(delta, full) {
         textarea.value = full;
       },
@@ -3627,82 +3627,93 @@ function generateChapterSummaries() {
   planGoStage(2, true);
   list.innerHTML = '<div class="plan-generating">✦ Writing chapter summaries…</div>';
 
-  const prompt = `Generate exactly ${numCh} chapter summaries for this story.
+  // Sequential generation — one chapter at a time with previous as context
+  var generatedSummaries = [];
 
-${loreCtx ? loreCtx + '\n\n' : ''}SYNOPSIS:\n${synopsis}
+  function generateChapterSequentially(chIdx, retryCount) {
+    if (chIdx >= numCh) {
+      btn.disabled = false;
+      btn.textContent = '✦ Regenerate Summaries';
+      planSummaries = generatedSummaries;
+      renderChSummaryList();
+      saveCurrentStory();
+      showToast(numCh + ' chapter summaries generated');
+      return;
+    }
 
-Output ONLY valid JSON — an array of ${numCh} objects, each with:
-- "title": evocative chapter title
-- "summary": a detailed paragraph (6-10 sentences) covering ALL of the following:
-  1. Where the chapter opens — setting, mood, who is present
-  2. The dramatic purpose — what this chapter exists to do in the story arc
-  3. Key events and turning points in order
-  4. The emotional arc — how the protagonist feels at start vs end
-  5. The physical/sexual escalation — what happens, how explicit, how far things go
-  6. What changes by the end — in the dynamic, the relationship, the situation
-  7. The final beat or image — where the chapter leaves off
-  Reflect the heat level and tone from the lore. Do not sanitise or fade to black in descriptions.
+    var chNum = chIdx + 1;
+    list.innerHTML = '<div class="plan-generating">✦ Writing chapter ' + chNum + ' of ' + numCh + '…</div>';
+    dbg('ChSum ch=' + chNum + '/' + numCh + ' attempt=' + retryCount);
 
-Example format:
-[{"title":"Chapter One — The Encounter","summary":"The chapter opens in..."},...]
+    var prevCtx = '';
+    if (generatedSummaries.length > 0) {
+      prevCtx = 'PREVIOUS CHAPTERS (continuity — this chapter must open exactly where the last one ended):\n' +
+        generatedSummaries.map(function(ch, i) {
+          return 'Chapter ' + (i + 1) + ' — ' + ch.title + ':\n' + ch.summary;
+        }).join('\n\n');
+    }
 
-No markdown, no commentary, just the JSON array.`;
+    var nextHint = '';
+    if (chIdx < numCh - 1) {
+      nextHint = 'UPCOMING: This is chapter ' + chNum + ' of ' + numCh + ' total. Leave the ending in a state that naturally leads into the next chapter. Do not resolve the overall story yet.';
+    } else {
+      nextHint = 'FINAL CHAPTER: This is the last chapter. Bring the story to a satisfying resolution.';
+    }
 
-  function attemptSummaryGeneration(retryCount) {
-    dbg('ChSum attempt=' + retryCount + ' model=' + model);
+    var chPrompt = 'Generate the summary for Chapter ' + chNum + ' of ' + numCh + '.\n\n' +
+      (loreCtx ? loreCtx + '\n\n' : '') +
+      'FULL SYNOPSIS:\n' + synopsis + '\n\n' +
+      (prevCtx ? prevCtx + '\n\n' : '') +
+      nextHint + '\n\n' +
+      'CONTINUITY RULES:\n' +
+      '- Open exactly where the previous chapter ended (same location, same physical state of characters)\n' +
+      '- Sexual and emotional escalation must advance beyond the previous chapter — never repeat the same level\n' +
+      '- Track what characters are wearing, their physical state, and what has already happened\n\n' +
+      'Output ONLY valid JSON — a single object:\n' +
+      '{"title": "Chapter ' + chNum + ' — Evocative Title", "summary": "8-12 sentence paragraph covering: (1) exact opening — where we are and the physical/emotional state carried from previous chapter, (2) dramatic purpose of this chapter, (3) key events and turning points in order, (4) protagonist emotional arc start to end, (5) physical/sexual escalation — what happens how explicit how far (must advance from previous), (6) what changes in dynamic or relationship, (7) the final beat — exact moment and state where chapter ends. Reflect heat level and tone. Do not sanitise."}\n\n' +
+      'No markdown, no commentary, just the JSON object.';
+
     streamingFetch(apiKey, model,
-      [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
+      [{ role: 'system', content: systemMsg }, { role: 'user', content: chPrompt }],
       { maxTokens: 10000, label: 'chapterSummaries',
         onDone: function(raw) {
           raw = raw.trim();
-          // Token limit diagnostics
           var approxTokens = Math.round(raw.length / 4);
-          var nearLimit = approxTokens >= 9000;
-          dbg('ChSum response: ' + raw.length + ' chars ~' + approxTokens + ' tokens (limit=10000)' + (nearLimit ? ' ⚠️ NEAR TOKEN LIMIT — may be truncated' : ' ✓ within limit'));
-          dbg('ChSum last 80 chars: ' + raw.slice(-80));
-          var endsClean = raw.trimEnd().endsWith(']') || raw.trimEnd().endsWith('```');
-          dbg('ChSum ends cleanly: ' + endsClean + (endsClean ? ' ✓' : ' ✗ likely truncated'));
-          if (!raw && retryCount < 1) {
-            dbg('Empty response — retrying...');
-            btn.textContent = '↺ Retrying…';
-            setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
-            return;
-          }
-          btn.disabled = false;
-          btn.textContent = '✦ Regenerate Summaries';
-          const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-          dbg('ChSum cleaned length: ' + cleaned.length + ' chars');
+          dbg('ChSum ch=' + chNum + ' response: ' + raw.length + ' chars ~' + approxTokens + ' tokens');
+          dbg('ChSum ch=' + chNum + ' last 60: ' + raw.slice(-60));
+          var cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
           try {
-            const parsed = JSON.parse(cleaned);
-            dbg('ChSum parsed ok: ' + parsed.length + ' chapters (requested ' + numCh + ')');
-            planSummaries = parsed.map(ch => ({ title: ch.title || '', summary: ch.summary || '', beatCount: 4 }));
-            renderChSummaryList();
-            saveCurrentStory();
-            showToast(numCh + ' chapter summaries generated');
+            var parsed = JSON.parse(cleaned);
+            if (!parsed.title || !parsed.summary) throw new Error('Missing title or summary');
+            generatedSummaries.push({ title: parsed.title, summary: parsed.summary, beatCount: 4 });
+            dbg('ChSum ch=' + chNum + ' ✓ — ' + parsed.summary.length + ' chars');
+            generateChapterSequentially(chIdx + 1, 0);
           } catch(e) {
-            dbg('ChSum JSON parse error: ' + e.message);
-            dbg('ChSum parse failed at position — first 300 chars: ' + cleaned.slice(0, 300));
-            dbg('ChSum parse failed — last 300 chars: ' + cleaned.slice(-300));
+            dbg('ChSum ch=' + chNum + ' parse error: ' + e.message + ' — ' + (retryCount < 1 ? 'retrying' : 'giving up'));
             if (retryCount < 1) {
-              dbg('Parse failed — retrying...');
-              btn.textContent = '↺ Retrying…';
-              setTimeout(() => attemptSummaryGeneration(retryCount + 1), 1500);
+              setTimeout(function() { generateChapterSequentially(chIdx, 1); }, 1500);
             } else {
-              list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;line-height:1.6"><strong>Parse error after retry.</strong> Try a different model or shorten your synopsis.<br><br><small>' + escapeHtml(cleaned.slice(0, 300)) + '</small></div>';
+              list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;line-height:1.6"><strong>Failed on Chapter ' + chNum + '.</strong> Try regenerating.<br><br><small>' + escapeHtml(cleaned.slice(0, 200)) + '</small></div>';
+              btn.disabled = false;
+              btn.textContent = '✦ Generate Chapter Summaries';
             }
           }
         },
         onError: function(err) {
-          btn.disabled = false;
-          btn.textContent = '✦ Generate Chapter Summaries';
-          list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error: ' + escapeHtml(err.message) + '</div>';
-          dbg('ChSum error: ' + err.message);
+          dbg('ChSum ch=' + chNum + ' error: ' + err.message + ' — ' + (retryCount < 1 ? 'retrying' : 'giving up'));
+          if (retryCount < 1) {
+            setTimeout(function() { generateChapterSequentially(chIdx, 1); }, 3000);
+          } else {
+            list.innerHTML = '<div style="padding:16px;color:#c0392b;font-size:0.85rem;">Error on Chapter ' + chNum + ': ' + escapeHtml(err.message) + '</div>';
+            btn.disabled = false;
+            btn.textContent = '✦ Generate Chapter Summaries';
+          }
         }
       }
     );
   }
 
-  attemptSummaryGeneration(0);
+  generateChapterSequentially(0, 0);
 }
 
 // ── REFINE A SINGLE CHAPTER SUMMARY ──
