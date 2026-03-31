@@ -1321,6 +1321,10 @@
     </div>
     <div class="sequel-step" id="seq-step-4">
       <span class="sequel-step-icon" id="seq-icon-4">○</span>
+      <span class="sequel-step-label">Updating character lore</span>
+    </div>
+    <div class="sequel-step" id="seq-step-5">
+      <span class="sequel-step-icon" id="seq-icon-5">○</span>
       <span class="sequel-step-label">Ready</span>
     </div>
   </div>
@@ -1857,7 +1861,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v132</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v134</span>
     </div>
   </div>
 
@@ -2475,7 +2479,7 @@ function createSequel(sourceId) {
 
   // Show overlay
   sequelAborted = false;
-  [1,2,3,4].forEach(function(n) { sequelStep(n, ''); });
+  [1,2,3,4,5].forEach(function(n) { sequelStep(n, ''); });
   document.getElementById('sequelSourceTitle').textContent = source.title;
   document.getElementById('sequelErrorMsg').style.display = 'none';
   document.getElementById('sequelCancelBtn').style.display = '';
@@ -2528,7 +2532,7 @@ function createSequel(sourceId) {
   var summaryCtx = '';
   if (d.plan && d.plan.summaries && d.plan.summaries.length) {
     summaryCtx = d.plan.summaries.map(function(ch, i) {
-      return 'Chapter ' + (i+1) + ' — ' + (ch.title || 'Untitled') + ': ' + (ch.summary || '').slice(0, 300);
+      return 'Chapter ' + (i+1) + ' — ' + (ch.title || 'Untitled') + ': ' + (ch.summary || '').slice(0, 600);
     }).join('\n');
   }
   var stateCtx = d.storyState ? d.storyState.trim() : '';
@@ -2587,25 +2591,91 @@ function createSequel(sourceId) {
         newStory.data.plan.synopsis = synopsis;
         newStory.updatedAt = new Date().toISOString();
 
-        // Insert new story at top of list
-        stories.unshift(newStory);
-        saveStories();
-
         if (sequelAborted) return;
-        sequelStep(4, 'done');
+        sequelStep(4, 'active');
 
-        // Hide cancel, show brief success then open
-        document.getElementById('sequelCancelBtn').style.display = 'none';
-        setTimeout(function() {
-          if (sequelAborted) return;
-          document.getElementById('sequelOverlay').style.display = 'none';
-          renderStoriesList();
-          openStory(newId);
-          // Land on Plan tab stage 1 so user sees the synopsis
-          goScreen('plan');
-          planGoStage(1);
-          showToast('Sequel created \u2014 edit the synopsis and build your story');
-        }, 800);
+        // Step 4: Update character lore based on where the story ended
+        var loreUpdateMsg = 'You are updating character reference sheets based on how a story ended. ' +
+          'Output ONLY valid JSON with the fields provided. ' +
+          'Preserve all physical description details exactly. Only update emotional state, relationship dynamic, ' +
+          'and situational context. Add a brief "Story status:" line at the end of each.';
+
+        var loreUpdatePrompt = 'Update these character lore sheets to reflect where the story ended.\n\n' +
+          (lore.char1 ? '== PROTAGONIST LORE ==\n' + lore.char1 + '\n\n' : '') +
+          (lore.char2 ? '== LOVE INTEREST LORE ==\n' + lore.char2 + '\n\n' : '') +
+          (lore.charSupport ? '== SUPPORTING CAST LORE ==\n' + lore.charSupport + '\n\n' : '') +
+          (stateCtx ? '== WHERE THE STORY ENDED ==\n' + stateCtx + '\n\n' : '') +
+          (physCtx ? '== PHYSICAL STATE AT END ==\n' + physCtx + '\n\n' : '') +
+          (summaryCtx ? '== CHAPTER SUMMARIES ==\n' + summaryCtx + '\n\n' : '') +
+          'Output ONLY valid JSON with these exact fields:\n' +
+          '{"char1": "full updated protagonist lore", "char2": "full updated love interest lore", "charSupport": "full updated supporting cast lore"}\n' +
+          'Keep all original physical details. Only update emotional/relationship/situational context. Add Story status: at end of each.';
+
+        streamingFetch(apiKey, model,
+          [{ role: 'system', content: loreUpdateMsg }, { role: 'user', content: loreUpdatePrompt }],
+          { maxTokens: 3000, label: 'sequelLoreUpdate',
+            onDone: function(loreRaw) {
+              if (sequelAborted) return;
+              loreRaw = loreRaw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+              try {
+                var loreParsed = JSON.parse(loreRaw);
+                if (loreParsed.char1 && loreParsed.char1.trim()) newStory.data.lore.char1 = loreParsed.char1.trim();
+                if (loreParsed.char2 && loreParsed.char2.trim()) newStory.data.lore.char2 = loreParsed.char2.trim();
+                if (loreParsed.charSupport && loreParsed.charSupport.trim()) newStory.data.lore.charSupport = loreParsed.charSupport.trim();
+                dbg('Sequel lore updated: ' + Object.keys(loreParsed).filter(function(k) { return loreParsed[k]; }).join(', '));
+              } catch(e) {
+                dbg('Sequel lore parse error: ' + e.message + ' — keeping original lore');
+              }
+
+              // Store previous story chapter summaries for context in sequel chapter generation
+              if (d.plan && d.plan.summaries && d.plan.summaries.length) {
+                newStory.data.plan.previousStorySummaries = d.plan.summaries.map(function(ch, i) {
+                  return { num: i + 1, title: ch.title || '', summary: (ch.summary || '').slice(0, 600) };
+                });
+                dbg('Sequel: stored ' + d.plan.summaries.length + ' previous chapter summaries for context');
+              }
+
+              // Insert new story at top of list
+              stories.unshift(newStory);
+              saveStories();
+
+              if (sequelAborted) return;
+              sequelStep(4, 'done');
+              sequelStep(5, 'done');
+
+              // Hide cancel, show brief success then open
+              document.getElementById('sequelCancelBtn').style.display = 'none';
+              setTimeout(function() {
+                if (sequelAborted) return;
+                document.getElementById('sequelOverlay').style.display = 'none';
+                renderStoriesList();
+                openStory(newId);
+                goScreen('plan');
+                planGoStage(1);
+                showToast('Sequel created \u2014 lore updated, edit the synopsis and build your story');
+              }, 800);
+            },
+            onError: function(err) {
+              dbg('Sequel lore update error: ' + err.message + ' — keeping original lore');
+              // Still finish even if lore update fails
+              stories.unshift(newStory);
+              saveStories();
+              if (sequelAborted) return;
+              sequelStep(4, 'done');
+              sequelStep(5, 'done');
+              document.getElementById('sequelCancelBtn').style.display = 'none';
+              setTimeout(function() {
+                if (sequelAborted) return;
+                document.getElementById('sequelOverlay').style.display = 'none';
+                renderStoriesList();
+                openStory(newId);
+                goScreen('plan');
+                planGoStage(1);
+                showToast('Sequel created \u2014 edit the synopsis and build your story');
+              }, 800);
+            }
+          }
+        );
       },
       onError: function(err) {
         if (sequelAborted) return;
@@ -3616,8 +3686,19 @@ function generateChapterSummaries() {
     toneStyle ? 'TONE & STYLE (follow this closely — including heat level and explicitness):\n' + toneStyle : '',
   ].filter(Boolean).join('\n\n');
 
+  // Check if this is a sequel — inject previous story summaries for continuity
+  const activeStory = getActiveStory();
+  const prevStorySummaries = activeStory && activeStory.data && activeStory.data.plan && activeStory.data.plan.previousStorySummaries;
+  const prevStoryCtx = prevStorySummaries && prevStorySummaries.length
+    ? '== PREVIOUS STORY — CHAPTER SUMMARIES (this is a sequel — the new story follows on from these events) ==\n' +
+      prevStorySummaries.map(function(ch) {
+        return 'Chapter ' + ch.num + ' — ' + ch.title + ':\n' + ch.summary;
+      }).join('\n\n')
+    : '';
+
   const systemMsg = (persona || 'You are a story structure expert for adult romance fiction.')
-    + '\n\nYou are planning a story. All chapter summaries must reflect the tone, heat level, and style described in the lore — including any explicit or adult content requirements. Do not sanitise or soften the content if the tone calls for explicitness.';
+    + '\n\nYou are planning a story. All chapter summaries must reflect the tone, heat level, and style described in the lore — including any explicit or adult content requirements. Do not sanitise or soften the content if the tone calls for explicitness.'
+    + (prevStoryCtx ? '\n\nThis is a SEQUEL. The new story directly follows the previous one. Characters, relationships and situations must reflect where the previous story ended.' : '');
 
   const btn = document.getElementById('planGenChBtn');
   btn.disabled = true;
@@ -3662,6 +3743,7 @@ function generateChapterSummaries() {
 
     var chPrompt = 'Generate the summary for Chapter ' + chNum + ' of ' + numCh + '.\n\n' +
       (loreCtx ? loreCtx + '\n\n' : '') +
+      (prevStoryCtx ? prevStoryCtx + '\n\n' : '') +
       'FULL SYNOPSIS:\n' + synopsis + '\n\n' +
       (prevCtx ? prevCtx + '\n\n' : '') +
       nextHint + '\n\n' +
