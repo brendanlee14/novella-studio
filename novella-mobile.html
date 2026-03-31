@@ -1857,7 +1857,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v128</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v130</span>
     </div>
   </div>
 
@@ -3652,10 +3652,16 @@ No markdown, no commentary, just the JSON array.`;
     dbg('ChSum attempt=' + retryCount + ' model=' + model);
     streamingFetch(apiKey, model,
       [{ role: 'system', content: systemMsg }, { role: 'user', content: prompt }],
-      { maxTokens: 4000, label: 'chapterSummaries',
+      { maxTokens: 10000, label: 'chapterSummaries',
         onDone: function(raw) {
           raw = raw.trim();
-          dbg('ChSum raw: ' + raw.slice(0, 120));
+          // Token limit diagnostics
+          var approxTokens = Math.round(raw.length / 4);
+          var nearLimit = approxTokens >= 9000;
+          dbg('ChSum response: ' + raw.length + ' chars ~' + approxTokens + ' tokens (limit=10000)' + (nearLimit ? ' ⚠️ NEAR TOKEN LIMIT — may be truncated' : ' ✓ within limit'));
+          dbg('ChSum last 80 chars: ' + raw.slice(-80));
+          var endsClean = raw.trimEnd().endsWith(']') || raw.trimEnd().endsWith('```');
+          dbg('ChSum ends cleanly: ' + endsClean + (endsClean ? ' ✓' : ' ✗ likely truncated'));
           if (!raw && retryCount < 1) {
             dbg('Empty response — retrying...');
             btn.textContent = '↺ Retrying…';
@@ -3665,14 +3671,18 @@ No markdown, no commentary, just the JSON array.`;
           btn.disabled = false;
           btn.textContent = '✦ Regenerate Summaries';
           const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+          dbg('ChSum cleaned length: ' + cleaned.length + ' chars');
           try {
             const parsed = JSON.parse(cleaned);
+            dbg('ChSum parsed ok: ' + parsed.length + ' chapters (requested ' + numCh + ')');
             planSummaries = parsed.map(ch => ({ title: ch.title || '', summary: ch.summary || '', beatCount: 4 }));
             renderChSummaryList();
             saveCurrentStory();
             showToast(numCh + ' chapter summaries generated');
           } catch(e) {
-            dbg('JSON parse error: ' + e.message + ' raw: ' + cleaned.slice(0, 200));
+            dbg('ChSum JSON parse error: ' + e.message);
+            dbg('ChSum parse failed at position — first 300 chars: ' + cleaned.slice(0, 300));
+            dbg('ChSum parse failed — last 300 chars: ' + cleaned.slice(-300));
             if (retryCount < 1) {
               dbg('Parse failed — retrying...');
               btn.textContent = '↺ Retrying…';
