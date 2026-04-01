@@ -1861,7 +1861,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v134</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v135</span>
     </div>
   </div>
 
@@ -2558,17 +2558,19 @@ function createSequel(sourceId) {
     (stateCtx ? '━━ WHERE THE STORY ENDED ━━\n' + stateCtx + '\n\n' : '') +
     (physCtx ? '━━ PHYSICAL STATE AT END ━━\n' + physCtx + '\n\n' : '') +
     '━━ YOUR TASK ━━\n' +
-    'Write a sequel synopsis that:\n' +
-    '- Opens with "Here\'s where things stand:" and summarises the end of the previous story in 2-3 sentences\n' +
-    '- Suggests a possible direction for the sequel in 3-5 sentences — leave room for the user to change or add plot points\n' +
-    '- Reflects the same heat level and tone as the original\n\n' +
+    'Write a sequel synopsis containing BOTH an emotional arc and an explicit sexual escalation arc. Include:\n' +
+    '- "Here\'s where things stand:" — 2-3 sentences summarising the end of the previous story covering both the emotional state and the physical/sexual situation\n' +
+    '- Emotional direction — how the relationship, tension, or dynamic evolves in the sequel\n' +
+    '- Sexual escalation — explicitly describe what new sexual territory the sequel explores. What acts, scenarios, or intensity levels go beyond the previous story. Be direct and explicit — do not sanitise or fade to black\n' +
+    '- Key turning points — 2-3 specific events that drive both the emotional and sexual arc forward\n' +
+    'Aim for roughly equal weight between emotional arc and sexual escalation. Reflect the same heat level and tone as the original.\n\n' +
     'Also generate a sequel title that builds on the original story title: "' + source.title + '"\n\n' +
     'Output ONLY valid JSON with two fields: "title" (string) and "synopsis" (string).\n' +
     'Example: {"title":"The Singapore Affair — Reckoning","synopsis":"Here\'s where things stand: ..."}';
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: userMsg }],
-    { maxTokens: 800, label: 'createSequel',
+    { maxTokens: 1500, label: 'createSequel',
       onDone: function(raw) {
         if (sequelAborted) return;
         sequelStep(3, 'done');
