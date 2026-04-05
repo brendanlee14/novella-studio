@@ -1988,7 +1988,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v137</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v138</span>
     </div>
   </div>
 
@@ -7147,7 +7147,7 @@ function expandWizardPreview() {
 function generateWizardNames() {
   var apiKey = document.getElementById('apiKey').value.trim();
   if (!apiKey) { showToast('Add OpenRouter key in Setup'); return; }
-  var model = document.getElementById('modelSelect').value;
+  var model = 'openai/gpt-4o-mini'; // Use vision model — writing model may refuse
 
   var btn = document.getElementById('wizNamesBtn') || document.querySelector('[onclick="generateWizardNames()"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Generating\u2026'; }
@@ -7241,38 +7241,65 @@ function wizardStepTitle(step) {
 function sel(id) { return document.getElementById(id); }
 
 // Her kink / defining behaviour — 30 options
-const KINK_BEHAVIOURS = [
-  'Responds intensely to being watched',
-  'Performs when she knows he\'s looking',
-  'Loses control when praised',
-  'Needs to feel possessed',
-  'Responds to commands without hesitation',
-  'Initiates without warning',
-  'Teases until he breaks first',
-  'Withholds deliberately to build tension',
-  'Becomes vocal and unguarded at peak',
-  'Responds to dominance with complete surrender',
-  'Takes control when least expected',
-  'Eye contact as a weapon — holds it at the wrong moments',
-  'Touches herself when she thinks he can\'t see',
-  'Dresses for his attention without acknowledging it',
-  'Asks for things she pretends not to want',
-  'Gets competitive — needs to outperform',
-  'Laughs when she\'s close — loses her composure',
-  'Cries after — emotional release not distress',
-  'Bites — leaves marks without thinking',
-  'Pulls him closer when she should push away',
-  'Goes very still and quiet when fully aroused',
-  'Narrates what she wants in explicit detail',
-  'Responds to being described — what he says about her body',
-  'Needs eye contact to finish',
-  'Uses his name at the wrong moments',
-  'Slow to start, impossible to stop',
-  'Pushes limits then punishes him for crossing them',
-  'Remembers everything — references past encounters',
-  'Gets louder with each scene — builds across the story',
-  'Acts indifferent then gives herself away physically'
-];
+// KINK_BEHAVIOURS grouped for display — flat array used for chips
+const KINK_BEHAVIOUR_GROUPS = {
+  'Attention & Exhibition': [
+    'Responds intensely to being watched',
+    'Performs when she knows he\'s looking',
+    'Dresses for his attention without acknowledging it',
+    'Touches herself when she thinks he can\'t see',
+    'Deliberately catches his eye then looks away',
+    'Gets louder the more she thinks she\'s being heard',
+    'Needs an audience — even an implied one',
+  ],
+  'Control & Power': [
+    'Responds to commands without hesitation',
+    'Responds to dominance with complete surrender',
+    'Takes control when least expected',
+    'Withholds deliberately to build tension',
+    'Teases until he breaks first',
+    'Pushes limits then punishes him for crossing them',
+    'Asks for things she pretends not to want',
+    'Needs to feel possessed',
+    'Gets competitive — needs to outperform',
+  ],
+  'Verbal & Praise': [
+    'Loses control when praised',
+    'Narrates what she wants in explicit detail',
+    'Responds to being described — what he says about her body',
+    'Uses his name at the wrong moments',
+    'Dirty talk — can\'t help what comes out',
+    'Goes quiet then says something that breaks him',
+  ],
+  'Physical Tells': [
+    'Bites — leaves marks without thinking',
+    'Pulls him closer when she should push away',
+    'Goes very still and quiet when fully aroused',
+    'Eye contact as a weapon — holds it at the wrong moments',
+    'Laughs when she\'s close — loses her composure',
+    'Cries after — emotional release not distress',
+    'Grips hard enough to bruise without realising',
+    'Arches before she means to',
+  ],
+  'Pacing & Pattern': [
+    'Initiates without warning',
+    'Slow to start, impossible to stop',
+    'Needs eye contact to finish',
+    'Gets louder with each scene — builds across the story',
+    'Acts indifferent then gives herself away physically',
+    'Remembers everything — references past encounters',
+    'Never fully satisfied — always wants more',
+  ],
+  'Taboo & Fantasy': [
+    'Fantasises about being watched by a third party',
+    'Responds to the idea of being shared',
+    'Gets aroused by the risk of being caught',
+    'Roleplay — slips into a persona without prompting',
+    'Responds to taboo context — the forbidden aspect excites her',
+    'Gets off on the guilt as much as the act',
+  ],
+};
+const KINK_BEHAVIOURS = Object.values(KINK_BEHAVIOUR_GROUPS).flat();
 
 // Expanded kinks for tone wizard — 30 options
 const STORY_KINKS = [
@@ -7353,23 +7380,108 @@ const PROTAGONIST_KINKS = [
 ];
 
 const EROGENOUS_ZONES = [
-  'Clitoris','Nipples','Neck','Inner thighs','Lower back','Ears',
-  'Lips / mouth','Stomach / navel','Behind the knees','Scalp / hair pulling',
-  'Feet / ankles','Wrists / forearms','Collarbone / décolletage',
-  'Small of the back','Buttocks'
+  // Primary
+  'Clitoris','Nipples','Neck — throat and nape','Inner thighs',
+  // Secondary
+  'Lower back','Ears — lobe and behind','Lips and mouth','Stomach and navel',
+  'Collarbone and décolletage','Small of the back','Buttocks',
+  // Sensitive
+  'Scalp — hair pulling','Behind the knees','Wrists and inner forearms',
+  'Feet and ankles','Hip bones','Ribs — sides and underside',
+  // Explicit
+  'Perineum','Anal area','Inside of mouth — tongue and throat',
+  'Areolas — separate from nipples','G-spot',
+  // Psychological
+  'Responds to breath — any warm breath on skin','Responds to being bitten anywhere',
+  'Responds to firm grip — arms, thighs, neck','Full body — skin contact anywhere',
 ];
 
-const SEXUAL_BEHAVIOURS = [
-  'Vocalises her own actions',
-  'Preens / checks herself in mirrors',
-  'Controls pace deliberately',
-  'Uses eye contact as a weapon during sex',
-  'Goes completely silent at peak',
-  'Cries after — emotional release',
-  'Bites / scratches without thinking',
-  'Narrates what she wants',
-  'Freezes before letting go',
-  'Talks herself through it'
+const SEXUAL_BEHAVIOUR_GROUPS = {
+  'Vocal': [
+    'Vocalises her own actions aloud',
+    'Narrates what she wants in real time',
+    'Talks dirty without prompting',
+    'Goes completely silent at peak',
+    'Moans quietly then suddenly loses control',
+    'Uses his name repeatedly at peak',
+    'Begs — can\'t help it',
+  ],
+  'Physical': [
+    'Controls pace deliberately — slows him down',
+    'Bites and scratches without thinking',
+    'Grips hard enough to leave marks',
+    'Arches her back without realising',
+    'Rolls her hips — takes what she needs',
+    'Freezes still for a moment before letting go',
+    'Shakes or trembles at peak',
+    'Squirts — responsive and wet',
+    'Clenches involuntarily during orgasm',
+  ],
+  'Eye Contact & Display': [
+    'Uses eye contact as a weapon during sex',
+    'Watches herself in any available reflection',
+    'Preens mid-act — adjusts hair, checks herself',
+    'Holds eye contact through orgasm',
+    'Looks away at the moment she comes',
+  ],
+  'Emotional': [
+    'Cries after — emotional release not distress',
+    'Laughs when she loses control',
+    'Gets aggressive when close — flips the dynamic',
+    'Needs verbal reassurance at peak',
+    'Freezes emotionally then floods',
+    'Talks herself through it quietly',
+  ],
+  'Pacing & Rhythm': [
+    'Chases her orgasm relentlessly — single-minded',
+    'Edges herself then stops — builds the tension',
+    'Needs multiple orgasms — the first doesn\'t satisfy',
+    'Comes quickly but wants to go again immediately',
+    'Slow burn — takes a long time but loses herself completely',
+  ],
+};
+const SEXUAL_BEHAVIOURS = Object.values(SEXUAL_BEHAVIOUR_GROUPS).flat();
+
+const SIGNATURE_GESTURES = [
+  // Self-touch
+  'Touches her own neck or throat','Traces her collarbone without thinking',
+  'Runs fingers through her hair slowly','Twists a ring or bracelet when thinking',
+  'Bites her lower lip when she\'s distracted','Presses lips together before she speaks',
+  'Trails fingers along surfaces as she passes','Touches her own face when concentrating',
+  // Eye contact
+  'Holds eye contact a beat too long','Looks away right before she\'d have to admit something',
+  'Glances at his mouth before she looks away','Looks him over once without apologising for it',
+  // Body language
+  'Tilts chin up when challenged','Crosses legs toward him instinctively',
+  'Mirrors his posture without realising','Turns slightly away when she\'s interested — counterintuitive',
+  'Leans in then catches herself','Shifts weight to one hip when she\'s comfortable',
+  // Habitual
+  'Tucks hair behind ear when nervous','Smooths her clothing when she feels watched',
+  'Checks the room before she relaxes','Laughs through something that should make her flinch',
+  // Charged
+  'Breathes more slowly when she\'s aroused','Bites the inside of her cheek when holding back',
+  'Goes very still when she\'s deciding something','Speaks more quietly when she actually means it',
+];
+
+const AROUSAL_TELLS = [
+  // Visual
+  'Flush spreads from neck down to chest','Skin goes blotchy on her throat and chest',
+  'Pupils visibly dilate','Lips part slightly and stay open',
+  'Eyes go heavy-lidded','Colour rises in her cheeks',
+  'Nipples visibly harden through fabric',
+  // Breath & Sound
+  'Breathing slows and deepens','Breath catches on the inhale',
+  'Exhales through the nose slowly','Goes quiet when normally she\'d talk',
+  'Voice drops lower','Swallows before she speaks',
+  // Physical
+  'Shifts her weight — restless','Presses thighs together',
+  'Jaw tightens then releases','Hands go still when normally she\'d fidget',
+  'Skin becomes more sensitive — flinches at light touch',
+  'Leans into touch before she means to','Gets warm to the touch',
+  // Behavioural
+  'Loses track of conversation','Stops making eye contact — or can\'t stop',
+  'Finds reasons to stay in the room','Becomes very precise about small things',
+  'Laughs at something that isn\'t funny','Goes direct when normally she\'d deflect',
 ];
 
 function wField(label, id, type, options, placeholder, note) {
@@ -7520,7 +7632,7 @@ function renderWizardStep() {
 
   if (stepKey === 'identity_f') {
     body += wField('Age', 'wiz_age', 'text', null, 'e.g. 29');
-    body += wField('Role in Story', 'wiz_role', 'select', ['Wife','Girlfriend','Affair','Stranger','Colleague','Friend\'s partner','Escort','Neighbour','Other']);
+    body += wField('Role in Story', 'wiz_role', 'select', ['Wife','Girlfriend','Affair','Stranger','Colleague','Friend\'s partner','Housemate / Roommate','Escort','Neighbour','Other']);
     body += wField('Ethnicity', 'wiz_ethnicity', 'select-grouped', ethnicityGroupOptions());
     body += '<div class="wiz-field" id="wiz_mixed_row" style="display:none">';
     body += '<label class="wiz-label">Mixed — First Ethnicity</label><select class="wiz-select" id="wiz_eth1"><option value="">— select —</option>' + ETHNICITIES_FLAT.map(function(e){return '<option>'+e+'</option>';}).join('') + '</select>';
@@ -7586,8 +7698,8 @@ function renderWizardStep() {
     body += wField('Additional kink detail', 'wiz_kink', 'text', null, 'Any other defining behaviour…');
     body += '<div class="wiz-field"><label class="wiz-label">Erogenous Zones <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_erogenous">' + EROGENOUS_ZONES.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
     body += '<div class="wiz-field"><label class="wiz-label">Sexual Behaviours <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_sex_behaviours">' + SEXUAL_BEHAVIOURS.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
-    body += wField('Physical Tell When Aroused', 'wiz_arousal_tell', 'text', null, 'e.g. flush spreads from neck, breathing slows, bites lower lip');
-    body += wField('Signature Gesture', 'wiz_gesture', 'select', ['Holds eye contact too long','Touches her own neck','Bites lip when thinking','Tucks hair when nervous','Mirrors his body language','Tilts chin up when challenged','Trails fingers when she walks past','Other']);
+    body += '<div class="wiz-field"><label class="wiz-label">Physical Tell When Aroused <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_arousal_tell_multi">' + AROUSAL_TELLS.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
+    body += '<div class="wiz-field"><label class="wiz-label">Signature Gestures <span style="font-weight:300;color:var(--muted)">— tap to select</span></label><div class="wiz-multiselect" id="wiz_gesture_multi">' + SIGNATURE_GESTURES.map(function(k){ return '<div class="wiz-chip" data-val="' + k + '" onclick="toggleWizChip(this)">' + k + '</div>'; }).join('') + '</div></div>';
     body += wField('Signature Scent', 'wiz_scent', 'select', ['Warm vanilla','Jasmine','Sandalwood','Citrus and clean','Floral and soft','Musk','Clean skin, barely there','Dark rose','Coconut and warm skin','Other']);
   }
 
@@ -7928,8 +8040,10 @@ function buildLorePrompt() {
     else if (kinkExtra) kink = kinkExtra;
     var erogenousChips = collectWizardChips('dynamic','wiz_erogenous');
     var sexBehaviourChips = collectWizardChips('dynamic','wiz_sex_behaviours');
-    var arousalTell = collectWizardValue('dynamic','wiz_arousal_tell');
-    var gesture = collectWizardValue('dynamic','wiz_gesture');
+    var arousalTellChips = collectWizardChips('dynamic','wiz_arousal_tell_multi');
+    var arousalTell = arousalTellChips.length ? arousalTellChips.join(', ') : collectWizardValue('dynamic','wiz_arousal_tell');
+    var gestureChips = collectWizardChips('dynamic','wiz_gesture_multi');
+    var gesture = gestureChips.length ? gestureChips.join(', ') : collectWizardValue('dynamic','wiz_gesture');
     var scent = collectWizardValue('dynamic','wiz_scent');
     if (orientation) lines.push('Orientation: ' + orientation);
     if (voice) lines.push('Voice: ' + voice + (accent && accent !== '' ? ', ' + accentStr + ' ' + accent + ' accent' : ''));
