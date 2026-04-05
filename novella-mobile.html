@@ -1460,11 +1460,30 @@
   <!-- Panel 3: Supporting Cast -->
   <div class="plan-stage" id="lore-stage-3">
     <div class="plan-body lore-panel">
-      <div class="lore-panel-header">
-        <button type="button" class="wizard-trigger-btn" onclick="openLorePhotoUpload('charSupport')" style="margin-right:6px;">📷 From Photo</button>
-        <button type="button" class="wizard-trigger-btn" onclick="openWizard('charSupport')">✦ Wizard</button>
+      <!-- Slot selector -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <select id="supportSlotSelect" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Jost',sans-serif;font-size:0.85rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="switchSupportSlot(this.value)">
+          <option value="charSupport">Slot 1</option>
+          <option value="charSupport2">Slot 2</option>
+          <option value="charSupport3">Slot 3</option>
+        </select>
+        <label class="toggle" title="Include in story context">
+          <input type="checkbox" id="supportSlotActive" checked onchange="saveSupportSlotActive()" />
+          <span class="toggle-slider"></span>
+        </label>
+        <span style="font-size:0.72rem;color:var(--muted);">Active</span>
       </div>
-      <textarea id="charSupport" class="lore-panel-textarea" placeholder="Secondary characters, their roles and relationships…"></textarea>
+      <!-- Slot actions -->
+      <div class="lore-panel-header">
+        <button type="button" class="wizard-trigger-btn" id="supportPhotoBtn" onclick="openLorePhotoUpload('charSupport')" style="margin-right:6px;">📷 From Photo</button>
+        <button type="button" class="wizard-trigger-btn" id="supportWizardBtn" onclick="openWizard('charSupport')">✦ Wizard</button>
+      </div>
+      <!-- Slot 1 -->
+      <textarea id="charSupport" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…"></textarea>
+      <!-- Slot 2 -->
+      <textarea id="charSupport2" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…" style="display:none;"></textarea>
+      <!-- Slot 3 -->
+      <textarea id="charSupport3" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…" style="display:none;"></textarea>
     </div>
   </div>
 
@@ -1604,6 +1623,114 @@
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
               <span id="portrait-charSupport-label">✦ Generate Portrait</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Supporting Cast 2 portraits -->
+      <div style="padding:14px 16px 4px;border-top:1px solid var(--border);">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">👤 Supporting Cast 2</span>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="portrait-card" id="portrait-charSupport2">
+          <div class="portrait-placeholder" id="portrait-charSupport2-empty">
+            <span class="portrait-icon">👤</span>
+            <span class="portrait-hint">Generate Portrait</span>
+          </div>
+          <div class="portrait-carousel" id="portrait-charSupport2-carousel" style="display:none">
+            <div class="portrait-carousel-track" id="portrait-charSupport2-track"></div>
+          </div>
+          <div class="portrait-dots" id="portrait-charSupport2-dots" style="display:none"></div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Pose</span>
+            <span class="portrait-pose-current" id="portrait-charSupport2-pose-label">Half body front</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('charSupport2')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Clothing</span>
+            <span class="portrait-pose-current" id="portrait-charSupport2-clothing-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-charSupport2-sheer-btn" onclick="togglePortraitOption('charSupport2','sheer')">Sheer</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport2')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">State</span>
+            <span class="portrait-pose-current" id="portrait-charSupport2-state-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-charSupport2-nipples-btn" onclick="togglePortraitOption('charSupport2','nipples')">Hard nipples</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport2')">Change</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Seed</span>
+            <input type="number" id="portrait-charSupport2-seed" placeholder="Random" min="1" max="999999999"
+              style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+            <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport2')">Lock</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport2')">Clear</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Preset</span>
+            <select id="portrait-charSupport2-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('charSupport2', this.value)">
+              <option value="">— apply preset —</option>
+            </select>
+            <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport2')">Save</button>
+          </div>
+          <div class="portrait-actions">
+            <button type="button" class="portrait-btn" id="portrait-charSupport2-btn" onclick="generatePortrait('charSupport2')">
+              <span id="portrait-charSupport2-label">✦ Generate Portrait</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      
+      <!-- Supporting Cast 3 portraits -->
+      <div style="padding:14px 16px 4px;border-top:1px solid var(--border);">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">🧑 Supporting Cast 3</span>
+      </div>
+      <div style="padding:0 16px 16px;">
+        <div class="portrait-card" id="portrait-charSupport3">
+          <div class="portrait-placeholder" id="portrait-charSupport3-empty">
+            <span class="portrait-icon">🧑</span>
+            <span class="portrait-hint">Generate Portrait</span>
+          </div>
+          <div class="portrait-carousel" id="portrait-charSupport3-carousel" style="display:none">
+            <div class="portrait-carousel-track" id="portrait-charSupport3-track"></div>
+          </div>
+          <div class="portrait-dots" id="portrait-charSupport3-dots" style="display:none"></div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Pose</span>
+            <span class="portrait-pose-current" id="portrait-charSupport3-pose-label">Half body front</span>
+            <button type="button" class="portrait-pose-change-btn" onclick="openPosePicker('charSupport3')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">Clothing</span>
+            <span class="portrait-pose-current" id="portrait-charSupport3-clothing-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-charSupport3-sheer-btn" onclick="togglePortraitOption('charSupport3','sheer')">Sheer</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport3')">Change</button>
+          </div>
+          <div class="portrait-pose-row">
+            <span class="portrait-pose-label">State</span>
+            <span class="portrait-pose-current" id="portrait-charSupport3-state-label">Nude</span>
+            <button type="button" class="portrait-option-toggle" id="portrait-charSupport3-nipples-btn" onclick="togglePortraitOption('charSupport3','nipples')">Hard nipples</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport3')">Change</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Seed</span>
+            <input type="number" id="portrait-charSupport3-seed" placeholder="Random" min="1" max="999999999"
+              style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
+            <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport3')">Lock</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport3')">Clear</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
+            <span class="portrait-pose-label">Preset</span>
+            <select id="portrait-charSupport3-preset" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;" onchange="applyPortraitPreset('charSupport3', this.value)">
+              <option value="">— apply preset —</option>
+            </select>
+            <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport3')">Save</button>
+          </div>
+          <div class="portrait-actions">
+            <button type="button" class="portrait-btn" id="portrait-charSupport3-btn" onclick="generatePortrait('charSupport3')">
+              <span id="portrait-charSupport3-label">✦ Generate Portrait</span>
             </button>
           </div>
         </div>
@@ -1861,7 +1988,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v136</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v137</span>
     </div>
   </div>
 
@@ -2249,7 +2376,7 @@ function idbDeleteSceneImage(storyId, chIdx, bIdx) {
 function migratePortraitsToIDB(story) {
   if (!story.data || !story.data.portraits) return Promise.resolve();
   var portraits = story.data.portraits;
-  var chars = ['char1', 'char2', 'charSupport'];
+  var chars = ['char1', 'char2', 'charSupport', 'charSupport2', 'charSupport3'];
   var hasData = chars.some(function(id) {
     return portraits[id] && portraits[id].length > 0;
   });
@@ -2343,6 +2470,10 @@ function saveCurrentStory() {
       char1: document.getElementById('char1').value,
       char2: document.getElementById('char2').value,
       charSupport: document.getElementById('charSupport').value,
+      charSupport2: document.getElementById('charSupport2').value,
+      charSupport2Active: window._supportSlotActive ? window._supportSlotActive['charSupport2'] !== false : true,
+      charSupport3: document.getElementById('charSupport3').value,
+      charSupport3Active: window._supportSlotActive ? window._supportSlotActive['charSupport3'] !== false : true,
       worldLore: document.getElementById('worldLore').value,
       toneStyle: document.getElementById('toneStyle').value,
     },
@@ -2379,6 +2510,14 @@ function loadStoryIntoApp(story) {
   document.getElementById('char1').value = lore.char1 || '';
   document.getElementById('char2').value = lore.char2 || '';
   document.getElementById('charSupport').value = lore.charSupport || '';
+  document.getElementById('charSupport2').value = lore.charSupport2 || '';
+  document.getElementById('charSupport3').value = lore.charSupport3 || '';
+  window._supportSlotActive = { charSupport: true, charSupport2: lore.charSupport2Active !== false, charSupport3: lore.charSupport3Active !== false };
+  document.getElementById('supportSlotSelect').value = 'charSupport';
+  document.getElementById('supportSlotActive').checked = true;
+  document.getElementById('charSupport').style.display = '';
+  document.getElementById('charSupport2').style.display = 'none';
+  document.getElementById('charSupport3').style.display = 'none';
   document.getElementById('worldLore').value = lore.worldLore || '';
   document.getElementById('toneStyle').value = lore.toneStyle || '';
   document.getElementById('storyState').value = d.storyState || '';
@@ -2412,7 +2551,7 @@ function loadStoryIntoApp(story) {
     return Promise.all(promises);
   }).catch(function() {
     // Fallback — render empty carousels
-    ['char1','char2','charSupport'].forEach(function(id) { renderPortraitCarousel(id, []); renderPortraitPresetSelect(id); });
+    ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) { renderPortraitCarousel(id, []); renderPortraitPresetSelect(id); });
   });
 
   // Restore plan
@@ -2854,7 +2993,9 @@ function detectSceneCharacter(beat, sceneText) {
   var lores = {
     char1: document.getElementById('char1').value.trim(),
     char2: document.getElementById('char2').value.trim(),
-    charSupport: document.getElementById('charSupport').value.trim()
+    charSupport: document.getElementById('charSupport').value.trim(),
+    charSupport2: document.getElementById('charSupport2').value.trim(),
+    charSupport3: document.getElementById('charSupport3').value.trim()
   };
 
   function extractName(lore) {
@@ -2865,7 +3006,9 @@ function detectSceneCharacter(beat, sceneText) {
   var names = {
     char1: extractName(lores.char1),
     char2: extractName(lores.char2),
-    charSupport: extractName(lores.charSupport)
+    charSupport: extractName(lores.charSupport),
+    charSupport2: extractName(lores.charSupport2),
+    charSupport3: extractName(lores.charSupport3)
   };
 
   function escapeName(n) {
@@ -2884,8 +3027,8 @@ function detectSceneCharacter(beat, sceneText) {
   var beatDesc = (beat.desc || '').toLowerCase();
   var sceneBody = (sceneText || '').toLowerCase();
 
-  var counts = { char1: 0, char2: 0, charSupport: 0 };
-  ['char1', 'char2', 'charSupport'].forEach(function(id) {
+  var counts = { char1: 0, char2: 0, charSupport: 0, charSupport2: 0, charSupport3: 0 };
+  ['char1', 'char2', 'charSupport', 'charSupport2', 'charSupport3'].forEach(function(id) {
     if (!names[id]) return;
     counts[id] = (countIn(beatTitle, names[id]) * 3) +
                  (countIn(beatDesc, names[id]) * 2) +
@@ -2899,22 +3042,17 @@ function detectSceneCharacter(beat, sceneText) {
 
   // Scene images show the visual SUBJECT — protagonist is the observer, not the subject.
   // Non-protagonist characters take priority. Use weighted counts to determine who.
-  var char2Score = counts.char2;
-  var supportScore = counts.charSupport;
-  var char1Score = counts.char1;
-
-  // If either non-protagonist has a score, use the highest
-  if (char2Score > 0 || supportScore > 0) {
-    if (supportScore > char2Score && lores.charSupport) return 'charSupport';
-    if (char2Score > 0 && lores.char2) return 'char2';
-    if (supportScore > 0 && lores.charSupport) return 'charSupport';
-  }
-
-  // Neither non-protagonist identified — default to char2 if lore exists, else char1
-  if (lores.char2) {
-    dbg('[SceneImg] No non-protagonist identified — defaulting to char2');
-    return 'char2';
-  }
+  // Find highest-scoring non-protagonist character across all 4 slots
+  var nonProtag = ['char2', 'charSupport', 'charSupport2', 'charSupport3'];
+  var best = null, bestScore = 0;
+  nonProtag.forEach(function(id) {
+    if (lores[id] && counts[id] > bestScore) { best = id; bestScore = counts[id]; }
+  });
+  dbg('[SceneImg] Best match: ' + (best || 'none') + ' score=' + bestScore);
+  if (best) return best;
+  // Default — char2 if lore exists, then support slots, else char1
+  if (lores.char2) { dbg('[SceneImg] Defaulting to char2'); return 'char2'; }
+  if (lores.charSupport) return 'charSupport';
   return 'char1';
 }
 
@@ -3677,13 +3815,13 @@ function generateChapterSummaries() {
   const toneStyle = document.getElementById('toneStyle').value.trim();
   const char1 = document.getElementById('char1').value.trim();
   const char2 = document.getElementById('char2').value.trim();
-  const charSupport = document.getElementById('charSupport').value.trim();
+  const activeSupportSlots = getActiveSupportLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
     char2 ? 'LOVE INTEREST:\n' + char2 : '',
-    charSupport ? 'SUPPORTING CAST:\n' + charSupport : '',
+    ...activeSupportSlots.map(function(s) { return s.lore ? s.label.toUpperCase() + ':\n' + s.lore : ''; }),
     worldLore ? 'WORLD & SETTING:\n' + worldLore : '',
     toneStyle ? 'TONE & STYLE (follow this closely — including heat level and explicitness):\n' + toneStyle : '',
   ].filter(Boolean).join('\n\n');
@@ -3914,13 +4052,13 @@ function generateChapterBeats(chIdx) {
   const toneStyle = document.getElementById('toneStyle').value.trim();
   const char1 = document.getElementById('char1').value.trim();
   const char2 = document.getElementById('char2').value.trim();
-  const charSupport = document.getElementById('charSupport').value.trim();
+  const activeSupportSlots = getActiveSupportLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
     char2 ? 'LOVE INTEREST:\n' + char2 : '',
-    charSupport ? 'SUPPORTING CAST:\n' + charSupport : '',
+    ...activeSupportSlots.map(function(s) { return s.lore ? s.label.toUpperCase() + ':\n' + s.lore : ''; }),
     worldLore ? 'WORLD & SETTING:\n' + worldLore : '',
     toneStyle ? 'TONE & STYLE (follow closely — heat level and explicitness):\n' + toneStyle : '',
   ].filter(Boolean).join('\n\n');
@@ -4035,13 +4173,13 @@ function doGenerateBeatsSequential(apiKey, model, append) {
   const toneStyle = document.getElementById('toneStyle').value.trim();
   const char1 = document.getElementById('char1').value.trim();
   const char2 = document.getElementById('char2').value.trim();
-  const charSupport = document.getElementById('charSupport').value.trim();
+  const activeSupportSlots = getActiveSupportLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
     char2 ? 'LOVE INTEREST:\n' + char2 : '',
-    charSupport ? 'SUPPORTING CAST:\n' + charSupport : '',
+    ...activeSupportSlots.map(function(s) { return s.lore ? s.label.toUpperCase() + ':\n' + s.lore : ''; }),
     worldLore ? 'WORLD & SETTING:\n' + worldLore : '',
     toneStyle ? 'TONE & STYLE (follow closely):\n' + toneStyle : '',
   ].filter(Boolean).join('\n\n');
@@ -4188,13 +4326,13 @@ function retryChapterBeats(chIdx) {
   const toneStyle = document.getElementById('toneStyle').value.trim();
   const char1 = document.getElementById('char1').value.trim();
   const char2 = document.getElementById('char2').value.trim();
-  const charSupport = document.getElementById('charSupport').value.trim();
+  const activeSupportSlots = getActiveSupportLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
     char2 ? 'LOVE INTEREST:\n' + char2 : '',
-    charSupport ? 'SUPPORTING CAST:\n' + charSupport : '',
+    ...activeSupportSlots.map(function(s) { return s.lore ? s.label.toUpperCase() + ':\n' + s.lore : ''; }),
     worldLore ? 'WORLD & SETTING:\n' + worldLore : '',
     toneStyle ? 'TONE & STYLE:\n' + toneStyle : '',
   ].filter(Boolean).join('\n\n');
@@ -4406,7 +4544,9 @@ const PORTRAIT_POSES_FLAT = Object.values(PORTRAIT_POSE_GROUPS).flat();
 var portraitState = {
   char1: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', erect: false, holding: false },
   char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
-  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false }
+  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
+  charSupport2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
+  charSupport3: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false }
 };
 
 function renderPortraitCarousel(charId, images) {
@@ -5411,6 +5551,50 @@ function goScreen(name) {
   if (name === 'gallery' && galleryCurrentTab === 2) renderSceneGallery();
 }
 
+
+// ══════════════════════════════
+// SUPPORT SLOT SELECTOR
+// ══════════════════════════════
+if (!window._supportSlotActive) window._supportSlotActive = { charSupport: true, charSupport2: true, charSupport3: true };
+
+function switchSupportSlot(slotId) {
+  ['charSupport', 'charSupport2', 'charSupport3'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = id === slotId ? '' : 'none';
+  });
+  // Update active toggle to reflect this slot's state
+  var activeEl = document.getElementById('supportSlotActive');
+  if (activeEl) activeEl.checked = window._supportSlotActive[slotId] !== false;
+  // Update photo/wizard buttons
+  var photoBtn = document.getElementById('supportPhotoBtn');
+  var wizardBtn = document.getElementById('supportWizardBtn');
+  if (photoBtn) photoBtn.setAttribute('onclick', "openLorePhotoUpload('" + slotId + "')");
+  if (wizardBtn) wizardBtn.setAttribute('onclick', "openWizard('" + slotId + "')");
+  debouncedSave();
+}
+
+function saveSupportSlotActive() {
+  var slotId = document.getElementById('supportSlotSelect').value;
+  var checked = document.getElementById('supportSlotActive').checked;
+  window._supportSlotActive[slotId] = checked;
+  debouncedSave();
+}
+
+function getActiveSupportLore() {
+  // Returns array of active support lore strings for context injection
+  var result = [];
+  var slots = ['charSupport', 'charSupport2', 'charSupport3'];
+  var labels = ['Supporting Cast', 'Supporting Cast 2', 'Supporting Cast 3'];
+  slots.forEach(function(id, i) {
+    var active = window._supportSlotActive ? window._supportSlotActive[id] !== false : true;
+    if (!active) return;
+    var el = document.getElementById(id);
+    var val = el ? el.value.trim() : '';
+    if (val) result.push({ label: labels[i], lore: val });
+  });
+  return result;
+}
+
 // ══════════════════════════════
 // LORE TAB NAVIGATION
 // ══════════════════════════════
@@ -6336,16 +6520,16 @@ function clearStoryData() {
 function buildContext() {
   const char1 = document.getElementById('char1').value.trim();
   const char2 = document.getElementById('char2').value.trim();
-  const charSupport = document.getElementById('charSupport').value.trim();
   const worldLore = document.getElementById('worldLore').value.trim();
   const toneStyle = document.getElementById('toneStyle').value.trim();
   const storyState = document.getElementById('storyState').value.trim();
   const includeHistory = document.getElementById('includeHistory').checked;
+  const activeSupportLore = getActiveSupportLore();
 
   let ctx = '';
   if (char1) ctx += '## PROTAGONIST\n' + char1 + '\n\n';
   if (char2) ctx += '## LOVE INTEREST\n' + char2 + '\n\n';
-  if (charSupport) ctx += '## SUPPORTING CHARACTERS\n' + charSupport + '\n\n';
+  activeSupportLore.forEach(function(s) { ctx += '## ' + s.label.toUpperCase() + '\n' + s.lore + '\n\n'; });
   if (worldLore) ctx += '## WORLD & SETTING\n' + worldLore + '\n\n';
   if (toneStyle) ctx += '## TONE & STYLE\n' + toneStyle + '\n\n';
   if (storyState) ctx += '## CURRENT STORY STATE\n' + storyState + '\n\n';
