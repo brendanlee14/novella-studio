@@ -1621,7 +1621,7 @@
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport')">Save</button>
           </div>
           <div class="portrait-actions">
-            <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
+            <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait(wizardTarget)">
               <span id="portrait-charSupport-label">✦ Generate Portrait</span>
             </button>
           </div>
@@ -1995,7 +1995,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v145</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v146</span>
     </div>
   </div>
 
@@ -7294,7 +7294,7 @@ function closeWizard() {
 function buildWizardSteps(target) {
   if (target === 'char1') return ['identity','build','penis','face_m','personality','portrait_preview','name_step'];
   if (target === 'char2') return ['identity_f','face','body','dynamic','relationship','portrait_preview','name_step'];
-  if (target === 'charSupport') return ['identity_f','face','body','dynamic','relationship','cast_diff','portrait_preview','name_step'];
+  if (target === 'charSupport' || target === 'charSupport2' || target === 'charSupport3') return ['identity_f','face','body','dynamic','relationship','cast_diff','portrait_preview','name_step'];
   if (target === 'world') return ['world'];
   if (target === 'tone') return ['tone'];
   return [];
@@ -8122,7 +8122,7 @@ function buildLorePrompt() {
     if (persExtra) lines.push('Additional: ' + persExtra);
   }
 
-  if (target === 'char2' || target === 'charSupport') {
+  if (target === 'char2' || target === 'charSupport' || target === 'charSupport2' || target === 'charSupport3') {
     var label = target === 'char2' ? 'LOVE INTEREST' : 'SUPPORTING CHARACTER';
     var name = collectWizardValue('name_step','wiz_name') || collectWizardValue('identity_f','wiz_name');
     var age = collectWizardValue('identity_f','wiz_age');
@@ -8206,7 +8206,7 @@ function buildLorePrompt() {
     if (unspoken) lines.push('Unspoken tension: ' + unspoken);
     if (withholds) lines.push('What she withholds: ' + withholds);
     // Cast differentiation
-    if (target === 'charSupport') {
+    if (target === 'charSupport' || target === 'charSupport2' || target === 'charSupport3') {
       var castLI = collectWizardValue('cast_diff','wiz_cast_li');
       var castHist = collectWizardValue('cast_diff','wiz_cast_hist');
       var castRole = collectWizardValue('cast_diff','wiz_cast_role');
@@ -8316,7 +8316,7 @@ function generateLoreFromWizard() {
 }
 
 function fillLoreTarget(text) {
-  var fieldMap = { char1: 'char1', char2: 'char2', charSupport: 'charSupport', world: 'worldLore', tone: 'toneStyle' };
+  var fieldMap = { char1: 'char1', char2: 'char2', charSupport: 'charSupport', charSupport2: 'charSupport2', charSupport3: 'charSupport3', world: 'worldLore', tone: 'toneStyle' };
   var fieldId = fieldMap[wizardTarget];
   if (fieldId) {
     var el = document.getElementById(fieldId);
@@ -14662,7 +14662,7 @@ function buildLorePrompt() {
     if (persExtra) lines.push('Additional: ' + persExtra);
   }
 
-  if (target === 'char2' || target === 'charSupport') {
+  if (target === 'char2' || target === 'charSupport' || target === 'charSupport2' || target === 'charSupport3') {
     var label = target === 'char2' ? 'LOVE INTEREST' : 'SUPPORTING CHARACTER';
     var name = collectWizardValue('name_step','wiz_name') || collectWizardValue('identity_f','wiz_name');
     var age = collectWizardValue('identity_f','wiz_age');
@@ -14746,7 +14746,7 @@ function buildLorePrompt() {
     if (unspoken) lines.push('Unspoken tension: ' + unspoken);
     if (withholds) lines.push('What she withholds: ' + withholds);
     // Cast differentiation
-    if (target === 'charSupport') {
+    if (target === 'charSupport' || target === 'charSupport2' || target === 'charSupport3') {
       var castLI = collectWizardValue('cast_diff','wiz_cast_li');
       var castHist = collectWizardValue('cast_diff','wiz_cast_hist');
       var castRole = collectWizardValue('cast_diff','wiz_cast_role');
@@ -14856,7 +14856,7 @@ function generateLoreFromWizard() {
 }
 
 function fillLoreTarget(text) {
-  var fieldMap = { char1: 'char1', char2: 'char2', charSupport: 'charSupport', world: 'worldLore', tone: 'toneStyle' };
+  var fieldMap = { char1: 'char1', char2: 'char2', charSupport: 'charSupport', charSupport2: 'charSupport2', charSupport3: 'charSupport3', world: 'worldLore', tone: 'toneStyle' };
   var fieldId = fieldMap[wizardTarget];
   if (fieldId) {
     var el = document.getElementById(fieldId);
