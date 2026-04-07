@@ -1918,6 +1918,13 @@
       <input type="password" id="veniceApiKey" placeholder="Paste key" style="width:140px;" />
     </div>
     <div class="setting-row">
+      <div><div class="setting-label">Portrait Style</div><div class="setting-sub">Studio = polished, Amateur = candid phone shot</div></div>
+      <select id="portraitStyle" onchange="debouncedSave()" style="width:110px;">
+        <option value="studio">Studio</option>
+        <option value="amateur">Amateur</option>
+      </select>
+    </div>
+    <div class="setting-row">
       <div class="setting-label">Portrait Model</div>
       <select id="veniceImageModel">
         <option value="lustify-sdxl">Lustify SDXL ⭐ (explicit)</option>
@@ -1988,7 +1995,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v139</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v141</span>
     </div>
   </div>
 
@@ -2479,6 +2486,7 @@ function saveCurrentStory() {
     },
     settings: {
       veniceImageModel: document.getElementById('veniceImageModel').value,
+      portraitStyle: document.getElementById('portraitStyle').value,
       model: document.getElementById('modelSelect').value,
       length: document.getElementById('lengthTarget').value,
       heatLevel: document.getElementById('heatLevel').value,
@@ -2524,6 +2532,7 @@ function loadStoryIntoApp(story) {
 
   const s = d.settings || {};
   document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream';
+  document.getElementById('portraitStyle').value = s.portraitStyle || 'studio';
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
   document.getElementById('lengthTarget').value = s.length || 'medium';
   document.getElementById('heatLevel').value = s.heatLevel || '3';
@@ -4864,6 +4873,15 @@ function sanitiseVenicePrompt(prompt) {
     .trim();
 }
 
+function getPortraitQualityTags() {
+  var styleEl = document.getElementById('portraitStyle');
+  var style = styleEl ? styleEl.value : 'studio';
+  if (style === 'amateur') {
+    return 'shot on phone camera, amateur photography, candid, natural light, slightly grainy, authentic, unfiltered, real photo, imperfect lighting, handheld shot, everyday setting';
+  }
+  return 'photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic';
+}
+
 function buildFallbackPrompt(lore, charId, pose) {
   var parts = [];
   parts.push(poseToSDTerm(pose || 'Half body front'));
@@ -4884,7 +4902,7 @@ function buildFallbackPrompt(lore, charId, pose) {
     .trim()
     .slice(0, 200);
   if (cleaned) parts.push(cleaned);
-  parts.push('photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic');
+  parts.push(getPortraitQualityTags());
   return parts.filter(Boolean).join(', ');
 }
 
@@ -4898,7 +4916,12 @@ function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
 
   var frontFacingTags = charId !== 'char1' ? ', facing camera, front view, looking at viewer, breasts visible' : '';
 
-  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\n' + genderInstruction + '\n\nRequired composition: ' + poseInstruction + frontFacingTags + '\nRequired clothing/state: ' + clothingInstruction + '\n\nInclude: gender, approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type' + (charId !== 'char1' ? ', breast size and shape' : ', build, chest') + '. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+  var styleEl = document.getElementById('portraitStyle');
+  var isAmateur = styleEl && styleEl.value === 'amateur';
+  var styleInstruction = isAmateur
+    ? '\nStyle: candid amateur phone photo — natural, unposed, real setting. NOT studio.'
+    : '\nStyle: professional studio portrait — sharp, polished, well-lit.';
+  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\n' + genderInstruction + styleInstruction + '\n\nRequired composition: ' + poseInstruction + frontFacingTags + '\nRequired clothing/state: ' + clothingInstruction + '\n\nInclude: gender, approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type' + (charId !== 'char1' ? ', breast size and shape' : ', build, chest') + '. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
 }
 
 // ══════════════════════════════
@@ -5398,6 +5421,40 @@ function clearPortraitSeed(charId) {
   if (input) { input.value = ''; showToast('Seed cleared — next generation will be random'); }
 }
 
+
+// ══════════════════════════════
+// PORTRAIT AUTO-UPSCALE
+// ══════════════════════════════
+function upscalePortrait(charId, b64, pose, veniceKey) {
+  dbg('[Venice] → upscale charId=' + charId + ' b64len=' + b64.length);
+  fetch('https://api.venice.ai/api/v1/image/upscale', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
+    body: JSON.stringify({
+      image: 'data:image/jpeg;base64,' + b64,
+      scale: 2
+    })
+  }).then(function(res) {
+    dbg('[Venice] upscale status=' + res.status);
+    if (!res.ok) throw new Error('Upscale error ' + res.status);
+    return res.json();
+  }).then(function(data) {
+    var upscaled = data.image || (data.images && data.images[0]);
+    if (!upscaled) throw new Error('No upscaled image returned');
+    if (upscaled.indexOf(',') > -1) upscaled = upscaled.split(',')[1];
+    // Replace the last portrait image with the upscaled version
+    var state = portraitState[charId];
+    if (state.images.length > 0) {
+      state.images[state.images.length - 1].b64 = upscaled;
+      if (activeStoryId) idbSavePortraits(activeStoryId, charId, state.images);
+      renderPortraitCarousel(charId, state.images);
+      dbg('[Venice] ✓ upscale done — portrait replaced with 2x version');
+    }
+  }).catch(function(err) {
+    dbg('[Venice] ✗ upscale failed: ' + err.message + ' — keeping original');
+  });
+}
+
 function generatePortrait(charId) {
   var veniceKey = document.getElementById('veniceApiKey').value.trim();
   if (!veniceKey) {
@@ -5496,8 +5553,9 @@ function generatePortrait(charId) {
       if (b64.indexOf(',') > -1) b64 = b64.split(',')[1];
 
       addPortraitImage(charId, b64, selectedPose);
-      showToast('Portrait generated ✓');
+      showToast('Portrait generated — upscaling…');
       dbg('Portrait saved for ' + charId);
+      upscalePortrait(charId, b64, selectedPose, veniceKey);
     }).catch(function(err) {
       dbg('[Venice] ✗ error=' + err.message + ' elapsed=' + (Date.now() - veniceT0) + 'ms');
       var spinner = document.getElementById('portrait-' + charId + '-spinner');
@@ -5526,7 +5584,7 @@ function generatePortrait(charId) {
           }
           prompt = sanitiseVenicePrompt(prompt);
           dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
-          doGenerate(prompt + ', photorealistic, sharp focus, studio lighting, detailed skin, 8k');
+          doGenerate(prompt + ', ' + getPortraitQualityTags());
         },
         onError: function(err) {
           dbg('Prompt build failed, using lore directly: ' + err.message);
