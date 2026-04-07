@@ -1995,7 +1995,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v143</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v144</span>
     </div>
   </div>
 
@@ -5426,14 +5426,13 @@ function clearPortraitSeed(charId) {
 // PORTRAIT AUTO-UPSCALE
 // ══════════════════════════════
 function detectImageMimeType(b64) {
-  // Detect from base64 magic bytes
-  var prefix = b64.slice(0, 12);
-  try {
-    var bytes = atob(prefix);
-    if (bytes.slice(0, 4) === 'RIFF' && bytes.slice(8, 12) === 'WEBP') return 'image/webp';
-    if (bytes.slice(0, 3) === 'ÿØÿ' || bytes.charCodeAt(0) === 0xff) return 'image/jpeg';
-    if (bytes.charCodeAt(0) === 0x89 && bytes.slice(1, 4) === 'PNG') return 'image/png';
-  } catch(e) {}
+  // Check b64 prefix string directly — avoids byte decode ordering issues
+  // WebP base64 always starts with 'UklGR'
+  if (b64.startsWith('UklGR')) return 'image/webp';
+  // PNG base64 always starts with 'iVBOR'
+  if (b64.startsWith('iVBOR')) return 'image/png';
+  // JPEG base64 starts with '/9j/'
+  if (b64.startsWith('/9j/')) return 'image/jpeg';
   return 'image/jpeg'; // fallback
 }
 
