@@ -1995,7 +1995,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v147</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v149</span>
     </div>
   </div>
 
@@ -4906,22 +4906,93 @@ function buildFallbackPrompt(lore, charId, pose) {
   return parts.filter(Boolean).join(', ');
 }
 
+function extractBreastSize(lore) {
+  // Extract explicit breast size from lore to enforce in SD prompt
+  var match = lore.match(/breast size[:\s]+([^\n,]+)/i) ||
+               lore.match(/\b(small|medium|full|large|very large|huge|A cup|B cup|C cup|D cup|DD|E cup)\s*(breast|tit|boob|chest|cup)/i) ||
+               lore.match(/breast[s]?[:\s]+([^\n,]{3,40})/i);
+  if (!match) return null;
+  var raw = (match[1] || match[0]).trim().toLowerCase();
+  // Map to SD terms
+  if (raw.match(/small|a cup/)) return 'small breasts, flat chest, small tits';
+  if (raw.match(/medium|b cup|full b/)) return 'medium breasts, moderate bust';
+  if (raw.match(/full|c cup/)) return 'full breasts, C cup, natural full bust';
+  if (raw.match(/large|d cup/)) return 'large breasts, D cup, large natural bust';
+  if (raw.match(/very large|dd|e cup|huge/)) return 'very large breasts, DD cup, huge natural tits';
+  return null;
+}
+
+function extractLoreField(lore, patterns) {
+  for (var i = 0; i < patterns.length; i++) {
+    var m = lore.match(patterns[i]);
+    if (m) return (m[1] || m[0]).trim();
+  }
+  return null;
+}
+
+function buildStructuredTags(loreTruncated, charId) {
+  // Parse known structured fields directly from lore — never leave these to model inference
+  var tags = [];
+  var isFemale = charId !== 'char1';
+
+  // Age
+  var age = extractLoreField(loreTruncated, [/\bAge:\s*(\d{1,2})/i, /\b(\d{2})\s*year[s]?\s*old/i, /\bage[:\s]+(\d{2})/i]);
+  if (age) tags.push(age + ' year old ' + (isFemale ? 'woman' : 'man'));
+
+  // Eye colour
+  var eyes = extractLoreField(loreTruncated, [/eye colou?r[:\s]+([^\n,]+)/i, /([a-z]+)\s+eyes/i]);
+  if (eyes) tags.push(eyes.replace(/eyes?/i,'').trim() + ' eyes');
+
+  // Hair colour + length
+  var hairColour = extractLoreField(loreTruncated, [/hair colou?r[:\s]+([^\n,]+)/i, /([a-z]+)\s+hair/i]);
+  var hairLength = extractLoreField(loreTruncated, [/hair length[:\s]+([^\n,]+)/i, /\b(short|long|shoulder.length|cropped|very long)\s+hair/i]);
+  var hairStyle = extractLoreField(loreTruncated, [/hair style[:\s]+([^\n,]+)/i]);
+  if (hairColour) tags.push(hairColour.replace(/hair/i,'').trim() + ' hair' + (hairLength ? ', ' + hairLength + ' length' : '') + (hairStyle ? ', ' + hairStyle : ''));
+
+  // Ethnicity / skin
+  var eth = extractLoreField(loreTruncated, [/ethnicity[:\s]+([^\n,]+)/i, /skin tone[:\s]+([^\n,]+)/i]);
+  if (eth) tags.push(eth);
+
+  // Face shape
+  var face = extractLoreField(loreTruncated, [/face shape[:\s]+([^\n,]+)/i, /(oval|round|heart|square|angular|diamond)\s*(?:face|shaped)/i]);
+  if (face) tags.push(face.replace(/face/i,'').trim() + ' face shape');
+
+  // Breast size (female only — always extract and enforce)
+  if (isFemale) {
+    var bSize = extractBreastSize(loreTruncated);
+    if (bSize) tags.push(bSize);
+    else tags.push('medium breasts'); // safe default — never let model infer large
+  }
+
+  return tags.filter(Boolean).join(', ');
+}
+
 function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
   var poseInstruction = poseToSDTerm(pose || 'Half body front');
   var clothingInstruction = buildClothingPromptTerms(charId);
-  var genderTag = charId === 'char1' ? '1man, male, ' : '1woman, female, ';
-  var genderInstruction = charId === 'char1'
-    ? 'IMPORTANT: This is a MALE character. Output male-specific tags only. Do NOT use female anatomy terms.'
-    : 'IMPORTANT: This is a FEMALE character. The subject MUST face the camera — facing camera, front view, looking at viewer. Breasts must be visible. Do NOT generate rear view or from behind.';
+  var isFemale = charId !== 'char1';
 
-  var frontFacingTags = charId !== 'char1' ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+  var genderInstruction = isFemale
+    ? 'IMPORTANT: FEMALE character. Subject MUST face camera — facing camera, front view, looking at viewer, breasts visible. No rear view.'
+    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms.';
+
+  var frontFacingTags = isFemale ? ', facing camera, front view, looking at viewer, breasts visible' : '';
 
   var styleEl = document.getElementById('portraitStyle');
   var isAmateur = styleEl && styleEl.value === 'amateur';
   var styleInstruction = isAmateur
-    ? '\nStyle: candid amateur phone photo — natural, unposed, real setting. NOT studio.'
-    : '\nStyle: professional studio portrait — sharp, polished, well-lit.';
-  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated descriptor tags — no explanation, no preamble, no quotes, no markdown, no sentences.\n\n' + genderInstruction + styleInstruction + '\n\nRequired composition: ' + poseInstruction + frontFacingTags + '\nRequired clothing/state: ' + clothingInstruction + '\n\nInclude: gender, approximate age, ethnicity, skin tone, face shape, hair colour and length, eye colour, body type' + (charId !== 'char1' ? ', breast size and shape' : ', build, chest') + '. Be direct and specific about physical appearance. Max 80 words.\n\nCharacter:\n' + loreTruncated;
+    ? 'Style: candid phone photo, natural light, unposed, slightly grainy, real setting.'
+    : 'Style: professional studio portrait, sharp focus, polished lighting.';
+
+  // Extract structured physical tags directly from lore — these override model inference
+  var structuredTags = buildStructuredTags(loreTruncated, charId);
+
+  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated SD tags.\n\n' +
+    genderInstruction + '\n' + styleInstruction + '\n\n' +
+    'LOCKED PHYSICAL TAGS — include these EXACTLY as written, do not modify:\n' + structuredTags + '\n\n' +
+    'Required composition: ' + poseInstruction + frontFacingTags + '\n' +
+    'Required clothing/state: ' + clothingInstruction + '\n\n' +
+    'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
 }
 
 // ══════════════════════════════
@@ -5595,7 +5666,7 @@ function generatePortrait(charId) {
   // Build a good image prompt from lore using OpenRouter if available
   if (openRouterKey) {
     // Use a fast model for prompt building — not the writing model which may refuse explicit SD prompts
-    var orPromptModel = 'openai/gpt-4o-mini';
+    var orPromptModel = 'openai/gpt-4o';
     dbg('Building image prompt via OpenRouter…');
     streamingFetch(openRouterKey, orPromptModel,
       [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
@@ -12135,7 +12206,7 @@ function generatePortrait(charId) {
   // Build a good image prompt from lore using OpenRouter if available
   if (openRouterKey) {
     // Use a fast model for prompt building — not the writing model which may refuse explicit SD prompts
-    var orPromptModel = 'openai/gpt-4o-mini';
+    var orPromptModel = 'openai/gpt-4o';
     dbg('Building image prompt via OpenRouter…');
     streamingFetch(openRouterKey, orPromptModel,
       [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
