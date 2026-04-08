@@ -533,7 +533,8 @@
     background: var(--ink); color: var(--parchment);
     padding: 10px 20px; border-radius: 20px;
     font-size: 0.82rem; opacity: 0; transition: all 0.3s;
-    z-index: 500; white-space: nowrap; pointer-events: none;
+    z-index: 500; white-space: normal; max-width: min(90vw, 380px);
+    text-align: center; pointer-events: none;
     border: 1px solid #3a2e26;
   }
   .status-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -6279,7 +6280,7 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 4000);
 }
 
 // ══════════════════════════════
