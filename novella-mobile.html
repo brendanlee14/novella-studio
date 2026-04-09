@@ -8297,6 +8297,9 @@ function buildLorePrompt() {
       var e2 = collectWizardValue('identity','wiz_eth2');
       var ed = collectWizardValue('identity','wiz_eth_detail');
       eth = 'Mixed (' + [e1,e2,ed].filter(Boolean).join(', ') + ')';
+    } else if (eth === 'Other') {
+      var ethOther = collectWizardValue('identity','wiz_ethnicity_other');
+      if (ethOther) eth = ethOther;
     }
     lines.push('PROTAGONIST');
     lines.push('Name: ' + (name||'unnamed') + ', Age: ' + (age||'unspecified') + ', Ethnicity: ' + (eth||'unspecified'));
@@ -8307,7 +8310,8 @@ function buildLorePrompt() {
     var chest = collectWizardValue('build','wiz_chest');
     var hands = collectWizardValue('build','wiz_hands');
     var buildExtra = collectWizardValue('build','wiz_build_extra');
-    lines.push('Build: ' + [bodytype,height,chest,hands,buildExtra].filter(Boolean).join(', '));
+    var buildParts = [bodytype,height,chest,hands,buildExtra].filter(Boolean);
+    if (buildParts.length) lines.push('Build: ' + buildParts.join(', '));
 
     // Penis
     var penLen = collectWizardValue('penis','wiz_pen_length');
@@ -8354,6 +8358,9 @@ function buildLorePrompt() {
       var e2 = collectWizardValue('identity_f','wiz_eth2');
       var ed = collectWizardValue('identity_f','wiz_eth_detail');
       eth = 'Mixed (' + [e1,e2,ed].filter(Boolean).join(', ') + ')';
+    } else if (eth === 'Other') {
+      var ethOther = collectWizardValue('identity_f','wiz_ethnicity_other');
+      if (ethOther) eth = ethOther;
     }
     lines.push(label);
     lines.push('Name: ' + (name||'unnamed') + ', Age: ' + (age||'unspecified') + ', Role: ' + (role||'unspecified') + ', Ethnicity: ' + (eth||'unspecified'));
@@ -8361,26 +8368,47 @@ function buildLorePrompt() {
     var fHeight = collectWizardValue('body','wiz_height');
     if (fHeight) lines.push('Height: ' + fHeight);
     // Face
+    var fFaceShape = collectWizardValue('face','wiz_face_shape');
+    var fEyeCol = collectWizardValue('face','wiz_eye_colour');
+    var fHairCol = collectWizardValue('face','wiz_hair_colour');
+    var fHairLen = collectWizardValue('face','wiz_hair_length');
     var fHairStyle = collectWizardValue('face','wiz_hair_style');
+    var fFaceFeature = collectWizardValue('face','wiz_face_feature');
     var fAccessories = collectWizardValue('face','wiz_accessories');
-    lines.push('Face: ' + [collectWizardValue('face','wiz_face_shape'),collectWizardValue('face','wiz_eye_colour') + ' eyes',collectWizardValue('face','wiz_hair_colour') + ' hair (' + collectWizardValue('face','wiz_hair_length') + (fHairStyle ? ', ' + fHairStyle : '') + ')',collectWizardValue('face','wiz_face_feature'),fAccessories].filter(Boolean).join(', '));
+    var faceParts = [
+      fFaceShape,
+      fEyeCol ? fEyeCol + ' eyes' : '',
+      fHairCol ? fHairCol + ' hair' + (fHairLen ? ' (' + fHairLen + (fHairStyle ? ', ' + fHairStyle : '') + ')' : '') : '',
+      fFaceFeature,
+      fAccessories
+    ].filter(Boolean);
+    if (faceParts.length) lines.push('Face: ' + faceParts.join(', '));
     // Body
     var fHipShape = collectWizardValue('body','wiz_hip_shape');
     var fAreolaSize = collectWizardValue('body','wiz_areola_size');
     var fAreolaColour = collectWizardValue('body','wiz_areola_colour');
+    var fBreastSize = collectWizardValue('body','wiz_breast_size');
+    var fBreastShape = collectWizardValue('body','wiz_breast_shape');
+    var fNipples = collectWizardValue('body','wiz_nipples');
+    var fBreastMove = collectWizardValue('body','wiz_breast_move');
+    var fBra = collectWizardValue('body','wiz_bra');
+    var fAss = collectWizardValue('body','wiz_ass');
+    var fPubic = collectWizardValue('body','wiz_pubic');
+    var fPussy = collectWizardValue('body','wiz_pussy');
+    var fBodyExtra = collectWizardValue('body','wiz_body_extra');
     var bodyParts = [
       collectWizardValue('body','wiz_bodytype'),
-      'breasts: ' + collectWizardValue('body','wiz_breast_size') + ' ' + collectWizardValue('body','wiz_breast_shape'),
+      fBreastSize || fBreastShape ? 'breasts: ' + [fBreastSize, fBreastShape].filter(Boolean).join(' ') : '',
       fAreolaSize || fAreolaColour ? 'areolas: ' + [fAreolaSize, fAreolaColour].filter(Boolean).join(', ') : '',
-      'nipples: ' + collectWizardValue('body','wiz_nipples'),
-      'breast movement: ' + collectWizardValue('body','wiz_breast_move'),
-      'bra tendency: ' + collectWizardValue('body','wiz_bra'),
-      'ass: ' + collectWizardValue('body','wiz_ass'),
+      fNipples ? 'nipples: ' + fNipples : '',
+      fBreastMove ? 'breast movement: ' + fBreastMove : '',
+      fBra ? 'bra tendency: ' + fBra : '',
+      fAss ? 'ass: ' + fAss : '',
       fHipShape ? 'hips: ' + fHipShape : '',
-      'pubic hair: ' + collectWizardValue('body','wiz_pubic'),
-      'pussy: ' + collectWizardValue('body','wiz_pussy'),
-      collectWizardValue('body','wiz_body_extra')
-    ].filter(function(v){ return v && v.trim() && v.trim() !== ':' && v.trim() !== ': '; });
+      fPubic ? 'pubic hair: ' + fPubic : '',
+      fPussy ? 'pussy: ' + fPussy : '',
+      fBodyExtra
+    ].filter(Boolean);
     lines.push('Body: ' + bodyParts.join(', '));
     // Dynamic
     var orientation = collectWizardValue('dynamic','wiz_orientation');
@@ -8393,16 +8421,14 @@ function buildLorePrompt() {
     var power = collectWizardValue('dynamic','wiz_power');
     var wardrobe = collectWizardValue('dynamic','wiz_wardrobe');
     var kinkChips = collectWizardChips('dynamic','wiz_kink_multi');
-    var kink = kinkChips.length ? kinkChips.join(', ') : collectWizardValue('dynamic','wiz_kink');
     var kinkExtra = collectWizardValue('dynamic','wiz_kink');
-    if (kinkExtra && kinkChips.length) kink += ', ' + kinkExtra;
-    else if (kinkExtra) kink = kinkExtra;
+    var kink = kinkChips.length ? kinkChips.join(', ') + (kinkExtra ? ', ' + kinkExtra : '') : kinkExtra;
     var erogenousChips = collectWizardChips('dynamic','wiz_erogenous');
     var sexBehaviourChips = collectWizardChips('dynamic','wiz_sex_behaviours');
     var arousalTellChips = collectWizardChips('dynamic','wiz_arousal_tell_multi');
-    var arousalTell = arousalTellChips.length ? arousalTellChips.join(', ') : collectWizardValue('dynamic','wiz_arousal_tell');
+    var arousalTell = arousalTellChips.join(', ');
     var gestureChips = collectWizardChips('dynamic','wiz_gesture_multi');
-    var gesture = gestureChips.length ? gestureChips.join(', ') : collectWizardValue('dynamic','wiz_gesture');
+    var gesture = gestureChips.join(', ');
     var scent = collectWizardValue('dynamic','wiz_scent');
     if (orientation) lines.push('Orientation: ' + orientation);
     if (voice) lines.push('Voice: ' + voice + (accent && accent !== '' ? ', ' + accentStr + ' ' + accent + ' accent' : ''));
@@ -8507,7 +8533,7 @@ function generateLoreFromWizard() {
 
   streamingFetch(apiKey, model,
     [{ role: 'system', content: systemMsg }, { role: 'user', content: userMsg }],
-    { maxTokens: 1500, label: 'loreWizard',
+    { maxTokens: 2500, label: 'loreWizard',
       onDone: function(lore) {
         lore = lore.trim();
         if (!lore) {
