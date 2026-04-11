@@ -3986,7 +3986,7 @@ function generateChapterSummaries() {
 
     var prevCtx = '';
     if (generatedSummaries.length > 0) {
-      prevCtx = 'PREVIOUS CHAPTERS (continuity — this chapter must open exactly where the last one ended):\n' +
+      prevCtx = 'PREVIOUS CHAPTERS (for continuity — the story spans the full timeframe described in the synopsis; chapters are separated by realistic time gaps, not immediate continuations):\n' +
         generatedSummaries.map(function(ch, i) {
           return 'Chapter ' + (i + 1) + ' — ' + ch.title + ':\n' + ch.summary;
         }).join('\n\n');
@@ -4006,11 +4006,12 @@ function generateChapterSummaries() {
       (prevCtx ? prevCtx + '\n\n' : '') +
       nextHint + '\n\n' +
       'CONTINUITY RULES:\n' +
-      '- Open exactly where the previous chapter ended (same location, same physical state of characters)\n' +
+      '- Do NOT open immediately after the previous chapter — allow realistic time to pass (hours, days, or longer) consistent with the synopsis timeframe\n' +
+      '- Open in a new scene or moment; characters may be in a different location or context than where the last chapter ended\n' +
       '- Sexual and emotional escalation must advance beyond the previous chapter — never repeat the same level\n' +
-      '- Track what characters are wearing, their physical state, and what has already happened\n\n' +
+      '- Reference what has already happened between the characters, but do not replay the same physical state or location\n\n' +
       'Output ONLY valid JSON — a single object:\n' +
-      '{"title": "Chapter ' + chNum + ' — Evocative Title", "summary": "8-12 sentence paragraph covering: (1) exact opening — where we are and the physical/emotional state carried from previous chapter, (2) dramatic purpose of this chapter, (3) key events and turning points in order, (4) protagonist emotional arc start to end, (5) physical/sexual escalation — what happens how explicit how far (must advance from previous), (6) what changes in dynamic or relationship, (7) the final beat — exact moment and state where chapter ends. Reflect heat level and tone. Do not sanitise."}\n\n' +
+      '{"title": "Chapter ' + chNum + ' — Evocative Title", "summary": "8-12 sentence paragraph covering: (1) opening — establish when/where this chapter begins and how much time has passed since the last chapter, (2) dramatic purpose of this chapter, (3) key events and turning points in order, (4) protagonist emotional arc start to end, (5) physical/sexual escalation — what happens how explicit how far (must advance from previous), (6) what changes in dynamic or relationship, (7) the final beat — exact moment and state where chapter ends. Reflect heat level and tone. Do not sanitise."}\n\n' +
       'No markdown, no commentary, just the JSON object.';
 
     streamingFetch(apiKey, model,
