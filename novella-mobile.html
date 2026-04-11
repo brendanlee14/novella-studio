@@ -1914,7 +1914,13 @@
         </div>
       </div>
       <textarea class="plan-textarea" id="planSynopsis" rows="10" placeholder="e.g. A married man in Singapore becomes obsessed with his neighbour, a beautiful woman who seems unaware of her effect on him…&#10;&#10;Include: setting, how they meet, the central tension, key turning points, how far the physical relationship goes, resolution."></textarea>
-      <div class="plan-count-row" style="margin-top:16px;">
+      <div class="plan-count-row" style="margin-top:14px;">
+        <label>Story takes place over</label>
+        <input type="text" id="planTimeframe" placeholder="e.g. three weeks, one summer, a long weekend"
+          style="flex:2;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:'Jost',sans-serif;font-size:0.78rem;color:var(--ink);background:var(--surface);"
+          oninput="debouncedSave()" />
+      </div>
+      <div class="plan-count-row" style="margin-top:4px;">
         <label>Number of chapters to generate</label>
         <div class="count-stepper">
           <button type="button" onclick="adjustCount('planChCount', -1)">−</button>
@@ -2567,6 +2573,7 @@ function saveCurrentStory() {
     },
     plan: {
       synopsis: document.getElementById('planSynopsis').value,
+      timeframe: document.getElementById('planTimeframe').value,
       summaries: planSummaries,
       stage: planCurrentStage,
     }
@@ -2637,6 +2644,7 @@ function loadStoryIntoApp(story) {
   // Restore plan
   const plan = d.plan || {};
   document.getElementById('planSynopsis').value = plan.synopsis || '';
+  document.getElementById('planTimeframe').value = plan.timeframe || '';
   planSummaries = plan.summaries || [];
   planCurrentStage = plan.stage || 1;
   planGoStage(planCurrentStage, true);
@@ -3966,6 +3974,7 @@ function generateChapterSummaries() {
   if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
   const synopsis = document.getElementById('planSynopsis').value.trim();
   if (!synopsis) { showToast('Write your plot synopsis first'); return; }
+  const timeframe = document.getElementById('planTimeframe').value.trim();
   const numCh = parseInt(document.getElementById('planChCount').textContent) || 5;
   const model = document.getElementById('modelSelect').value;
 
@@ -4044,6 +4053,7 @@ function generateChapterSummaries() {
       (loreCtx ? loreCtx + '\n\n' : '') +
       (prevStoryCtx ? prevStoryCtx + '\n\n' : '') +
       'FULL SYNOPSIS:\n' + synopsis + '\n\n' +
+      (timeframe ? 'STORY TIMEFRAME: The entire story takes place over ' + timeframe + '. Chapters must reflect this — space events realistically across this period, not all in one day.\n\n' : '') +
       (prevCtx ? prevCtx + '\n\n' : '') +
       nextHint + '\n\n' +
       'CONTINUITY RULES:\n' +
