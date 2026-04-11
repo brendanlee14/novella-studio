@@ -971,6 +971,26 @@
     border-color: var(--gold); color: var(--gold); background: #fdf8f0;
   }
 
+  /* ── EDITOR SETTINGS BAR ── */
+  .editor-settings-bar {
+    display: flex; gap: 16px; padding: 7px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream); align-items: center;
+  }
+  .editor-setting {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .editor-setting-label {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); font-family: 'Jost', sans-serif; white-space: nowrap;
+  }
+  .editor-settings-bar select {
+    font-size: 0.73rem; background: transparent;
+    border: 1px solid var(--border); border-radius: 6px;
+    color: var(--ink); padding: 3px 6px;
+    font-family: 'Jost', sans-serif; cursor: pointer;
+  }
+
   /* ── SCENARIO SEED CHIPS ── */
   .scenario-chip {
     padding: 5px 12px; background: none;
@@ -1420,6 +1440,27 @@
     <div class="persona-bar">
       <div class="persona-bar-label">Writing Persona</div>
       <div class="persona-chips" id="personaChips"></div>
+    </div>
+    <div class="editor-settings-bar">
+      <div class="editor-setting">
+        <span class="editor-setting-label">Length</span>
+        <select id="edLengthTarget" onchange="document.getElementById('lengthTarget').value=this.value;debouncedSave()">
+          <option value="short">~300 words</option>
+          <option value="medium">~600 words</option>
+          <option value="long">~1000 words</option>
+          <option value="chapter">~1500 words</option>
+        </select>
+      </div>
+      <div class="editor-setting">
+        <span class="editor-setting-label">Heat</span>
+        <select id="edHeatLevel" onchange="document.getElementById('heatLevel').value=this.value;updateHeatLabel(this.value);debouncedSave()">
+          <option value="1">Sensual</option>
+          <option value="2">Suggestive</option>
+          <option value="3">Explicit</option>
+          <option value="4">Graphic</option>
+          <option value="5">Unrestricted</option>
+        </select>
+      </div>
     </div>
     <div class="editor-actions">
       <button class="btn-write" id="btnWrite" onclick="writeScene()" aria-label="Write scene">✦ Write Scene</button>
@@ -6113,6 +6154,7 @@ function selectBeat(chIdx, bIdx) {
     document.getElementById('btnCopy').style.display = 'none';
     document.getElementById('btnRewrite').style.display = 'none';
   }
+  syncEditorControls();
   goScreen('editor');
   updateProseWordCount();
 }
@@ -6880,6 +6922,13 @@ const HEAT_LABELS = { '1': '1 — Sensual', '2': '2 — Suggestive', '3': '3 —
 function updateHeatLabel(val) {
   var el = document.getElementById('heatLevelLabel');
   if (el) el.textContent = HEAT_LABELS[val] || val;
+}
+
+function syncEditorControls() {
+  var edLen = document.getElementById('edLengthTarget');
+  var edHeat = document.getElementById('edHeatLevel');
+  if (edLen) edLen.value = document.getElementById('lengthTarget').value || 'medium';
+  if (edHeat) edHeat.value = document.getElementById('heatLevel').value || '3';
 }
 
 function getLengthInstruction(beatOverride) {
