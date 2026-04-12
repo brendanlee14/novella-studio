@@ -2625,6 +2625,7 @@ function loadStoryIntoApp(story) {
   document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream';
   document.getElementById('portraitStyle').value = s.portraitStyle || 'studio';
   syncGalleryPortraitStyle();
+  ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(renderPortraitPresetSelect);
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
   document.getElementById('lengthTarget').value = s.length || 'medium';
   document.getElementById('heatLevel').value = s.heatLevel || '3';
@@ -7307,6 +7308,8 @@ if (navigator.storage && navigator.storage.persist) {
 
 loadStories();
 renderStoriesList();
+// Populate portrait preset dropdowns from localStorage
+['char1','char2','charSupport','charSupport2','charSupport3'].forEach(renderPortraitPresetSelect);
 // Migrate any portraits still in localStorage to IndexedDB
 migrateAllPortraitsToIDB();
 
