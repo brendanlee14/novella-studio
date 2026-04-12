@@ -1575,6 +1575,19 @@
   <div class="plan-stage active" id="gallery-stage-1">
     <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;">
 
+      <!-- Global portrait style selector -->
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--cream);">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);white-space:nowrap;">Photo Style</span>
+        <select id="galleryPortraitStyle" style="flex:1;border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-family:'Jost',sans-serif;font-size:0.82rem;background:var(--surface);color:var(--ink);"
+          onchange="document.getElementById('portraitStyle').value=this.value;debouncedSave()">
+          <option value="studio">Studio — polished, sharp lighting</option>
+          <option value="amateur">Amateur — candid phone shot</option>
+          <option value="selfie">Selfie — front camera, intimate</option>
+          <option value="boudoir">Boudoir — soft, warm, sensual</option>
+          <option value="cinematic">Cinematic — film still, dramatic</option>
+        </select>
+      </div>
+
       <!-- Love Interest portraits -->
       <div style="padding:14px 16px 4px;">
         <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);">💫 Love Interest</span>
@@ -2611,6 +2624,7 @@ function loadStoryIntoApp(story) {
   const s = d.settings || {};
   document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream';
   document.getElementById('portraitStyle').value = s.portraitStyle || 'studio';
+  syncGalleryPortraitStyle();
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
   document.getElementById('lengthTarget').value = s.length || 'medium';
   document.getElementById('heatLevel').value = s.heatLevel || '3';
@@ -2929,6 +2943,12 @@ function createSequel(sourceId) {
 // ══════════════════════════════
 var galleryCurrentTab = 1;
 
+function syncGalleryPortraitStyle() {
+  var src = document.getElementById('portraitStyle');
+  var dst = document.getElementById('galleryPortraitStyle');
+  if (src && dst) dst.value = src.value;
+}
+
 function galleryGoTab(n) {
   galleryCurrentTab = n;
   for (var i = 1; i <= 2; i++) {
@@ -2937,6 +2957,7 @@ function galleryGoTab(n) {
     if (tab) tab.className = 'plan-stage-tab' + (i === n ? ' active' : '');
     if (stage) stage.className = 'plan-stage' + (i === n ? ' active' : '');
   }
+  if (n === 1) syncGalleryPortraitStyle();
   if (n === 2) {
     // Load any scene images from IDB not yet in memory
     if (!activeStoryId) { renderSceneGallery(); return; }
