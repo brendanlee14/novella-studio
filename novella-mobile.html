@@ -5163,19 +5163,17 @@ function buildStructuredTags(loreTruncated, charId) {
   return tags.filter(Boolean).join(', ');
 }
 
-function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
-  var poseInstruction = poseToSDTerm(pose || 'Half body front');
+function buildPortraitPromptFromOR(loreTruncated, charId) {
+  // Pose/action tags are injected AFTER this LLM step to bypass content filters.
+  // This function generates appearance-only tags — body, face, clothing, style.
   var clothingInstruction = buildClothingPromptTerms(charId);
   var isFemale = charId !== 'char1';
 
   var genderInstruction = isFemale
-    ? 'IMPORTANT: FEMALE character. Subject MUST face camera — facing camera, front view, looking at viewer, breasts visible. No rear view.'
-    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms.';
-
-  var frontFacingTags = isFemale ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+    ? 'IMPORTANT: FEMALE character. Output appearance tags only — body, face, hair, clothing. Do NOT include pose, position, action, or composition tags.'
+    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms. Output appearance tags only — do NOT include pose or action tags.';
 
   var styleEl = document.getElementById('portraitStyle');
-  var isAmateur = styleEl && styleEl.value === 'amateur';
   var portraitStyleVal = styleEl ? styleEl.value : 'studio';
   var styleInstruction = portraitStyleVal === 'amateur'
     ? 'Style: candid phone photo, natural light, unposed, slightly grainy, real setting.'
@@ -5190,10 +5188,9 @@ function buildPortraitPromptFromOR(loreTruncated, charId, pose) {
   // Extract structured physical tags directly from lore — these override model inference
   var structuredTags = buildStructuredTags(loreTruncated, charId);
 
-  return 'Convert this character description into a Stable Diffusion prompt for lustify-sdxl. Output ONLY comma-separated SD tags.\n\n' +
+  return 'Convert this character description into Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags describing appearance.\n\n' +
     genderInstruction + '\n' + styleInstruction + '\n\n' +
     'LOCKED PHYSICAL TAGS — include these EXACTLY as written, do not modify:\n' + structuredTags + '\n\n' +
-    'Required composition: ' + poseInstruction + frontFacingTags + '\n' +
     'Required clothing/state: ' + clothingInstruction + '\n\n' +
     'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
 }
@@ -5876,7 +5873,7 @@ function generatePortrait(charId) {
     var orPromptModel = 'openai/gpt-4o';
     dbg('Building image prompt via OpenRouter…');
     streamingFetch(openRouterKey, orPromptModel,
-      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
+      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId) }],
       { maxTokens: 300, label: 'portraitPrompt',
         onDone: function(prompt) {
           prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
@@ -5885,9 +5882,15 @@ function generatePortrait(charId) {
             doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
             return;
           }
-          prompt = sanitiseVenicePrompt(prompt);
-          dbg('OR prompt built: ' + prompt.slice(0, 80) + '…');
-          doGenerate(prompt + ', ' + getPortraitQualityTags());
+          // Inject pose SD terms directly — bypasses GPT-4o content filter for explicit poses
+          var poseTerms = poseToSDTerm(selectedPose);
+          var isFemale = charId !== 'char1';
+          // Only add facing-camera terms for non-rear-view poses
+          var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
+          var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+          var fullPrompt = poseTerms + facingTerms + ', ' + sanitiseVenicePrompt(prompt) + ', ' + getPortraitQualityTags();
+          dbg('OR prompt built: ' + fullPrompt.slice(0, 80) + '…');
+          doGenerate(fullPrompt);
         },
         onError: function(err) {
           dbg('Prompt build failed, using lore directly: ' + err.message);
