@@ -5869,8 +5869,8 @@ function generatePortrait(charId) {
 
   // Build a good image prompt from lore using OpenRouter if available
   if (openRouterKey) {
-    // DeepSeek V3 for prompt building — follows explicit SD tag instructions without content filtering
-    var orPromptModel = 'deepseek/deepseek-chat-v3-0324:free';
+    // DeepSeek V3.2 for prompt building — follows explicit SD tag instructions without content filtering
+    var orPromptModel = 'deepseek/deepseek-v3.2-20251201';
     dbg('Building image prompt via OpenRouter…');
     streamingFetch(openRouterKey, orPromptModel,
       [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId) }],
