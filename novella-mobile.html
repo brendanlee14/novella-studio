@@ -3868,6 +3868,7 @@ function refineSynopsis() {
   var model = document.getElementById('modelSelect').value;
   var char1 = document.getElementById('char1').value.trim().slice(0, 300);
   var char2 = document.getElementById('char2').value.trim().slice(0, 300);
+  var activeSupportSlots = getActiveSupportLore();
   var toneStyle = document.getElementById('toneStyle').value.trim().slice(0, 200);
 
   var systemMsg = 'You are a story development editor for adult romance and erotica fiction. ' +
@@ -3885,6 +3886,7 @@ function refineSynopsis() {
     'STORY PLOT:\n' + synopsis +
     (char1 ? '\n\nPROTAGONIST:\n' + char1 : '') +
     (char2 ? '\n\nLOVE INTEREST:\n' + char2 : '') +
+    activeSupportSlots.map(function(s) { return s.lore ? '\n\n' + s.label.toUpperCase() + ':\n' + s.lore.slice(0, 200) : ''; }).join('') +
     (toneStyle ? '\n\nTONE & STYLE:\n' + toneStyle : '') +
     '\n\nOutput only the refined synopsis in flowing prose:';
 
