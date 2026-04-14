@@ -3886,7 +3886,7 @@ function refineSynopsis() {
     'STORY PLOT:\n' + synopsis +
     (char1 ? '\n\nPROTAGONIST:\n' + char1 : '') +
     (char2 ? '\n\nLOVE INTEREST:\n' + char2 : '') +
-    activeSupportSlots.map(function(s) { return s.lore ? '\n\n' + s.label.toUpperCase() + ':\n' + s.lore.slice(0, 200) : ''; }).join('') +
+    activeSupportSlots.map(function(s) { return s.lore ? '\n\n' + s.label.toUpperCase() + ':\n' + s.lore : ''; }).join('') +
     (toneStyle ? '\n\nTONE & STYLE:\n' + toneStyle : '') +
     '\n\nOutput only the refined synopsis in flowing prose:';
 
