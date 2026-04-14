@@ -3937,9 +3937,10 @@ function refineSynopsis() {
   if (btn) { btn.disabled = true; btn.textContent = 'Refining…'; }
 
   var model = document.getElementById('modelSelect').value;
-  var char1 = document.getElementById('char1').value.trim().slice(0, 300);
-  var char2 = document.getElementById('char2').value.trim().slice(0, 300);
-  var toneStyle = document.getElementById('toneStyle').value.trim().slice(0, 200);
+  var char1 = document.getElementById('char1').value.trim();
+  var char2 = document.getElementById('char2').value.trim();
+  var activeSupportSlots = getActiveSupportLore();
+  var toneStyle = document.getElementById('toneStyle').value.trim();
 
   var systemMsg = 'You are a story development editor for adult romance and erotica fiction. ' +
     'Your job is to take a rough story plot and expand it into a rich, detailed narrative synopsis in flowing prose. ' +
@@ -3956,6 +3957,7 @@ function refineSynopsis() {
     'STORY PLOT:\n' + synopsis +
     (char1 ? '\n\nPROTAGONIST:\n' + char1 : '') +
     (char2 ? '\n\nLOVE INTEREST:\n' + char2 : '') +
+    activeSupportSlots.map(function(s) { return s.lore ? '\n\n' + s.label.toUpperCase() + ':\n' + s.lore : ''; }).join('') +
     (toneStyle ? '\n\nTONE & STYLE:\n' + toneStyle : '') +
     '\n\nOutput only the refined synopsis in flowing prose:';
 
@@ -7238,9 +7240,12 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
   retryCount = retryCount || 0;
   var char1 = document.getElementById('char1').value.trim().slice(0, 300);
   var char2 = document.getElementById('char2').value.trim().slice(0, 300);
-  var charSupport = document.getElementById('charSupport').value.trim().slice(0, 200);
 
-  var charNames = [char1, char2, charSupport]
+  // Include all active supporting character slots
+  var supportLore = getActiveSupportLore();
+  var allLore = [char1, char2].concat(supportLore.map(function(s) { return s.lore.slice(0, 200); }));
+
+  var charNames = allLore
     .map(function(c) { return c.match(/^Name:\s*(\S+)/m); })
     .map(function(m) { return m ? m[1] : null; })
     .filter(Boolean);
