@@ -3866,10 +3866,10 @@ function refineSynopsis() {
   if (btn) { btn.disabled = true; btn.textContent = 'Refining…'; }
 
   var model = document.getElementById('modelSelect').value;
-  var char1 = document.getElementById('char1').value.trim().slice(0, 300);
-  var char2 = document.getElementById('char2').value.trim().slice(0, 300);
+  var char1 = document.getElementById('char1').value.trim();
+  var char2 = document.getElementById('char2').value.trim();
   var activeSupportSlots = getActiveSupportLore();
-  var toneStyle = document.getElementById('toneStyle').value.trim().slice(0, 200);
+  var toneStyle = document.getElementById('toneStyle').value.trim();
 
   var systemMsg = 'You are a story development editor for adult romance and erotica fiction. ' +
     'Your job is to take a rough story plot and expand it into a rich, detailed narrative synopsis in flowing prose. ' +
