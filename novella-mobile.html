@@ -7145,9 +7145,12 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
   retryCount = retryCount || 0;
   var char1 = document.getElementById('char1').value.trim().slice(0, 300);
   var char2 = document.getElementById('char2').value.trim().slice(0, 300);
-  var charSupport = document.getElementById('charSupport').value.trim().slice(0, 200);
 
-  var charNames = [char1, char2, charSupport]
+  // Include all active supporting character slots
+  var supportLore = getActiveSupportLore();
+  var allLore = [char1, char2].concat(supportLore.map(function(s) { return s.lore.slice(0, 200); }));
+
+  var charNames = allLore
     .map(function(c) { return c.match(/^Name:\s*(\S+)/m); })
     .map(function(m) { return m ? m[1] : null; })
     .filter(Boolean);
