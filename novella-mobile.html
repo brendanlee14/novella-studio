@@ -3248,6 +3248,11 @@ function generateSceneImage() {
 
   function doVeniceGenerate(imagePrompt, refB64) {
     var veniceT0 = Date.now();
+    // lustify-sdxl hard limit is 1500 chars — trim at last comma boundary
+    if (imagePrompt.length > 1500) {
+      var cut = imagePrompt.lastIndexOf(',', 1497);
+      imagePrompt = (cut > 800 ? imagePrompt.slice(0, cut) : imagePrompt.slice(0, 1500)).trim();
+    }
     dbg('[Venice] → sceneImage promptChars=' + imagePrompt.length + ' seed=' + seedVal + (refB64 ? ' img2img=yes' : ' img2img=no'));
 
     var requestBody = {
