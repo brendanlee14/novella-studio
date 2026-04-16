@@ -3196,7 +3196,7 @@ function generateSceneImage() {
 
   // Detect character
   var charId = detectSceneCharacter(beat, sceneText);
-  var charLore = document.getElementById(charId).value.trim().slice(0, 400);
+  var charLore = document.getElementById(charId).value.trim();
   var physCtx = physicalContinuity ? physicalContinuity.slice(0, 300) : '';
 
   // Extract protagonist physical appearance (secondary character in scene)
@@ -3220,7 +3220,11 @@ function generateSceneImage() {
     protagonistPhysical = physLines.join(', ').slice(0, 200);
   }
 
+  // Extract locked physical tags from subject lore — same pattern as portrait generation
+  var subjectLockedTags = buildStructuredTags(charLore, charId);
+
   dbg('[SceneImg] Generating for beat: ' + beat.title + ' | charId=' + charId);
+  dbg('[SceneImg] Subject locked tags: ' + subjectLockedTags);
   dbg('[SceneImg] Protagonist physical: ' + (protagonistPhysical || '(none — char1 is subject or no lore)'));
   dbg('[SceneImg] Subject lore (first 150): ' + charLore.slice(0, 150));
 
@@ -3325,14 +3329,15 @@ function generateSceneImage() {
       '3. ENVIRONMENT DETAILS — furniture, objects, architectural features, time of day, weather if relevant\n' +
       '4. LIGHTING — exact light source and quality (e.g. "warm afternoon sunlight through blinds", "cool fluorescent office lighting", "candlelight")\n' +
       '5. MOOD & ATMOSPHERE — the emotional and sensory quality of the scene\n' +
-      '6. SUBJECT CHARACTER APPEARANCE — start with "1woman, facing camera, front view, looking at viewer," then ethnicity, skin tone, hair colour+length+style, eye colour, face features, body type, breast size. The subject MUST face the camera. Breasts must be visible. Do NOT use rear view or from-behind framing.\n' +
+      '6. SUBJECT CHARACTER APPEARANCE — start with "1woman, facing camera, front view, looking at viewer," then include ALL of the LOCKED CHARACTER APPEARANCE tags provided in the user prompt EXACTLY as written — do not alter, omit, or reinterpret them. These are ground truth. The subject MUST face the camera. Breasts must be visible. Do NOT use rear view or from-behind framing.\n' +
       '7. SUBJECT CLOTHING or NUDITY — exactly what the subject is wearing or not wearing, be explicit and specific\n' +
       (maleInScene ? '8. MALE PRESENCE — do NOT describe his face, ethnicity or full body. Use only: "male hands", "male torso partial", "masculine hands", or similar minimal tags\n' : '') +
       (maleInScene ? '9.' : '8.') + ' EXPLICIT CONTENT — match the heat level exactly. Use "medium shot" or "full body" framing. Do NOT use "extreme close-up"\n' +
       'Rules: The female subject is the ONLY fully rendered character. NEVER describe the male face or ethnicity — this causes SD to blend ethnicities across characters. NEVER use character names as tags. Do NOT use pronouns.';
 
     var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
-      '== FEMALE SUBJECT (full visual focus — describe in detail) ==\n' + charLore + '\n\n' +
+      (subjectLockedTags ? '== LOCKED CHARACTER APPEARANCE — include ALL of these tags EXACTLY, do not change or omit any ==\n' + subjectLockedTags + '\n\n' : '') +
+      '== FEMALE SUBJECT LORE (for context — locked tags above take priority for appearance) ==\n' + charLore.slice(0, 500) + '\n\n' +
       (maleInScene ? '== MALE PRESENCE (implied only — do NOT render his face or full body) ==\nMale is present in the scene. Imply through hands, POV, or partial torso only.\n\n' : '') +
       (physCtx ? '== PHYSICAL STATE AT SCENE END ==\n' + physCtx + '\n\n' : '') +
       '== BEAT TITLE ==\n' + beat.title + '\n\n' +
