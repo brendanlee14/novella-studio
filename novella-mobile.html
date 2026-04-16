@@ -7238,29 +7238,38 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
 
 function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, retryCount) {
   retryCount = retryCount || 0;
-  var char1 = document.getElementById('char1').value.trim().slice(0, 300);
-  var char2 = document.getElementById('char2').value.trim().slice(0, 300);
+  var char1 = document.getElementById('char1').value.trim();
+  var char2 = document.getElementById('char2').value.trim();
 
   // Include all active supporting character slots
   var supportLore = getActiveSupportLore();
-  var allLore = [char1, char2].concat(supportLore.map(function(s) { return s.lore.slice(0, 200); }));
+  var allLore = [char1, char2].concat(supportLore.map(function(s) { return s.lore; }));
 
   var charNames = allLore
     .map(function(c) { return c.match(/^Name:\s*(\S+)/m); })
     .map(function(m) { return m ? m[1] : null; })
     .filter(Boolean);
 
-  var prompt = 'Extract the exact physical state at the END of this scene. Output ONLY a structured list — no prose, no commentary.\n\nFormat:\nLocation: [where they are]\nPresent: [who is in the scene]\n' +
-    charNames.map(function(n) { return n + ' clothing: [exactly what they are wearing, or "nude" / "undressed"]'; }).join('\n') +
-    '\n' + charNames.map(function(n) { return n + ' position: [physical position/activity at scene end]'; }).join('\n') +
-    '\nLast physical action: [one sentence — what physically just happened]\n\nScene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 1200);
+  var charList = charNames.join(', ');
+
+  var prompt = 'Story characters: ' + charList + '\n\n' +
+    'Extract the physical state at the END of this scene.\n\n' +
+    'IMPORTANT: A character is physically present only if they are in the scene in person. ' +
+    'Do NOT include a character who is only mentioned, thought about, or referenced in dialogue — only characters who are physically there.\n\n' +
+    'Output ONLY this structure (skip any character who is absent):\n' +
+    'Location: [where the scene takes place]\n' +
+    'Present: [names of characters physically in the scene]\n' +
+    charNames.map(function(n) { return n + ' clothing: [exactly what they are wearing, or "nude"]'; }).join('\n') + '\n' +
+    charNames.map(function(n) { return n + ' position: [physical position/activity at scene end]'; }).join('\n') + '\n' +
+    'Last physical action: [one sentence — what physically just happened]\n\n' +
+    'Scene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 4000);
 
   streamingFetch(apiKey, model,
     [
-      { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Be precise about clothing — if an item was removed, say so. Never invent details not in the scene.' },
+      { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Be precise about clothing — if an item was removed, say so. Never invent details not in the scene. Skip entries for characters who are absent.' },
       { role: 'user', content: prompt }
     ],
-    { maxTokens: 400, label: 'physicalContinuity',
+    { maxTokens: 500, label: 'physicalContinuity',
       onDone: function(result) {
         result = result.trim();
         if (result) {
