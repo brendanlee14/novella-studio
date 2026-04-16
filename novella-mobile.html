@@ -4089,7 +4089,7 @@ function generateChapterSummaries() {
 
     var nextHint = '';
     if (chIdx < numCh - 1) {
-      nextHint = 'UPCOMING: This is chapter ' + chNum + ' of ' + numCh + ' total. Leave the ending in a state that naturally leads into the next chapter. Do not resolve the overall story yet.';
+      nextHint = 'UPCOMING: This is chapter ' + chNum + ' of ' + numCh + ' total. End this chapter at a natural scene boundary — a moment of resolution, departure, stillness, or aftermath — NOT mid-action, mid-intimacy, or mid-sentence. If an intimate or dramatic scene is in progress at the chapter\'s end, bring it to a satisfying pause point first. You may leave emotional or narrative tension unresolved for the next chapter, but physical scenes must reach a natural stopping point before the chapter closes. Do not resolve the overall story yet.';
     } else {
       nextHint = 'FINAL CHAPTER: This is the last chapter. Bring the story to a satisfying resolution.';
     }
@@ -4102,12 +4102,14 @@ function generateChapterSummaries() {
       (prevCtx ? prevCtx + '\n\n' : '') +
       nextHint + '\n\n' +
       'CONTINUITY RULES:\n' +
-      '- Do NOT open immediately after the previous chapter — allow realistic time to pass (hours, days, or longer) consistent with the synopsis timeframe\n' +
-      '- Open in a new scene or moment; characters may be in a different location or context than where the last chapter ended\n' +
+      '- CHAPTER TRANSITIONS — read the previous chapter\'s final beat and choose the transition type:\n' +
+      '  • If the previous chapter ended mid-scene, mid-intimacy, or at a moment of high physical tension: this chapter MUST continue that scene or pick up immediately after its natural conclusion — do NOT jump forward in time\n' +
+      '  • If the previous chapter ended at a natural pause (a morning after, a departure, a post-scene moment of reflection, a scene that reached its conclusion): use a realistic time gap (hours to days) consistent with the synopsis timeframe\n' +
+      '  • Never force a time skip when the scene has not finished; never force a continuation when the story needs to breathe\n' +
       '- Sexual and emotional escalation must advance beyond the previous chapter — never repeat the same level\n' +
       '- Reference what has already happened between the characters, but do not replay the same physical state or location\n\n' +
       'Output ONLY valid JSON — a single object:\n' +
-      '{"title": "Chapter ' + chNum + ' — Evocative Title", "summary": "8-12 sentence paragraph covering: (1) opening — establish when/where this chapter begins and how much time has passed since the last chapter, (2) dramatic purpose of this chapter, (3) key events and turning points in order, (4) protagonist emotional arc start to end, (5) physical/sexual escalation — what happens how explicit how far (must advance from previous), (6) what changes in dynamic or relationship, (7) the final beat — exact moment and state where chapter ends. Reflect heat level and tone. Do not sanitise."}\n\n' +
+      '{"title": "Chapter ' + chNum + ' — Evocative Title", "summary": "8-12 sentence paragraph covering: (1) opening — establish when/where this chapter begins; if continuing from the previous chapter\'s unfinished scene describe the continuation; if a time gap has passed establish how much time and the new situation, (2) dramatic purpose of this chapter, (3) key events and turning points in order, (4) protagonist emotional arc start to end, (5) physical/sexual escalation — what happens how explicit how far (must advance from previous), (6) what changes in dynamic or relationship, (7) the chapter ending — the exact moment and state where this chapter closes, which must be a natural scene boundary not mid-action. Reflect heat level and tone. Do not sanitise."}\n\n' +
       'No markdown, no commentary, just the JSON object.';
 
     streamingFetch(apiKey, model,
