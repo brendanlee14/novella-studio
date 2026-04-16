@@ -3321,11 +3321,13 @@ function generateSceneImage() {
     var maleInScene = !!protagonistPhysical;
 
     var orSystem = 'You are a Stable Diffusion prompt engineer for photorealistic adult scene generation specialising in lustify-sdxl. ' +
-      'Output ONLY comma-separated SD tags. No sentences, no explanation, no markdown, no labels. ' +
+      'First write one line: "PEAK FRAME: [single sentence — the exact visual moment at this beat\'s climax: the specific action, pose, and key detail that makes this scene immediately recognisable]". ' +
+      'This line will be stripped from the final output — it anchors your subsequent tags to one specific moment rather than averaging the whole scene.\n\n' +
+      'Then output ONLY comma-separated SD tags. No sentences, no explanation, no markdown, no labels. ' +
       'Output tags in this exact priority order:\n' +
-      '1. SCENE ACTION — describe what is physically happening, focused entirely on the female subject. Default to front-facing compositions — facing camera, front view, breasts visible. Only use rear/behind framing if the scene text explicitly describes a rear-entry or from-behind act. ' +
+      '1. SCENE ACTION — describe what is physically happening at the PEAK FRAME moment, focused entirely on the female subject. Default to front-facing compositions — facing camera, front view, breasts visible. Only use rear/behind framing if the scene text explicitly describes a rear-entry or from-behind act. ' +
       (maleInScene ? 'The male presence must be implied through context only — use tags like "male hands", "hands gripping hips", "POV shot", "from behind", "disembodied hands", "unseen man". Do NOT render his face or full body.\n' : '\n') +
-      '2. SETTING — you MUST extract the specific named location from the scene text (e.g. "marble hotel lobby", "glass-walled boardroom", "sunlit bedroom with floor-to-ceiling windows") — never use "unknown interior" or vague terms\n' +
+      '2. SETTING — use the location from BEAT INTENT if provided; otherwise extract from scene text. Never use "unknown interior" or vague terms\n' +
       '3. ENVIRONMENT DETAILS — furniture, objects, architectural features, time of day, weather if relevant\n' +
       '4. LIGHTING — exact light source and quality (e.g. "warm afternoon sunlight through blinds", "cool fluorescent office lighting", "candlelight")\n' +
       '5. MOOD & ATMOSPHERE — the emotional and sensory quality of the scene\n' +
@@ -3335,14 +3337,22 @@ function generateSceneImage() {
       (maleInScene ? '9.' : '8.') + ' EXPLICIT CONTENT — match the heat level exactly. Use "medium shot" or "full body" framing. Do NOT use "extreme close-up"\n' +
       'Rules: The female subject is the ONLY fully rendered character. NEVER describe the male face or ethnicity — this causes SD to blend ethnicities across characters. NEVER use character names as tags. Do NOT use pronouns.';
 
+    // Method 3 — extract last paragraph as scene climax (the culminating visual moment)
+    var sceneTail = sceneText.slice(-500);
+    var sentBreak = sceneTail.match(/[.!?]\s+[A-Z]/);
+    var sceneClimax = (sentBreak && sentBreak.index < 200) ? sceneTail.slice(sentBreak.index + sentBreak[0].length - 1).trim() : sceneTail.trim();
+
     var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
       (subjectLockedTags ? '== LOCKED CHARACTER APPEARANCE — include ALL of these tags EXACTLY, do not change or omit any ==\n' + subjectLockedTags + '\n\n' : '') +
       '== FEMALE SUBJECT LORE (for context — locked tags above take priority for appearance) ==\n' + charLore.slice(0, 500) + '\n\n' +
       (maleInScene ? '== MALE PRESENCE (implied only — do NOT render his face or full body) ==\nMale is present in the scene. Imply through hands, POV, or partial torso only.\n\n' : '') +
-      (physCtx ? '== PHYSICAL STATE AT SCENE END ==\n' + physCtx + '\n\n' : '') +
-      '== BEAT TITLE ==\n' + beat.title + '\n\n' +
-      '== FULL SCENE TEXT — extract location, environment, action and mood ==\n' + sceneText + '\n\n' +
-      'Generate SD prompt tags now. Female is the sole visual subject' + (maleInScene ? ', male presence implied through hands/POV only' : '') + ':';
+      (physCtx ? '== PHYSICAL STATE ==\n' + physCtx + '\n\n' : '') +
+      '== BEAT INTENT — what this beat is about ==\nTitle: ' + beat.title + '\n' +
+      (beat.desc ? 'Description: ' + beat.desc + '\n' : '') +
+      (beat.loc ? 'Location: ' + beat.loc + '\n' : '') + '\n' +
+      '== SCENE CLIMAX — the final moment of this beat; depict THIS moment ==\n' + sceneClimax + '\n\n' +
+      '== FULL SCENE (use for setting, atmosphere and environment context only) ==\n' + sceneText + '\n\n' +
+      'Write PEAK FRAME then generate SD tags. Female is the sole visual subject' + (maleInScene ? ', male presence implied through hands/POV only' : '') + ':';
 
     dbg('[SceneImg] maleInScene=' + maleInScene);
 
@@ -3363,9 +3373,10 @@ function generateSceneImage() {
             dbg('[SceneImg] OR prompt too short — using fallback');
             sdPrompt = buildSceneImgFallback(charLore, beat, explicitInstruction);
           }
+          // Strip PEAK FRAME line entirely (it's a chain-of-thought anchor, not an SD tag)
           // Strip DeepSeek section labels (SCENE ACTION:, SETTING:, etc.) — not valid SD tags
-          // Strip section labels only when followed by colon — avoids hitting words like "explicit" mid-prompt
           var cleanedPrompt = sdPrompt
+            .replace(/^PEAK FRAME:[^\n]*/im, '')
             .replace(/(SCENE ACTION|SETTING|ENVIRONMENT DETAILS|LIGHTING|MOOD & ATMOSPHERE|SUBJECT CHARACTER APPEARANCE|SUBJECT CLOTHING or NUDITY|SECONDARY CHARACTER|EXPLICIT CONTENT|EX EXPLICIT CONTENT)\s*:/gi, '')
             .replace(/\s{2,}/g, ' ').trim();
           dbg('[SceneImg] Cleaned prompt (labels stripped, ' + cleanedPrompt.length + ' chars): ' + cleanedPrompt);
