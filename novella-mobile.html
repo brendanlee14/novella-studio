@@ -1322,6 +1322,7 @@
     <button class="pin-key" type="button" onclick="pinBackspace()">⌫</button>
   </div>
   <div class="pin-error-msg" id="pinErrorMsg"></div>
+  <button type="button" onclick="pinForgot()" style="margin-top:28px;background:none;border:none;color:rgba(255,255,255,0.25);font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.05em;cursor:pointer;padding:8px 16px;">Forgot PIN?</button>
 </div>
 
 <div id="homeScreen">
@@ -2084,7 +2085,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v152</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v153</span>
     </div>
   </div>
 
@@ -8882,6 +8883,17 @@ function processPinEntry() {
       }, 900);
     }
   }
+}
+
+function pinForgot() {
+  if (!confirm('Remove PIN? You will need to set a new one in Setup.')) return;
+  try { localStorage.removeItem(PIN_STORAGE_KEY); } catch(e) {}
+  document.getElementById('pinLock').classList.remove('open');
+  pinBuffer = '';
+  clearPinDots();
+  document.getElementById('pinErrorMsg').textContent = '';
+  updatePinStatusLabel();
+  showToast('PIN removed');
 }
 
 // Gist ID stored per story in a separate localStorage key: novella_gist_{storyId}
