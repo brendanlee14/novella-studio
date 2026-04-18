@@ -2129,6 +2129,9 @@
       <input type="password" id="githubPAT" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
         style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;font-family:'Jost',sans-serif;font-size:0.85rem;background:var(--parchment);color:var(--ink);box-sizing:border-box;margin-bottom:8px;" />
       <div style="font-size:0.68rem;color:var(--muted);margin-bottom:12px;" id="gistIdStatus">No Gist linked yet</div>
+      <label class="field-label" style="margin-bottom:4px;">Gist ID <span style="font-weight:400;color:var(--muted)">(optional — paste to re-link after clearing storage)</span></label>
+      <input type="text" id="gistIdManual" placeholder="e.g. a1b2c3d4e5f6…"
+        style="width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Jost',sans-serif;font-size:0.8rem;background:var(--parchment);color:var(--ink);box-sizing:border-box;margin-bottom:8px;" />
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button type="button" onclick="gistPush()" style="flex:1;min-width:100px;padding:11px;background:var(--rose);color:white;border:none;border-radius:8px;font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;" id="btnGistPush">↑ Push to Gist</button>
         <button type="button" onclick="gistPull()" style="flex:1;min-width:100px;padding:11px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;" id="btnGistPull">↓ Pull from Gist</button>
@@ -8971,8 +8974,9 @@ async function gistPull() {
   const pat = document.getElementById('githubPAT').value.trim();
   if (!pat) { showToast('Enter your GitHub PAT first'); return; }
 
-  const existingId = getGistId();
-  if (!existingId) { showToast('No Gist linked — Push first to create one'); return; }
+  const manualId = (document.getElementById('gistIdManual').value || '').trim();
+  const existingId = getGistId() || manualId;
+  if (!existingId) { showToast('No Gist linked — paste a Gist ID or Push first'); return; }
 
   const btn = document.getElementById('btnGistPull');
   btn.disabled = true; btn.textContent = 'Pulling…';
@@ -8994,6 +8998,13 @@ async function gistPull() {
     const parsed = JSON.parse(raw);
     const incoming = parsed.story;
     if (!incoming || !incoming.id) throw new Error('Invalid Novella Studio Gist format');
+
+    // Re-link Gist ID if it was entered manually
+    if (!getGistId() && existingId) {
+      // Store against a temporary key until the story is opened
+      try { localStorage.setItem('novella_gist_' + incoming.id, existingId); } catch(e) {}
+      document.getElementById('gistIdManual').value = '';
+    }
 
     // Merge into stories array
     const idx = stories.findIndex(s => s.id === incoming.id);
