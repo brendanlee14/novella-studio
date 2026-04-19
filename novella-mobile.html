@@ -1374,8 +1374,8 @@
     <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">Story Title</label>
     <input id="storyNameInput" type="text" placeholder="e.g. The Singapore Affair" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:var(--serif,serif);font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
     <div style="display:flex;gap:10px;margin-top:24px;">
-      <button type="button" id="storyCancelBtn" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
-      <button type="button" id="storySaveBtn" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:var(--serif,serif);font-size:1.05rem;font-style:italic;">Save Story</button>
+      <button type="button" id="storyCancelBtn" onclick="closeStoryModal()" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
+      <button type="button" id="storySaveBtn" onclick="saveStoryModal()" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:var(--serif,serif);font-size:1.05rem;font-style:italic;">Save Story</button>
     </div>
   </div>
 </div>
@@ -1387,7 +1387,7 @@
 
 <header class="app-header">
   <div class="header-col">
-    <button class="back-btn" type="button" id="backToStoriesBtn">← Stories</button>
+    <button class="back-btn" type="button" id="backToStoriesBtn" onclick="goHome()">← Stories</button>
     <span id="activeStoryLabel" class="header-story-name">Story</span>
   </div>
   <div class="header-actions">
@@ -2087,7 +2087,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v155</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v156</span>
     </div>
   </div>
 
@@ -2176,8 +2176,8 @@
     <label class="field-label" style="margin-top:12px;">Chapter Summary (optional)</label>
     <textarea class="sheet-textarea" id="modalChapterSummary" placeholder="Brief overview of what this chapter covers…" rows="3"></textarea>
     <div class="sheet-actions">
-      <button class="btn-cancel" type="button" id="chCancelBtn">Cancel</button>
-      <button class="btn-save" type="button" id="chSaveBtn">Save Chapter</button>
+      <button class="btn-cancel" type="button" id="chCancelBtn" onclick="closeChapterModal()">Cancel</button>
+      <button class="btn-save" type="button" id="chSaveBtn" onclick="saveChapter()">Save Chapter</button>
     </div>
   </div>
 </div>
@@ -2214,8 +2214,8 @@
       </div>
     </div>
     <div class="sheet-actions">
-      <button class="btn-cancel" type="button" id="beatCancelBtn">Cancel</button>
-      <button class="btn-save" type="button" id="beatSaveBtn">Save Beat</button>
+      <button class="btn-cancel" type="button" id="beatCancelBtn" onclick="closeBeatModal()">Cancel</button>
+      <button class="btn-save" type="button" id="beatSaveBtn" onclick="saveBeat()">Save Beat</button>
     </div>
   </div>
 </div>
@@ -3600,9 +3600,11 @@ function openRenameStory(id) {
 
 function closeStoryModal() { document.getElementById('storyModal').classList.remove('open'); }
 
+var _modalSaving = false;
 function saveStoryModal() {
+  if (_modalSaving) return; _modalSaving = true; setTimeout(function(){ _modalSaving = false; }, 500);
   const title = document.getElementById('storyNameInput').value.trim();
-  if (!title) { document.getElementById('storyNameInput').focus(); return; }
+  if (!title) { _modalSaving = false; document.getElementById('storyNameInput').focus(); return; }
 
   if (editingStoryId) {
     const story = stories.find(s => s.id === editingStoryId);
