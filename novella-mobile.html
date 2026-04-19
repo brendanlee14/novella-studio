@@ -1331,7 +1331,7 @@
     <p>Select a story to continue</p>
   </div>
   <div class="stories-list" id="storiesList"></div>
-  <button class="add-story-btn" type="button" id="addStoryBtn">＋ New Story</button>
+  <button class="add-story-btn" type="button" id="addStoryBtn" onclick="openNewStoryModal()">＋ New Story</button>
 </div>
 
 <!-- ── SEQUEL GENERATION OVERLAY ── -->
@@ -7368,7 +7368,7 @@ document.getElementById('storySaveBtn').addEventListener('click', saveStoryModal
 document.getElementById('backToStoriesBtn').addEventListener('click', goHome);
 
 // Auto-save inputs
-const watchIds = ['char1','char2','charSupport','worldLore','toneStyle','storyState','systemPrefix','veniceImageModel','modelSelect','lengthTarget','heatLevel','autoUpdateState','includeHistory','planSynopsis'];
+const watchIds = ['char1','char2','charSupport','charSupport2','charSupport3','worldLore','toneStyle','storyState','systemPrefix','veniceImageModel','modelSelect','lengthTarget','heatLevel','autoUpdateState','includeHistory','planSynopsis'];
 watchIds.forEach(id => {
   const el = document.getElementById(id);
   if (el) { el.addEventListener('input', debouncedSave); el.addEventListener('change', debouncedSave); }
