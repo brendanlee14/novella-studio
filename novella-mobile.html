@@ -2087,7 +2087,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v158</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v159</span>
     </div>
   </div>
 
@@ -3600,11 +3600,9 @@ function openRenameStory(id) {
 
 function closeStoryModal() { document.getElementById('storyModal').classList.remove('open'); }
 
-var _modalSaving = false;
 function saveStoryModal() {
-  if (_modalSaving) return; _modalSaving = true; setTimeout(function(){ _modalSaving = false; }, 500);
   const title = document.getElementById('storyNameInput').value.trim();
-  if (!title) { _modalSaving = false; document.getElementById('storyNameInput').focus(); return; }
+  if (!title) { document.getElementById('storyNameInput').focus(); return; }
 
   if (editingStoryId) {
     const story = stories.find(s => s.id === editingStoryId);
