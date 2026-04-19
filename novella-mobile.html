@@ -192,7 +192,7 @@
   .story-modal-sheet {
     background: var(--cream); border-radius: 20px 20px 0 0;
     width: 100%; max-width: 600px;
-    padding: 24px 16px 48px;
+    padding: 24px 16px calc(48px + env(safe-area-inset-bottom, 0px));
   }
 
   /* ── APP HEADER ── */
@@ -454,7 +454,7 @@
     width: 100%; max-width: 600px;
     max-height: 85vh; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 20px 16px 48px;
+    padding: 20px 16px calc(48px + env(safe-area-inset-bottom, 0px));
   }
   @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
   .sheet-handle {
@@ -661,7 +661,7 @@
   }
   .popup-toolbar {
     position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 16px 20px 40px;
+    padding: 16px 20px calc(40px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
     display: flex; justify-content: space-between; align-items: center;
     z-index: 10;
@@ -1012,7 +1012,7 @@
   #personaModal.open { display: flex; }
   .persona-sheet {
     background: var(--cream); border-radius: 20px 20px 0 0;
-    width: 100%; max-width: 600px; padding: 20px 16px 48px;
+    width: 100%; max-width: 600px; padding: 20px 16px calc(48px + env(safe-area-inset-bottom, 0px));
   }
 
   /* ── LORE WIZARD ── */
@@ -1259,7 +1259,7 @@
   /* ── EXPORT SHEET ── */
   #exportSheet { display: none; position: fixed; inset: 0; background: rgba(24,18,14,0.75); z-index: 500; align-items: flex-end; justify-content: center; }
   #exportSheet.open { display: flex; }
-  .export-modal-body { background: var(--cream); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; padding: 24px 16px 48px; }
+  .export-modal-body { background: var(--cream); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; padding: 24px 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
   .export-option { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
   .export-option:active { border-color: var(--rose); }
   .export-option-icon { font-size: 1.6rem; flex-shrink: 0; }
@@ -2087,7 +2087,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v154</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v155</span>
     </div>
   </div>
 
