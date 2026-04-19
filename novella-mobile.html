@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#18120e">
@@ -164,7 +164,7 @@
   .story-action-btn:active { color: var(--rose); border-color: var(--rose); }
 
   .add-story-btn {
-    margin: 0 16px 32px;
+    margin: 0 16px calc(32px + env(safe-area-inset-bottom, 0px));
     padding: 18px; background: none;
     border: 1.5px dashed #3a2e26; border-radius: 14px;
     color: var(--muted); font-family: 'Jost', sans-serif;
@@ -240,7 +240,7 @@
   /* ── SCREENS ── */
   .screen {
     position: fixed; top: var(--header-h); left: 0; right: 0;
-    bottom: var(--nav-h); overflow-y: auto;
+    bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px)); overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     display: none; flex-direction: column;
     background: var(--parchment);
@@ -250,7 +250,9 @@
   /* ── BOTTOM NAV ── */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    height: var(--nav-h); background: var(--ink);
+    height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--ink);
     display: flex; border-top: 1px solid #2e2420; z-index: 50;
   }
   .nav-item {
@@ -2085,7 +2087,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v153</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v154</span>
     </div>
   </div>
 
