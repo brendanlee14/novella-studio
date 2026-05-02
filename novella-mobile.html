@@ -2117,7 +2117,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v166</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v167</span>
     </div>
   </div>
 
@@ -5249,12 +5249,29 @@ function renderDistilStatus(charId) {
   if (tags) {
     statusEl.textContent = '✓ ' + tags.slice(0, 60) + (tags.length > 60 ? '…' : '');
     statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editPortraitAppearance(charId); };
     if (clearBtn) clearBtn.style.display = '';
   } else {
     statusEl.textContent = 'Not distilled — uses lore excerpt';
     statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
     if (clearBtn) clearBtn.style.display = 'none';
   }
+}
+
+function editPortraitAppearance(charId) {
+  var tags = portraitState[charId].appearanceTags || '';
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = tags;
+  openTextExpand(fakeEl, 'Appearance Tags', function(val) {
+    portraitState[charId].appearanceTags = val.trim();
+    renderDistilStatus(charId);
+    saveCurrentStory();
+  });
 }
 
 function distilPortraitAppearance(charId) {
