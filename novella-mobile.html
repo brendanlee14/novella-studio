@@ -1499,6 +1499,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char1')">✦ Wizard</button>
       </div>
       <textarea id="char1" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-char1-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('char1')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-char1-clear" onclick="clearBeatBrief('char1')" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1510,6 +1516,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char2')">✦ Wizard</button>
       </div>
       <textarea id="char2" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-char2-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('char2')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-char2-clear" onclick="clearBeatBrief('char2')" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1536,10 +1548,28 @@
       </div>
       <!-- Slot 1 -->
       <textarea id="charSupport" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…"></textarea>
+      <div id="beat-brief-charSupport-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-charSupport-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('charSupport')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-charSupport-clear" onclick="clearBeatBrief('charSupport')" style="display:none;">Clear</button>
+      </div>
       <!-- Slot 2 -->
       <textarea id="charSupport2" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…" style="display:none;"></textarea>
+      <div id="beat-brief-charSupport2-row" style="display:none;flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-charSupport2-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('charSupport2')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-charSupport2-clear" onclick="clearBeatBrief('charSupport2')" style="display:none;">Clear</button>
+      </div>
       <!-- Slot 3 -->
       <textarea id="charSupport3" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…" style="display:none;"></textarea>
+      <div id="beat-brief-charSupport3-row" style="display:none;flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-charSupport3-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('charSupport3')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-charSupport3-clear" onclick="clearBeatBrief('charSupport3')" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -2117,7 +2147,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v167</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v168</span>
     </div>
   </div>
 
@@ -2633,6 +2663,13 @@ function saveCurrentStory() {
       charSupport: portraitState.charSupport.appearanceTags || '',
       charSupport2: portraitState.charSupport2.appearanceTags || '',
       charSupport3: portraitState.charSupport3.appearanceTags || '',
+    },
+    beatBriefs: {
+      char1: beatBriefs.char1 || '',
+      char2: beatBriefs.char2 || '',
+      charSupport: beatBriefs.charSupport || '',
+      charSupport2: beatBriefs.charSupport2 || '',
+      charSupport3: beatBriefs.charSupport3 || '',
     }
     // portrait images are stored in IndexedDB — not in localStorage
   };
@@ -2705,6 +2742,13 @@ function loadStoryIntoApp(story) {
   ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) {
     portraitState[id].appearanceTags = pa[id] || '';
     renderDistilStatus(id);
+  });
+
+  // Restore beat briefs
+  const bb = d.beatBriefs || {};
+  ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) {
+    beatBriefs[id] = bb[id] || '';
+    renderBeatBriefStatus(id);
   });
 
   // Restore plan
@@ -3686,6 +3730,7 @@ function deleteStory(id) {
 // PLAN — RUNTIME STATE
 // ══════════════════════════════
 let planSummaries = [];   // [{title, summary, beatCount}]
+var beatBriefs = { char1: '', char2: '', charSupport: '', charSupport2: '', charSupport3: '' };
 let planCurrentStage = 1;
 
 // ── STAGE NAVIGATION ──
@@ -4079,9 +4124,9 @@ function generateChapterSummaries() {
   // Build full lore + persona context
   const persona = document.getElementById('systemPrefix').value.trim();
   const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
@@ -4320,9 +4365,9 @@ function generateChapterBeats(chIdx) {
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
   const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
@@ -4441,9 +4486,9 @@ function doGenerateBeatsSequential(apiKey, model, append) {
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
   const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
@@ -4594,9 +4639,9 @@ function retryChapterBeats(chIdx) {
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
   const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
   const worldLore = document.getElementById('worldLore').value.trim();
 
   const loreCtx = [
@@ -5272,6 +5317,100 @@ function editPortraitAppearance(charId) {
     renderDistilStatus(charId);
     saveCurrentStory();
   });
+}
+
+// ══════════════════════════════
+// BEAT BRIEF — distilled behavioural lore for beat generation
+// ══════════════════════════════
+
+function renderBeatBriefStatus(charId) {
+  var brief = beatBriefs[charId] || '';
+  var statusEl = document.getElementById('beat-brief-' + charId + '-status');
+  var clearBtn = document.getElementById('beat-brief-' + charId + '-clear');
+  if (!statusEl) return;
+  if (brief) {
+    statusEl.textContent = '✓ ' + brief.slice(0, 60) + (brief.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editBeatBrief(charId); };
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — full lore used';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function distilBeatBrief(charId) {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById(charId).value.trim();
+  if (!loreText) { showToast('Add character lore first'); return; }
+
+  var statusEl = document.getElementById('beat-brief-' + charId + '-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var prompt = 'Extract a beat generation brief from this character lore. This brief will be used by an AI story planner to generate story beats — it needs to know how this character BEHAVES and REACTS, not what they look like.\n\n' +
+    'Write a plain prose paragraph of 100-150 words covering ONLY:\n' +
+    '1. Name, age, role in the story\n' +
+    '2. Core personality — 2-3 traits, how they come across vs how they actually are\n' +
+    '3. Emotional pattern — how they handle vulnerability, tension, intimacy\n' +
+    '4. What they want from this relationship and what holds them back\n' +
+    '5. How they behave in charged or intimate situations (do they take charge, hold back, deflect, push)\n' +
+    '6. Their core vulnerability or private fear\n\n' +
+    'Do NOT include: physical appearance, anatomy, speech pattern detail, full backstory, kink lists, or narrative meta-commentary.\n\n' +
+    'Character lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 250, label: 'beatBrief',
+      onDone: function(result) {
+        beatBriefs[charId] = result.trim();
+        renderBeatBriefStatus(charId);
+        saveCurrentStory();
+        showToast('Beat brief distilled ✓');
+      }
+    }
+  );
+}
+
+function clearBeatBrief(charId) {
+  beatBriefs[charId] = '';
+  renderBeatBriefStatus(charId);
+  saveCurrentStory();
+  showToast('Beat brief cleared — full lore will be used');
+}
+
+function editBeatBrief(charId) {
+  var brief = beatBriefs[charId] || '';
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = brief;
+  openTextExpand(fakeEl, 'Beat Brief', function(val) {
+    beatBriefs[charId] = val.trim();
+    renderBeatBriefStatus(charId);
+    saveCurrentStory();
+  });
+}
+
+function getBeatLore(charId) {
+  return beatBriefs[charId] || document.getElementById(charId).value.trim();
+}
+
+function getActiveSupportBeatLore() {
+  var result = [];
+  var slots = ['charSupport', 'charSupport2', 'charSupport3'];
+  var labels = ['Supporting Cast', 'Supporting Cast 2', 'Supporting Cast 3'];
+  slots.forEach(function(id, i) {
+    var active = window._supportSlotActive ? window._supportSlotActive[id] !== false : true;
+    if (!active) return;
+    var lore = getBeatLore(id);
+    if (lore) result.push({ label: labels[i], lore: lore });
+  });
+  return result;
 }
 
 function distilPortraitAppearance(charId) {
@@ -6088,6 +6227,8 @@ function switchSupportSlot(slotId) {
   ['charSupport', 'charSupport2', 'charSupport3'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = id === slotId ? '' : 'none';
+    var row = document.getElementById('beat-brief-' + id + '-row');
+    if (row) row.style.display = id === slotId ? 'flex' : 'none';
   });
   // Update active toggle to reflect this slot's state
   var activeEl = document.getElementById('supportSlotActive');
