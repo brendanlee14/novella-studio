@@ -1636,6 +1636,12 @@
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char2')">Save</button>
           </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-char2-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('char2')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-char2-distil-clear" onclick="clearPortraitAppearance('char2')" style="display:none;">Clear</button>
+          </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
               <span id="portrait-char2-label">✦ Generate Portrait</span>
@@ -1688,6 +1694,12 @@
               <option value="">— apply preset —</option>
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport')">Save</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-charSupport-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('charSupport')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-charSupport-distil-clear" onclick="clearPortraitAppearance('charSupport')" style="display:none;">Clear</button>
           </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
@@ -1743,6 +1755,12 @@
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport2')">Save</button>
           </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-charSupport2-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('charSupport2')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-charSupport2-distil-clear" onclick="clearPortraitAppearance('charSupport2')" style="display:none;">Clear</button>
+          </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-charSupport2-btn" onclick="generatePortrait('charSupport2')">
               <span id="portrait-charSupport2-label">✦ Generate Portrait</span>
@@ -1797,6 +1815,12 @@
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport3')">Save</button>
           </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-charSupport3-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('charSupport3')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-charSupport3-distil-clear" onclick="clearPortraitAppearance('charSupport3')" style="display:none;">Clear</button>
+          </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-charSupport3-btn" onclick="generatePortrait('charSupport3')">
               <span id="portrait-charSupport3-label">✦ Generate Portrait</span>
@@ -1849,6 +1873,12 @@
               <option value="">— apply preset —</option>
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char1')">Save</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-char1-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('char1')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-char1-distil-clear" onclick="clearPortraitAppearance('char1')" style="display:none;">Clear</button>
           </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
@@ -2087,7 +2117,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v165</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v166</span>
     </div>
   </div>
 
@@ -2596,8 +2626,15 @@ function saveCurrentStory() {
       timeframe: document.getElementById('planTimeframe').value,
       summaries: planSummaries,
       stage: planCurrentStage,
+    },
+    portraitAppearance: {
+      char1: portraitState.char1.appearanceTags || '',
+      char2: portraitState.char2.appearanceTags || '',
+      charSupport: portraitState.charSupport.appearanceTags || '',
+      charSupport2: portraitState.charSupport2.appearanceTags || '',
+      charSupport3: portraitState.charSupport3.appearanceTags || '',
     }
-    // portraits are stored in IndexedDB — not in localStorage
+    // portrait images are stored in IndexedDB — not in localStorage
   };
   story.updatedAt = new Date().toISOString();
   saveStories();
@@ -2661,6 +2698,13 @@ function loadStoryIntoApp(story) {
   }).catch(function() {
     // Fallback — render empty carousels
     ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) { renderPortraitCarousel(id, []); renderPortraitPresetSelect(id); });
+  });
+
+  // Restore distilled portrait appearance tags
+  const pa = d.portraitAppearance || {};
+  ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) {
+    portraitState[id].appearanceTags = pa[id] || '';
+    renderDistilStatus(id);
   });
 
   // Restore plan
@@ -4772,11 +4816,11 @@ const PORTRAIT_POSES_FLAT = Object.values(PORTRAIT_POSE_GROUPS).flat();
 
 // Per-character state
 var portraitState = {
-  char1: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', erect: false, holding: false },
-  char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
-  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
-  charSupport2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
-  charSupport3: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false }
+  char1: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', erect: false, holding: false, appearanceTags: '' },
+  char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
+  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
+  charSupport2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
+  charSupport3: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' }
 };
 
 function renderPortraitCarousel(charId, images) {
@@ -5197,6 +5241,64 @@ function buildStructuredTags(loreTruncated, charId) {
   return tags.filter(Boolean).join(', ');
 }
 
+function renderDistilStatus(charId) {
+  var tags = portraitState[charId].appearanceTags || '';
+  var statusEl = document.getElementById('portrait-' + charId + '-distil-status');
+  var clearBtn = document.getElementById('portrait-' + charId + '-distil-clear');
+  if (!statusEl) return;
+  if (tags) {
+    statusEl.textContent = '✓ ' + tags.slice(0, 60) + (tags.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — uses lore excerpt';
+    statusEl.style.color = 'var(--muted)';
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function distilPortraitAppearance(charId) {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById(charId).value.trim();
+  if (!loreText) { showToast('Add character lore first'); return; }
+
+  var statusEl = document.getElementById('portrait-' + charId + '-distil-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var isFemale = charId !== 'char1';
+  var genderNote = isFemale
+    ? 'FEMALE character. Include breast size, body shape, all female physical attributes.'
+    : 'MALE character. Male tags only. No female anatomy.';
+
+  var prompt = 'Extract Stable Diffusion image generation tags from this character lore.\n\n' +
+    'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
+    genderNote + '\n\n' +
+    'Include ONLY visual physical attributes: age (e.g. "42 year old woman"), ethnicity/skin tone, body shape and build, face shape and features, eye colour, hair colour and length and style, distinctive physical details, skin texture, body proportions.\n\n' +
+    'Do NOT include: pose, action, clothing, personality, backstory, psychology, kinks, speech patterns, relationships, or narrative role.\n\n' +
+    'Maximum 80 words of tags.\n\nCharacter lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 200, label: 'distilAppearance',
+      onDone: function(result) {
+        var tags = result.trim().replace(/^[\s\n,]+|[\s\n,]+$/g, '');
+        portraitState[charId].appearanceTags = tags;
+        renderDistilStatus(charId);
+        saveCurrentStory();
+        showToast('Appearance distilled ✓');
+      }
+    }
+  );
+}
+
+function clearPortraitAppearance(charId) {
+  portraitState[charId].appearanceTags = '';
+  renderDistilStatus(charId);
+  saveCurrentStory();
+  showToast('Appearance cleared — will use lore excerpt');
+}
+
 function buildPortraitPromptFromOR(loreTruncated, charId) {
   // Pose/action tags are injected AFTER this LLM step to bypass content filters.
   // This function generates appearance-only tags — body, face, clothing, style.
@@ -5219,7 +5321,17 @@ function buildPortraitPromptFromOR(loreTruncated, charId) {
     ? 'Style: cinematic film still — dramatic directional lighting, subtle colour grade, shallow depth of field, muted palette, movie aesthetic.'
     : 'Style: professional studio portrait, sharp focus, polished lighting.';
 
-  // Extract structured physical tags directly from lore — these override model inference
+  // If distilled appearance tags exist, use them as locked ground truth — skip regex extraction and lore truncation
+  var storedTags = portraitState[charId].appearanceTags || '';
+  if (storedTags) {
+    return 'Generate Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags.\n\n' +
+      genderInstruction + '\n' + styleInstruction + '\n\n' +
+      'LOCKED CHARACTER APPEARANCE — use these EXACTLY, do not alter or omit:\n' + storedTags + '\n\n' +
+      'Required clothing/state: ' + clothingInstruction + '\n\n' +
+      'Output the locked appearance tags combined with the clothing/state and style tags. Do not add anything else.';
+  }
+
+  // Fallback: extract structured physical tags directly from lore via regex
   var structuredTags = buildStructuredTags(loreTruncated, charId);
 
   return 'Convert this character description into Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags describing appearance.\n\n' +
