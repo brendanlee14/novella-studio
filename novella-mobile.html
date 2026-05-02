@@ -1580,6 +1580,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('world')">✦ Wizard</button>
       </div>
       <textarea id="worldLore" class="lore-panel-textarea-tall" placeholder="Time period, location, atmosphere, rules of the world…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">World Brief</span>
+        <span id="world-brief-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilWorldBrief()">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="world-brief-clear" onclick="clearWorldBrief()" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -2670,7 +2676,8 @@ function saveCurrentStory() {
       charSupport: beatBriefs.charSupport || '',
       charSupport2: beatBriefs.charSupport2 || '',
       charSupport3: beatBriefs.charSupport3 || '',
-    }
+    },
+    worldBrief: worldBrief || ''
     // portrait images are stored in IndexedDB — not in localStorage
   };
   story.updatedAt = new Date().toISOString();
@@ -2750,6 +2757,10 @@ function loadStoryIntoApp(story) {
     beatBriefs[id] = bb[id] || '';
     renderBeatBriefStatus(id);
   });
+
+  // Restore world brief
+  worldBrief = d.worldBrief || '';
+  renderWorldBriefStatus();
 
   // Restore plan
   const plan = d.plan || {};
@@ -3731,6 +3742,7 @@ function deleteStory(id) {
 // ══════════════════════════════
 let planSummaries = [];   // [{title, summary, beatCount}]
 var beatBriefs = { char1: '', char2: '', charSupport: '', charSupport2: '', charSupport3: '' };
+var worldBrief = '';
 let planCurrentStage = 1;
 
 // ── STAGE NAVIGATION ──
@@ -4127,7 +4139,7 @@ function generateChapterSummaries() {
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -4368,7 +4380,7 @@ function generateChapterBeats(chIdx) {
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -4489,7 +4501,7 @@ function doGenerateBeatsSequential(apiKey, model, append) {
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -4642,7 +4654,7 @@ function retryChapterBeats(chIdx) {
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -5411,6 +5423,84 @@ function getActiveSupportBeatLore() {
     if (lore) result.push({ label: labels[i], lore: lore });
   });
   return result;
+}
+
+function getWorldLore() {
+  return worldBrief || document.getElementById('worldLore').value.trim();
+}
+
+// ══════════════════════════════
+// WORLD BRIEF — distilled setting/rules lore for beat generation
+// ══════════════════════════════
+
+function renderWorldBriefStatus() {
+  var statusEl = document.getElementById('world-brief-status');
+  var clearBtn = document.getElementById('world-brief-clear');
+  if (!statusEl) return;
+  if (worldBrief) {
+    statusEl.textContent = '✓ ' + worldBrief.slice(0, 60) + (worldBrief.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editWorldBrief(); };
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — full lore used';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function distilWorldBrief() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById('worldLore').value.trim();
+  if (!loreText) { showToast('Add world lore first'); return; }
+
+  var statusEl = document.getElementById('world-brief-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var prompt = 'Extract a world brief from this world/setting lore. This brief will be used by an AI story planner to generate story beats — it needs the locations, social rules, and atmosphere that directly affect character behaviour.\n\n' +
+    'Write a plain prose paragraph of 150-200 words covering ONLY:\n' +
+    '1. Setting name, type, and time period\n' +
+    '2. Key named locations characters will use (rooms, outdoor areas, facilities)\n' +
+    '3. Social rules and norms that affect how characters behave — what is allowed, expected, or taboo\n' +
+    '4. Any customs, signals, or rituals characters would follow\n' +
+    '5. The emotional atmosphere — what the setting enables or encourages\n\n' +
+    'Do NOT include: sensory prose, physical descriptions of decor, architectural detail, or anything that does not directly constrain or enable character behaviour.\n\n' +
+    'World lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 350, label: 'worldBrief',
+      onDone: function(result) {
+        worldBrief = result.trim();
+        renderWorldBriefStatus();
+        saveCurrentStory();
+        showToast('World brief distilled ✓');
+      }
+    }
+  );
+}
+
+function clearWorldBrief() {
+  worldBrief = '';
+  renderWorldBriefStatus();
+  saveCurrentStory();
+  showToast('World brief cleared — full lore will be used');
+}
+
+function editWorldBrief() {
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = worldBrief;
+  openTextExpand(fakeEl, 'World Brief', function(val) {
+    worldBrief = val.trim();
+    renderWorldBriefStatus();
+    saveCurrentStory();
+  });
 }
 
 function distilPortraitAppearance(charId) {
@@ -7190,7 +7280,7 @@ function clearStoryData() {
 function buildContext() {
   const char1 = document.getElementById('char1').value.trim();
   const char2 = document.getElementById('char2').value.trim();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const worldLore = getWorldLore();
   const toneStyle = document.getElementById('toneStyle').value.trim();
   const storyState = document.getElementById('storyState').value.trim();
   const includeHistory = document.getElementById('includeHistory').checked;
