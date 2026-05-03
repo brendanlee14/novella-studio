@@ -7826,8 +7826,9 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
     'Output ONLY this structure (skip any character who is absent):\n' +
     'Location: [where the scene takes place]\n' +
     'Present: [names of characters physically in the scene]\n' +
-    charNames.map(function(n) { return n + ' clothing: [exactly what they are wearing, or "nude"]'; }).join('\n') + '\n' +
-    charNames.map(function(n) { return n + ' position: [physical position/activity at scene end]'; }).join('\n') + '\n' +
+    '[For each present character:]\n' +
+    '[Name] clothing: [exactly what they are wearing, or "nude"]\n' +
+    '[Name] position: [physical position/activity at scene end]\n' +
     'Last physical action: [one sentence — what physically just happened]\n\n' +
     'Scene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 4000);
 
@@ -9085,7 +9086,7 @@ function buildLorePrompt() {
       fPussy ? 'pussy: ' + fPussy : '',
       fBodyExtra
     ].filter(Boolean);
-    lines.push('Body: ' + bodyParts.join(', '));
+    if (bodyParts.length) lines.push('Body: ' + bodyParts.join(', '));
     // Dynamic
     var orientation = collectWizardValue('dynamic','wiz_orientation');
     var voice = collectWizardValue('dynamic','wiz_voice');
