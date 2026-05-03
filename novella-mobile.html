@@ -6245,10 +6245,9 @@ function upscalePortrait(charId, b64, pose, veniceKey) {
 }
 
 function doUpscaleFetch(charId, b64, mimeType, veniceKey) {
-  var dataUri = 'data:' + mimeType + ';base64,' + b64;
-  var requestBody = { image: dataUri, scale: 2 };
-  dbg('[Upscale] sending to Venice: mimeType=' + mimeType + ' b64len=' + b64.length + ' dataUriLen=' + dataUri.length);
-  dbg('[Upscale] request body (first 80 chars of image field): ' + dataUri.slice(0, 80));
+  var requestBody = { image: b64, scale: 2 };
+  dbg('[Upscale] sending to Venice: mimeType=' + mimeType + ' b64len=' + b64.length);
+  dbg('[Upscale] request body (first 80 chars of image field): ' + b64.slice(0, 80));
   fetch('https://api.venice.ai/api/v1/image/upscale', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
