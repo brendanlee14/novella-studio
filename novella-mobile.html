@@ -6438,7 +6438,7 @@ function getActiveSupportLore() {
     if (!active) return;
     var el = document.getElementById(id);
     var val = el ? el.value.trim() : '';
-    if (val) result.push({ label: labels[i], lore: val });
+    if (val) result.push({ id: id, label: labels[i], lore: val });
   });
   return result;
 }
@@ -7370,16 +7370,30 @@ function clearStoryData() {
 function buildContext() {
   const char1 = document.getElementById('char1').value.trim();
   const char2 = document.getElementById('char2').value.trim();
-  const worldLore = getWorldLore();
+  const worldLore = document.getElementById('worldLore').value.trim();
   const toneStyle = document.getElementById('toneStyle').value.trim();
   const storyState = document.getElementById('storyState').value.trim();
   const includeHistory = document.getElementById('includeHistory').checked;
   const activeSupportLore = getActiveSupportLore();
 
+  function charSection(heading, lore, charId) {
+    var tags = portraitState && portraitState[charId] ? portraitState[charId].appearanceTags : '';
+    var block = '## ' + heading + '\n';
+    if (tags) block += 'PHYSICAL APPEARANCE (locked — do not contradict):\n' + tags + '\n\n';
+    block += lore + '\n\n';
+    return block;
+  }
+
   let ctx = '';
-  if (char1) ctx += '## PROTAGONIST\n' + char1 + '\n\n';
-  if (char2) ctx += '## LOVE INTEREST\n' + char2 + '\n\n';
-  activeSupportLore.forEach(function(s) { ctx += '## ' + s.label.toUpperCase() + '\n' + s.lore + '\n\n'; });
+  if (char1) ctx += charSection('PROTAGONIST', char1, 'char1');
+  if (char2) ctx += charSection('LOVE INTEREST', char2, 'char2');
+  activeSupportLore.forEach(function(s) {
+    var tags = portraitState && portraitState[s.id] ? portraitState[s.id].appearanceTags : '';
+    var block = '## ' + s.label.toUpperCase() + '\n';
+    if (tags) block += 'PHYSICAL APPEARANCE (locked — do not contradict):\n' + tags + '\n\n';
+    block += s.lore + '\n\n';
+    ctx += block;
+  });
   if (worldLore) ctx += '## WORLD & SETTING\n' + worldLore + '\n\n';
   if (toneStyle) ctx += '## TONE & STYLE\n' + toneStyle + '\n\n';
   if (storyState) ctx += '## CURRENT STORY STATE\n' + storyState + '\n\n';
