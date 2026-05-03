@@ -5744,12 +5744,40 @@ function detectImageMimeType(b64) {
 
 function upscalePortrait(charId, b64, pose, veniceKey) {
   var mimeType = detectImageMimeType(b64);
-  dbg('[Venice] → upscale charId=' + charId + ' b64len=' + b64.length + ' format=' + mimeType);
+  dbg('[Upscale] → start charId=' + charId + ' mimeType=' + mimeType + ' b64len=' + b64.length);
+
+  // Venice upscale rejects WebP — convert to JPEG via canvas first
+  if (mimeType !== 'image/jpeg') {
+    dbg('[Upscale] Converting ' + mimeType + ' → image/jpeg for upscale API compatibility');
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      var jpegDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      var jpegB64 = jpegDataUrl.split(',')[1];
+      dbg('[Upscale] Converted to JPEG: new b64len=' + jpegB64.length);
+      doUpscaleFetch(charId, jpegB64, 'image/jpeg', veniceKey);
+    };
+    img.onerror = function() {
+      dbg('[Upscale] Conversion failed — attempting upscale with original format');
+      doUpscaleFetch(charId, b64, mimeType, veniceKey);
+    };
+    img.src = 'data:' + mimeType + ';base64,' + b64;
+    return;
+  }
+  doUpscaleFetch(charId, b64, mimeType, veniceKey);
+}
+
+function doUpscaleFetch(charId, b64, mimeType, veniceKey) {
+  var dataUri = 'data:' + mimeType + ';base64,' + b64;
+  dbg('[Upscale] sending to Venice: mimeType=' + mimeType + ' b64len=' + b64.length);
   fetch('https://api.venice.ai/api/v1/image/upscale', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
     body: JSON.stringify({
-      image: 'data:' + mimeType + ';base64,' + b64,
+      image: dataUri,
       scale: 2
     })
   }).then(function(res) {
