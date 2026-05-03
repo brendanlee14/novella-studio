@@ -1596,6 +1596,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('tone')">✦ Wizard</button>
       </div>
       <textarea id="toneStyle" class="lore-panel-textarea-tall" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Tone Brief</span>
+        <span id="tone-brief-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilToneBrief()">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="tone-brief-clear" onclick="clearToneBrief()" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -2677,7 +2683,8 @@ function saveCurrentStory() {
       charSupport2: beatBriefs.charSupport2 || '',
       charSupport3: beatBriefs.charSupport3 || '',
     },
-    worldBrief: worldBrief || ''
+    worldBrief: worldBrief || '',
+    toneBrief: toneBrief || ''
     // portrait images are stored in IndexedDB — not in localStorage
   };
   story.updatedAt = new Date().toISOString();
@@ -2761,6 +2768,10 @@ function loadStoryIntoApp(story) {
   // Restore world brief
   worldBrief = d.worldBrief || '';
   renderWorldBriefStatus();
+
+  // Restore tone brief
+  toneBrief = d.toneBrief || '';
+  renderToneBriefStatus();
 
   // Restore plan
   const plan = d.plan || {};
@@ -3743,6 +3754,7 @@ function deleteStory(id) {
 let planSummaries = [];   // [{title, summary, beatCount}]
 var beatBriefs = { char1: '', char2: '', charSupport: '', charSupport2: '', charSupport3: '' };
 var worldBrief = '';
+var toneBrief = '';
 let planCurrentStage = 1;
 
 // ── STAGE NAVIGATION ──
@@ -4013,7 +4025,7 @@ function draftSynopsisFromChars() {
   var char1 = document.getElementById('char1').value.trim();
   var char2 = document.getElementById('char2').value.trim();
   var worldLore = document.getElementById('worldLore').value.trim();
-  var toneStyle = document.getElementById('toneStyle').value.trim();
+  var toneStyle = getToneStyle();
 
   if (!char1 && !char2) { showToast('Add character details in Lore first'); return; }
 
@@ -4071,7 +4083,7 @@ function refineSynopsis() {
   var char1 = document.getElementById('char1').value.trim();
   var char2 = document.getElementById('char2').value.trim();
   var activeSupportSlots = getActiveSupportLore();
-  var toneStyle = document.getElementById('toneStyle').value.trim();
+  var toneStyle = getToneStyle();
 
   var systemMsg = 'You are a story development editor for adult romance and erotica fiction. ' +
     'Your job is to take a rough story plot and expand it into a rich, detailed narrative synopsis in flowing prose. ' +
@@ -4135,7 +4147,7 @@ function generateChapterSummaries() {
 
   // Build full lore + persona context
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const toneStyle = getToneStyle();
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
@@ -4278,7 +4290,7 @@ function refineChapterSummary(i) {
   btn.textContent = 'Refining…';
 
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const toneStyle = getToneStyle();
   const systemMsg = (persona || 'You are a story editor for adult romance fiction.')
     + (toneStyle ? '\n\nTONE & STYLE to maintain:\n' + toneStyle : '')
     + '\n\nWhen refining, preserve the user\'s intent and edits. Keep the heat level and any explicit content — do not sanitise.';
@@ -4376,7 +4388,7 @@ function generateChapterBeats(chIdx) {
   const beatCount = ch.beatCount || 4;
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const toneStyle = getToneStyle();
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
@@ -4497,7 +4509,7 @@ function doGenerateBeatsSequential(apiKey, model, append) {
 
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const toneStyle = getToneStyle();
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
@@ -4650,7 +4662,7 @@ function retryChapterBeats(chIdx) {
 
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const toneStyle = getToneStyle();
   const char1 = getBeatLore('char1');
   const char2 = getBeatLore('char2');
   const activeSupportSlots = getActiveSupportBeatLore();
@@ -5499,6 +5511,84 @@ function editWorldBrief() {
   openTextExpand(fakeEl, 'World Brief', function(val) {
     worldBrief = val.trim();
     renderWorldBriefStatus();
+    saveCurrentStory();
+  });
+}
+
+// ══════════════════════════════
+// TONE BRIEF — distilled beat-planning lore for beat/chapter generation
+// ══════════════════════════════
+
+function getToneStyle() {
+  return toneBrief || document.getElementById('toneStyle').value.trim();
+}
+
+function renderToneBriefStatus() {
+  var statusEl = document.getElementById('tone-brief-status');
+  var clearBtn = document.getElementById('tone-brief-clear');
+  if (!statusEl) return;
+  if (toneBrief) {
+    statusEl.textContent = '✓ ' + toneBrief.slice(0, 60) + (toneBrief.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editToneBrief(); };
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — full lore used';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function distilToneBrief() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById('toneStyle').value.trim();
+  if (!loreText) { showToast('Add tone lore first'); return; }
+
+  var statusEl = document.getElementById('tone-brief-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var prompt = 'Extract a beat-planning brief from this tone and style lore. This brief will be used by an AI story planner to generate story beat titles and summaries — it needs directives about content and emotional requirements, NOT prose craft instructions.\n\n' +
+    'Write a plain prose paragraph of 100-120 words covering ONLY:\n' +
+    '1. Explicit content directive — heat level, what must be included, nothing faded to black\n' +
+    '2. Emotional palette for sexual/intimate beats — what emotional layers must be present (shame, gratitude, fear, longing, etc.)\n' +
+    '3. Protagonist\'s dynamic in intimate situations — submissive/dominant lean, fears, what releases them\n' +
+    '4. Partner\'s dynamic — who leads, how they signal, how they interact\n' +
+    '5. Any structural or content rules for beats (e.g. intimacy always carries emotional weight)\n\n' +
+    'Do NOT include: POV mechanics, prose style, sentence rhythm, voice mode examples, dialogue tone, or any instruction about HOW to write — only WHAT should happen.\n\n' +
+    'Tone lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 250, label: 'toneBrief',
+      onDone: function(result) {
+        toneBrief = result.trim();
+        renderToneBriefStatus();
+        saveCurrentStory();
+        showToast('Tone brief distilled ✓');
+      }
+    }
+  );
+}
+
+function clearToneBrief() {
+  toneBrief = '';
+  renderToneBriefStatus();
+  saveCurrentStory();
+  showToast('Tone brief cleared — full lore will be used');
+}
+
+function editToneBrief() {
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = toneBrief;
+  openTextExpand(fakeEl, 'Tone Brief', function(val) {
+    toneBrief = val.trim();
+    renderToneBriefStatus();
     saveCurrentStory();
   });
 }
