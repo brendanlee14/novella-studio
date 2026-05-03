@@ -5669,16 +5669,16 @@ function buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) {
   var styleEl = document.getElementById('portraitStyle');
   var portraitStyleVal = styleEl ? styleEl.value : 'studio';
   var styleInstruction = portraitStyleVal === 'amateur'
-    ? 'Style: candid phone photo, natural light, unposed, slightly grainy, real setting.'
+    ? 'Style context: candid phone photo aesthetic — natural uneven light, slightly grainy texture.'
     : portraitStyleVal === 'selfie'
-    ? 'Style: personal selfie — front camera, bedroom or bathroom mirror, close and intimate framing, casual indoor lighting, slightly wide-angle lens distortion.'
+    ? 'Style context: personal selfie aesthetic — close intimate framing, casual indoor light, slight wide-angle distortion.'
     : portraitStyleVal === 'boudoir'
-    ? 'Style: boudoir photography — soft warm lighting, intimate bedroom setting, silk or linen textures, sensual and romantic mood, shallow depth of field.'
+    ? 'Style context: boudoir photography aesthetic — soft warm light, sensual mood, silk or linen texture context.'
     : portraitStyleVal === 'natural'
-    ? 'Style: natural candid photography — eye level observer perspective, natural or ambient light, depth of field blur on background, no studio, no plain backdrop. CRITICAL: the background environment must match the POSE location exactly (if pose is in a bedroom, background is a bedroom interior; if outdoors, background is that outdoor setting). Do not use the character\'s world or lifestyle context to choose the background — use only the pose location.'
+    ? 'Style context: natural candid photography aesthetic — natural ambient light quality, no dramatic studio lighting or heavy makeup styling.'
     : portraitStyleVal === 'cinematic'
-    ? 'Style: cinematic film still — dramatic directional lighting, subtle colour grade, shallow depth of field, muted palette, movie aesthetic.'
-    : 'Style: professional studio portrait, sharp focus, polished lighting.';
+    ? 'Style context: cinematic photography aesthetic — dramatic directional light, subtle colour grade, muted palette.'
+    : 'Style context: studio portrait aesthetic — sharp focus, polished even lighting.';
 
   // If distilled appearance tags exist, use them as locked ground truth — skip regex extraction and lore truncation
   var storedTags = portraitState[charId].appearanceTags || '';
@@ -5687,7 +5687,7 @@ function buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) {
       genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
       'LOCKED CHARACTER APPEARANCE — use these EXACTLY, do not alter or omit:\n' + storedTags + '\n\n' +
       'Required clothing/state: ' + clothingInstruction + '\n\n' +
-      'Output the locked appearance tags combined with the clothing/state and style tags. Appearance only — no setting, background, or location tags.';
+      'Output only: the locked appearance tags + the clothing/state. No setting, background, environment, location, or style context tags.';
   }
 
   // Fallback: extract structured physical tags directly from lore via regex
