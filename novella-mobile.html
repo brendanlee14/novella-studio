@@ -5673,7 +5673,7 @@ function buildPortraitPromptFromOR(loreTruncated, charId) {
     : portraitStyleVal === 'boudoir'
     ? 'Style: boudoir photography — soft warm lighting, intimate bedroom setting, silk or linen textures, sensual and romantic mood, shallow depth of field.'
     : portraitStyleVal === 'natural'
-    ? 'Style: natural candid photography — eye level observer perspective, natural or ambient light, realistic everyday environment background with depth of field blur, no studio, no plain backdrop, unposed authentic moment, no phone or camera visible in frame.'
+    ? 'Style: natural candid photography — eye level observer perspective, natural or ambient light, depth of field blur on background, no studio, no plain backdrop. CRITICAL: the background environment must match the POSE location exactly (if pose is in a bedroom, background is a bedroom interior; if outdoors, background is that outdoor setting). Do not use the character\'s world or lifestyle context to choose the background — use only the pose location.'
     : portraitStyleVal === 'cinematic'
     ? 'Style: cinematic film still — dramatic directional lighting, subtle colour grade, shallow depth of field, muted palette, movie aesthetic.'
     : 'Style: professional studio portrait, sharp focus, polished lighting.';
@@ -5988,11 +5988,11 @@ function poseToSDTerm(pose) {
     'Standing in doorway': 'standing in doorway, natural light from behind, full body',
     'Leaning against wall': 'leaning against wall, relaxed pose, three-quarter body',
     'Looking out a window': 'standing at window, looking out, soft window light on face',
-    'In bed — morning light': 'lying in bed, morning light, soft sheets, looking at camera',
-    'Lying on bed': 'lying on back in bed, facing camera, full body, soft sheets, bedroom, relaxed expression',
-    'From behind on bed': 'full body, lying face down on bed, rear view, looking back over shoulder, intimate',
-    'From behind on armchair': 'full body, kneeling on armchair facing away, rear view, looking back over shoulder, intimate',
-    'Reclining on sofa': 'reclining on sofa, relaxed, looking at camera',
+    'In bed — morning light': 'lying in bed, morning light, soft sheets, looking at camera, indoor bedroom, interior room',
+    'Lying on bed': 'lying on back in bed, facing camera, full body, soft sheets, bedroom, indoor, relaxed expression',
+    'From behind on bed': 'full body, lying face down on bed, rear view, looking back over shoulder, intimate, indoor bedroom',
+    'From behind on armchair': 'full body, kneeling on armchair facing away, rear view, looking back over shoulder, intimate, indoor',
+    'Reclining on sofa': 'reclining on sofa, relaxed, looking at camera, indoor living room',
     'Seated': 'seated, upper body visible, natural pose',
     'In a hotel room': 'in hotel room, standing or seated, interior light',
     'Wrapped in a towel': 'wrapped in towel, just out of shower, bathroom or bedroom',
