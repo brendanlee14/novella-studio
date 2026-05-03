@@ -3314,35 +3314,23 @@ function generateSceneImage() {
   // Detect character
   var charId = detectSceneCharacter(beat, sceneText);
   var charLore = document.getElementById(charId).value.trim();
-  var physCtx = physicalContinuity ? physicalContinuity.slice(0, 300) : '';
+  var physCtx = physicalContinuity ? physicalContinuity.slice(0, 500) : '';
 
-  // Extract protagonist physical appearance (secondary character in scene)
-  var char1FullLore = document.getElementById('char1').value.trim();
-  var protagonistPhysical = '';
-  if (charId !== 'char1' && char1FullLore) {
-    // Extract only physical appearance lines — Name, Build, Face, Penis excluded for brevity
-    var physLines = [];
-    ['Name:', 'Build:', 'Face:', 'Ethnicity:'].forEach(function(field) {
-      var idx = char1FullLore.indexOf(field);
-      if (idx > -1) {
-        var end = char1FullLore.indexOf('\n', idx);
-        var line = end > -1 ? char1FullLore.slice(idx, end) : char1FullLore.slice(idx, idx + 80);
-        physLines.push(line.trim());
-      }
-    });
-    // Fallback — just grab first 3 lines if structured fields not found
-    if (!physLines.length) {
-      physLines = char1FullLore.split('\n').slice(0, 3).filter(Boolean);
-    }
-    protagonistPhysical = physLines.join(', ').slice(0, 200);
-  }
+  // Male presence: subject is not char1 and char1 lore exists
+  var maleInScene = charId !== 'char1' && !!document.getElementById('char1').value.trim();
 
-  // Extract locked physical tags from subject lore — same pattern as portrait generation
-  var subjectLockedTags = buildStructuredTags(charLore, charId);
+  // Use distilled appearance tags if available — same priority as portrait generation
+  var subjectLockedTags = (portraitState[charId] && portraitState[charId].appearanceTags)
+    ? portraitState[charId].appearanceTags
+    : buildStructuredTags(charLore, charId);
+
+  // World lore for setting context — prefer world brief, fall back to first 400 chars of full lore
+  var worldLoreRaw = document.getElementById('worldLore').value.trim();
+  var worldCtx = worldBrief || worldLoreRaw.slice(0, 400);
 
   dbg('[SceneImg] Generating for beat: ' + beat.title + ' | charId=' + charId);
   dbg('[SceneImg] Subject locked tags: ' + subjectLockedTags);
-  dbg('[SceneImg] Protagonist physical: ' + (protagonistPhysical || '(none — char1 is subject or no lore)'));
+  dbg('[SceneImg] Using distilled tags: ' + !!(portraitState[charId] && portraitState[charId].appearanceTags));
   dbg('[SceneImg] Subject lore (first 150): ' + charLore.slice(0, 150));
 
   // Show generating state on button
@@ -3379,7 +3367,8 @@ function generateSceneImage() {
     var requestBody = {
       model: model,
       prompt: imagePrompt,
-      negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text, logo',
+      negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text, logo' +
+        (maleInScene ? ', man face, male face, male portrait, male body, two people' : ''),
       width: 832, height: 1216, steps: 30,
       hide_watermark: true, return_binary: false, safe_mode: false,
       seed: seedVal
@@ -3434,9 +3423,6 @@ function generateSceneImage() {
   if (apiKey) {
     var orModel = 'deepseek/deepseek-v3.2-20251201';
 
-    // Two-character scene: focus entirely on female, imply male through POV/hands/context
-    var maleInScene = !!protagonistPhysical;
-
     var orSystem = 'You are a Stable Diffusion prompt engineer for photorealistic adult scene generation specialising in lustify-sdxl. ' +
       'First write one line: "PEAK FRAME: [single sentence — the exact visual moment at this beat\'s climax: the specific action, pose, and key detail that makes this scene immediately recognisable]". ' +
       'This line will be stripped from the final output — it anchors your subsequent tags to one specific moment rather than averaging the whole scene.\n\n' +
@@ -3461,9 +3447,10 @@ function generateSceneImage() {
 
     var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
       (subjectLockedTags ? '== LOCKED CHARACTER APPEARANCE — include ALL of these tags EXACTLY, do not change or omit any ==\n' + subjectLockedTags + '\n\n' : '') +
-      '== FEMALE SUBJECT LORE (for context — locked tags above take priority for appearance) ==\n' + charLore.slice(0, 500) + '\n\n' +
+      '== FEMALE SUBJECT LORE (for context — locked tags above take priority for appearance) ==\n' + charLore.slice(0, 800) + '\n\n' +
       (maleInScene ? '== MALE PRESENCE (implied only — do NOT render his face or full body) ==\nMale is present in the scene. Imply through hands, POV, or partial torso only.\n\n' : '') +
-      (physCtx ? '== PHYSICAL STATE ==\n' + physCtx + '\n\n' : '') +
+      (physCtx ? '== PHYSICAL STATE (clothing and position at this moment) ==\n' + physCtx + '\n\n' : '') +
+      (worldCtx ? '== WORLD & SETTING CONTEXT (use for accurate location and atmosphere tags) ==\n' + worldCtx + '\n\n' : '') +
       '== BEAT INTENT — what this beat is about ==\nTitle: ' + beat.title + '\n' +
       (beat.desc ? 'Description: ' + beat.desc + '\n' : '') +
       (beat.loc ? 'Location: ' + beat.loc + '\n' : '') + '\n' +
