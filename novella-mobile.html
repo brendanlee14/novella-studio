@@ -6218,33 +6218,47 @@ function detectImageMimeType(b64) {
 
 function upscalePortrait(charId, b64, pose, veniceKey) {
   var mimeType = detectImageMimeType(b64);
-  dbg('[Venice] → upscale charId=' + charId + ' b64len=' + b64.length + ' format=' + mimeType);
+  var dataUri = 'data:' + mimeType + ';base64,' + b64;
+  var requestBody = { image: dataUri, scale: 2 };
+  dbg('[Upscale] → start charId=' + charId + ' mimeType=' + mimeType + ' b64len=' + b64.length + ' dataUriLen=' + dataUri.length);
+  dbg('[Upscale] request body (first 80 chars of image field): ' + dataUri.slice(0, 80));
   fetch('https://api.venice.ai/api/v1/image/upscale', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
-    body: JSON.stringify({
-      image: 'data:' + mimeType + ';base64,' + b64,
-      scale: 2
-    })
+    body: JSON.stringify(requestBody)
   }).then(function(res) {
-    dbg('[Venice] upscale status=' + res.status);
-    if (!res.ok) throw new Error('Upscale error ' + res.status);
+    dbg('[Upscale] response status=' + res.status + ' ok=' + res.ok);
+    dbg('[Upscale] response headers content-type=' + res.headers.get('content-type'));
+    if (!res.ok) {
+      return res.text().then(function(body) {
+        dbg('[Upscale] error body (first 300 chars): ' + body.slice(0, 300));
+        var msg;
+        try { msg = JSON.parse(body); msg = msg.message || msg.error || JSON.stringify(msg); }
+        catch(e) { msg = body.slice(0, 200); }
+        throw new Error('Venice upscale ' + res.status + ': ' + msg);
+      });
+    }
     return res.json();
   }).then(function(data) {
+    dbg('[Upscale] response keys: ' + Object.keys(data).join(', '));
+    dbg('[Upscale] data.image present: ' + !!data.image + ' data.images present: ' + !!(data.images && data.images[0]));
     var upscaled = data.image || (data.images && data.images[0]);
-    if (!upscaled) throw new Error('No upscaled image returned');
+    if (!upscaled) {
+      dbg('[Upscale] full response: ' + JSON.stringify(data).slice(0, 400));
+      throw new Error('No upscaled image in response');
+    }
     if (upscaled.indexOf(',') > -1) upscaled = upscaled.split(',')[1];
     var state = portraitState[charId];
     if (state.images.length > 0) {
       state.images[state.images.length - 1].b64 = upscaled;
       if (activeStoryId) idbSavePortraits(activeStoryId, charId, state.images);
       renderPortraitCarousel(charId, state.images);
-      dbg('[Venice] ✓ upscale done — portrait replaced with 2x (1664×2432)');
+      dbg('[Upscale] ✓ done — portrait replaced with 2x (1664×2432)');
       showToast('Portrait upscaled to 2x ✓');
     }
   }).catch(function(err) {
-    dbg('[Venice] ✗ upscale failed: ' + err.message + ' — original kept');
-    showToast('Upscale failed — original kept');
+    dbg('[Upscale] ✗ failed: ' + err.message);
+    showToast('Upscale failed: ' + err.message.slice(0, 120));
   });
 }
 
