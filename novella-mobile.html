@@ -5217,7 +5217,7 @@ function getPortraitQualityTags() {
     return 'boudoir photography, soft diffused lighting, warm tones, silk sheets, intimate bedroom setting, shallow depth of field, sensual mood, candle or lamp light, romantic atmosphere, high-end boudoir shoot';
   }
   if (style === 'natural') {
-    return 'natural candid photography, eye level perspective, natural light, ambient lighting, sharp focus, realistic depth of field, unposed authentic moment, environmental portrait, no phone, no camera, photorealistic, 8k';
+    return 'natural candid photography, eye level perspective, natural light, ambient lighting, sharp focus, depth of field, bokeh background, realistic everyday environment, blurred background, no studio backdrop, no plain background, unposed authentic moment, no phone, no camera, photorealistic, 8k';
   }
   if (style === 'cinematic') {
     return 'cinematic photography, film still, dramatic lighting, shallow depth of field, subtle colour grade, movie quality, anamorphic lens, muted tones, professional cinematography, 35mm film aesthetic';
@@ -5672,7 +5672,7 @@ function buildPortraitPromptFromOR(loreTruncated, charId) {
     : portraitStyleVal === 'boudoir'
     ? 'Style: boudoir photography — soft warm lighting, intimate bedroom setting, silk or linen textures, sensual and romantic mood, shallow depth of field.'
     : portraitStyleVal === 'natural'
-    ? 'Style: natural candid photography — eye level observer perspective, natural or ambient light, unposed authentic moment, no phone or camera visible in frame, environmental setting.'
+    ? 'Style: natural candid photography — eye level observer perspective, natural or ambient light, realistic everyday environment background with depth of field blur, no studio, no plain backdrop, unposed authentic moment, no phone or camera visible in frame.'
     : portraitStyleVal === 'cinematic'
     ? 'Style: cinematic film still — dramatic directional lighting, subtle colour grade, shallow depth of field, muted palette, movie aesthetic.'
     : 'Style: professional studio portrait, sharp focus, polished lighting.';
