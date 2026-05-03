@@ -1469,6 +1469,12 @@
       <button class="btn-write" id="btnWrite" onclick="writeScene()" aria-label="Write scene">✦ Write Scene</button>
       <button class="btn-small" id="btnRewrite" style="display:none" onclick="rewriteScene()" title="Rewrite scene" aria-label="Rewrite scene">↺</button>
       <button class="btn-small" id="btnCopy" style="display:none" onclick="copyProse()" aria-label="Copy prose">Copy</button>
+      <select id="sceneImgStyle" style="display:none;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-family:'Jost',sans-serif;font-size:0.72rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;max-width:88px;" title="Scene image style">
+        <option value="natural">Natural</option>
+        <option value="studio">Studio</option>
+        <option value="cinematic">Cinematic</option>
+        <option value="boudoir">Boudoir</option>
+      </select>
       <button class="btn-small" id="btnSceneImg" style="display:none" onclick="generateSceneImage()" title="Generate scene image" aria-label="Generate scene image">🖼️</button>
     </div>
     <div id="proseOutput" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
@@ -2657,6 +2663,7 @@ function saveCurrentStory() {
     settings: {
       veniceImageModel: document.getElementById('veniceImageModel').value,
       portraitStyle: document.getElementById('portraitStyle').value,
+      sceneImgStyle: document.getElementById('sceneImgStyle').value,
       model: document.getElementById('modelSelect').value,
       length: document.getElementById('lengthTarget').value,
       heatLevel: document.getElementById('heatLevel').value,
@@ -2720,6 +2727,7 @@ function loadStoryIntoApp(story) {
   const s = d.settings || {};
   document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream';
   document.getElementById('portraitStyle').value = s.portraitStyle || 'studio';
+  document.getElementById('sceneImgStyle').value = s.sceneImgStyle || 'natural';
   syncGalleryPortraitStyle();
   ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(renderPortraitPresetSelect);
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
@@ -3446,7 +3454,8 @@ function generateSceneImage() {
     var sentBreak = sceneTail.match(/[.!?]\s+[A-Z]/);
     var sceneClimax = (sentBreak && sentBreak.index < 200) ? sceneTail.slice(sentBreak.index + sentBreak[0].length - 1).trim() : sceneTail.trim();
 
-    var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
+    var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n' +
+      'IMAGE STYLE: ' + getSceneImgStyleInstruction() + '\n\n' +
       (subjectLockedTags ? '== LOCKED CHARACTER APPEARANCE — include ALL of these tags EXACTLY, do not change or omit any ==\n' + subjectLockedTags + '\n\n' : '') +
       '== FEMALE SUBJECT LORE (for context — locked tags above take priority for appearance) ==\n' + charLore.slice(0, 800) + '\n\n' +
       (maleInScene ? '== MALE PRESENCE (implied only — do NOT render his face or full body) ==\nMale is present in the scene. Imply through hands, POV, or partial torso only.\n\n' : '') +
@@ -3486,7 +3495,7 @@ function generateSceneImage() {
             .replace(/\s{2,}/g, ' ').trim();
           dbg('[SceneImg] Cleaned prompt (labels stripped, ' + cleanedPrompt.length + ' chars): ' + cleanedPrompt);
           // Deduplicate comma-separated tags before sending
-          var rawFinal = cleanedPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic';
+          var rawFinal = cleanedPrompt + ', ' + getSceneImgQualityTags();
           var seen = {}, dedupedTags = [];
           rawFinal.split(',').forEach(function(t) {
             var tag = t.trim().toLowerCase();
@@ -5216,6 +5225,24 @@ function getPortraitQualityTags() {
   return 'photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic';
 }
 
+function getSceneImgQualityTags() {
+  var styleEl = document.getElementById('sceneImgStyle');
+  var style = styleEl ? styleEl.value : 'natural';
+  if (style === 'natural') return 'natural candid photography, eye level perspective, natural light, ambient lighting, sharp focus, realistic depth of field, unposed authentic moment, environmental portrait, no phone, no camera, photorealistic, 8k';
+  if (style === 'cinematic') return 'cinematic photography, film still, dramatic lighting, shallow depth of field, subtle colour grade, anamorphic lens, muted tones, professional cinematography, photorealistic';
+  if (style === 'boudoir') return 'boudoir photography, soft diffused lighting, warm tones, intimate setting, shallow depth of field, sensual mood, candle or lamp light, romantic atmosphere, photorealistic, 8k';
+  return 'photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic';
+}
+
+function getSceneImgStyleInstruction() {
+  var styleEl = document.getElementById('sceneImgStyle');
+  var style = styleEl ? styleEl.value : 'natural';
+  if (style === 'natural') return 'Style: natural candid photography — eye level observer perspective, natural or ambient light, unposed authentic moment, no phone or camera visible in frame, environmental setting.';
+  if (style === 'cinematic') return 'Style: cinematic film still — dramatic directional lighting, subtle colour grade, shallow depth of field, muted palette, movie aesthetic.';
+  if (style === 'boudoir') return 'Style: boudoir photography — soft warm lighting, intimate setting, sensual and romantic mood, shallow depth of field.';
+  return 'Style: professional studio — sharp focus, polished lighting, clean background.';
+}
+
 function buildFallbackPrompt(lore, charId, pose) {
   var parts = [];
   parts.push(poseToSDTerm(pose || 'Half body front'));
@@ -6668,6 +6695,7 @@ function selectBeat(chIdx, bIdx) {
     proseOut.innerHTML = '<div class="prose-area">' + escapeHtml(writtenScenes[key]) + '</div>';
     document.getElementById('btnCopy').style.display = '';
     document.getElementById('btnRewrite').style.display = '';
+    document.getElementById('sceneImgStyle').style.display = '';
     document.getElementById('btnSceneImg').style.display = '';
   } else {
     proseOut.innerHTML = '<div class="prose-placeholder"><div class="p-icon">♡</div><h3>' + escapeHtml(beat.title) + '</h3><p>' + (beat.desc ? escapeHtml(beat.desc) : 'Tap <strong>Write Scene</strong> to generate this beat.') + '</p></div>';
@@ -7568,6 +7596,7 @@ function writeScene() {
   document.getElementById('btnWrite').textContent = 'Writing\u2026';
   document.getElementById('btnCopy').style.display = 'none';
   document.getElementById('btnRewrite').style.display = 'none';
+  document.getElementById('sceneImgStyle').style.display = 'none';
   document.getElementById('btnSceneImg').style.display = 'none';
   acquireWakeLock();
 
@@ -7620,6 +7649,7 @@ function writeScene() {
           saveCurrentStory();
           document.getElementById('btnCopy').style.display = '';
           document.getElementById('btnRewrite').style.display = '';
+          document.getElementById('sceneImgStyle').style.display = '';
           document.getElementById('btnSceneImg').style.display = '';
           updateProseWordCount();
           updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
