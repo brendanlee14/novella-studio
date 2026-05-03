@@ -5654,15 +5654,17 @@ function clearPortraitAppearance(charId) {
   showToast('Appearance cleared — will use lore excerpt');
 }
 
-function buildPortraitPromptFromOR(loreTruncated, charId) {
+function buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) {
   // Pose/action tags are injected AFTER this LLM step to bypass content filters.
   // This function generates appearance-only tags — body, face, clothing, style.
   var clothingInstruction = buildClothingPromptTerms(charId);
   var isFemale = charId !== 'char1';
 
+  var poseContext = selectedPose ? 'The image will be posed as: ' + selectedPose + '. Do NOT generate setting, background, environment, or location tags — the pose already defines the location.' : '';
+
   var genderInstruction = isFemale
-    ? 'IMPORTANT: FEMALE character. Output appearance tags only — body, face, hair, clothing. Do NOT include pose, position, action, or composition tags.'
-    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms. Output appearance tags only — do NOT include pose or action tags.';
+    ? 'IMPORTANT: FEMALE character. Output appearance tags only — body, face, hair, clothing, skin. Do NOT include: pose, position, action, composition, setting, background, environment, location, or scene tags. Appearance only.'
+    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms. Output appearance tags only — do NOT include pose, action, setting, background, environment, or location tags.';
 
   var styleEl = document.getElementById('portraitStyle');
   var portraitStyleVal = styleEl ? styleEl.value : 'studio';
@@ -5682,20 +5684,20 @@ function buildPortraitPromptFromOR(loreTruncated, charId) {
   var storedTags = portraitState[charId].appearanceTags || '';
   if (storedTags) {
     return 'Generate Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags.\n\n' +
-      genderInstruction + '\n' + styleInstruction + '\n\n' +
+      genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
       'LOCKED CHARACTER APPEARANCE — use these EXACTLY, do not alter or omit:\n' + storedTags + '\n\n' +
       'Required clothing/state: ' + clothingInstruction + '\n\n' +
-      'Output the locked appearance tags combined with the clothing/state and style tags. Do not add anything else.';
+      'Output the locked appearance tags combined with the clothing/state and style tags. Appearance only — no setting, background, or location tags.';
   }
 
   // Fallback: extract structured physical tags directly from lore via regex
   var structuredTags = buildStructuredTags(loreTruncated, charId);
 
   return 'Convert this character description into Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags describing appearance.\n\n' +
-    genderInstruction + '\n' + styleInstruction + '\n\n' +
+    genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
     'LOCKED PHYSICAL TAGS — include these EXACTLY as written, do not modify:\n' + structuredTags + '\n\n' +
     'Required clothing/state: ' + clothingInstruction + '\n\n' +
-    'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
+    'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Appearance only — no setting, background, or location tags. Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
 }
 
 // ══════════════════════════════
@@ -5999,7 +6001,7 @@ function poseToSDTerm(pose) {
     'In lingerie — standing': 'standing in lingerie, full body, confident pose',
     'In lingerie — seated on bed': 'seated on bed in lingerie, half body, intimate',
     'Getting dressed — caught mid': 'caught mid-dress, candid, turning toward camera',
-    'In the shower — suggested': 'in shower, steamy glass, half obscured, suggested nudity',
+    'In the shower — suggested': 'standing in shower, indoor bathroom, steamy shower enclosure, frosted glass, water droplets, wet skin, suggested nudity, bathroom interior',
     'Candlelit — low light': 'candlelit portrait, warm low light, intimate atmosphere',
     'Reading — distracted': 'seated reading, looking up distracted, natural light',
     'At a bar — holding drink': 'standing at bar, holding drink, half body',
@@ -6380,7 +6382,7 @@ function generatePortrait(charId) {
     var orPromptModel = 'deepseek/deepseek-v3.2-20251201';
     dbg('Building image prompt via OpenRouter…');
     streamingFetch(openRouterKey, orPromptModel,
-      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId) }],
+      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
       { maxTokens: 300, label: 'portraitPrompt',
         onDone: function(prompt) {
           prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
