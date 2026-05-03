@@ -6293,10 +6293,14 @@ function generatePortrait(charId) {
     // This ensures Lock always has a seed to capture
     if (!seedVal) seedVal = Math.floor(Math.random() * 999999999) + 1;
     portraitState[charId].lastSeed = seedVal;
+    var portraitStyleForNeg = document.getElementById('portraitStyle') ? document.getElementById('portraitStyle').value : 'studio';
+    var studioNegatives = portraitStyleForNeg === 'natural'
+      ? ', studio background, studio lighting, studio light, plain background, grey background, white background, solid background, seamless background, gradient background, backdrop, photography studio, ring light, softbox, professional lighting setup'
+      : '';
     var requestBody = {
       model: model,
       prompt: imagePrompt,
-      negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus',
+      negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives,
       width: 832,
       height: 1216,
       steps: 30,
