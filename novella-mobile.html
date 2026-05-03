@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#18120e">
@@ -164,7 +164,7 @@
   .story-action-btn:active { color: var(--rose); border-color: var(--rose); }
 
   .add-story-btn {
-    margin: 0 16px calc(32px + env(safe-area-inset-bottom, 0px));
+    margin: 0 16px 72px;
     padding: 18px; background: none;
     border: 1.5px dashed #3a2e26; border-radius: 14px;
     color: var(--muted); font-family: 'Jost', sans-serif;
@@ -192,7 +192,7 @@
   .story-modal-sheet {
     background: var(--cream); border-radius: 20px 20px 0 0;
     width: 100%; max-width: 600px;
-    padding: 24px 16px 48px;
+    padding: 24px 16px 72px;
   }
 
   /* ── APP HEADER ── */
@@ -240,7 +240,7 @@
   /* ── SCREENS ── */
   .screen {
     position: fixed; top: var(--header-h); left: 0; right: 0;
-    bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px)); overflow-y: auto;
+    bottom: var(--nav-h); overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     display: none; flex-direction: column;
     background: var(--parchment);
@@ -250,8 +250,8 @@
   /* ── BOTTOM NAV ── */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: var(--nav-h);
+    
     background: var(--ink);
     display: flex; border-top: 1px solid #2e2420; z-index: 50;
   }
@@ -454,7 +454,7 @@
     width: 100%; max-width: 600px;
     max-height: 85vh; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 20px 16px 48px;
+    padding: 20px 16px 72px;
   }
   @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
   .sheet-handle {
@@ -661,7 +661,7 @@
   }
   .popup-toolbar {
     position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 16px 20px 40px;
+    padding: 16px 20px 72px;
     background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
     display: flex; justify-content: space-between; align-items: center;
     z-index: 10;
@@ -1012,7 +1012,7 @@
   #personaModal.open { display: flex; }
   .persona-sheet {
     background: var(--cream); border-radius: 20px 20px 0 0;
-    width: 100%; max-width: 600px; padding: 20px 16px 48px;
+    width: 100%; max-width: 600px; padding: 20px 16px 72px;
   }
 
   /* ── LORE WIZARD ── */
@@ -1259,7 +1259,7 @@
   /* ── EXPORT SHEET ── */
   #exportSheet { display: none; position: fixed; inset: 0; background: rgba(24,18,14,0.75); z-index: 500; align-items: flex-end; justify-content: center; }
   #exportSheet.open { display: flex; }
-  .export-modal-body { background: var(--cream); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; padding: 24px 16px 48px; }
+  .export-modal-body { background: var(--cream); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; padding: 24px 16px 72px; }
   .export-option { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
   .export-option:active { border-color: var(--rose); }
   .export-option-icon { font-size: 1.6rem; flex-shrink: 0; }
@@ -1374,8 +1374,8 @@
     <label style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:#a67c3a;display:block;margin-bottom:6px;">Story Title</label>
     <input id="storyNameInput" type="text" placeholder="e.g. The Singapore Affair" style="width:100%;border:1px solid #ddd4c8;border-radius:10px;padding:12px;font-family:var(--serif,serif);font-size:1rem;color:#18120e;background:white;box-sizing:border-box;" />
     <div style="display:flex;gap:10px;margin-top:24px;">
-      <button type="button" id="storyCancelBtn" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
-      <button type="button" id="storySaveBtn" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:var(--serif,serif);font-size:1.05rem;font-style:italic;">Save Story</button>
+      <button type="button" id="storyCancelBtn" ontouchstart="event.preventDefault();closeStoryModal()" onclick="closeStoryModal()" style="flex:1;padding:16px;background:none;border:1px solid #ddd4c8;border-radius:10px;font-family:'Jost',sans-serif;font-size:0.9rem;color:#8a7b72;">Cancel</button>
+      <button type="button" id="storySaveBtn" ontouchstart="event.preventDefault();saveStoryModal()" onclick="saveStoryModal()" style="flex:2;padding:16px;background:#b5606a;color:white;border:none;border-radius:10px;font-family:var(--serif,serif);font-size:1.05rem;font-style:italic;">Save Story</button>
     </div>
   </div>
 </div>
@@ -1387,7 +1387,7 @@
 
 <header class="app-header">
   <div class="header-col">
-    <button class="back-btn" type="button" id="backToStoriesBtn">← Stories</button>
+    <button class="back-btn" type="button" id="backToStoriesBtn" ontouchend="event.preventDefault();goHome()" onclick="goHome()">← Stories</button>
     <span id="activeStoryLabel" class="header-story-name">Story</span>
   </div>
   <div class="header-actions">
@@ -1469,6 +1469,12 @@
       <button class="btn-write" id="btnWrite" onclick="writeScene()" aria-label="Write scene">✦ Write Scene</button>
       <button class="btn-small" id="btnRewrite" style="display:none" onclick="rewriteScene()" title="Rewrite scene" aria-label="Rewrite scene">↺</button>
       <button class="btn-small" id="btnCopy" style="display:none" onclick="copyProse()" aria-label="Copy prose">Copy</button>
+      <select id="sceneImgStyle" style="display:none;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-family:'Jost',sans-serif;font-size:0.72rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;max-width:88px;" title="Scene image style">
+        <option value="natural">Natural</option>
+        <option value="studio">Studio</option>
+        <option value="cinematic">Cinematic</option>
+        <option value="boudoir">Boudoir</option>
+      </select>
       <button class="btn-small" id="btnSceneImg" style="display:none" onclick="generateSceneImage()" title="Generate scene image" aria-label="Generate scene image">🖼️</button>
     </div>
     <div id="proseOutput" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
@@ -1499,6 +1505,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char1')">✦ Wizard</button>
       </div>
       <textarea id="char1" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-char1-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('char1')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-char1-clear" onclick="clearBeatBrief('char1')" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1510,6 +1522,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('char2')">✦ Wizard</button>
       </div>
       <textarea id="char2" class="lore-panel-textarea" placeholder="Name, age, personality, backstory, desires, fears, speech style…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-char2-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('char2')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-char2-clear" onclick="clearBeatBrief('char2')" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1536,10 +1554,28 @@
       </div>
       <!-- Slot 1 -->
       <textarea id="charSupport" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…"></textarea>
+      <div id="beat-brief-charSupport-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-charSupport-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('charSupport')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-charSupport-clear" onclick="clearBeatBrief('charSupport')" style="display:none;">Clear</button>
+      </div>
       <!-- Slot 2 -->
       <textarea id="charSupport2" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…" style="display:none;"></textarea>
+      <div id="beat-brief-charSupport2-row" style="display:none;flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-charSupport2-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('charSupport2')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-charSupport2-clear" onclick="clearBeatBrief('charSupport2')" style="display:none;">Clear</button>
+      </div>
       <!-- Slot 3 -->
       <textarea id="charSupport3" class="lore-panel-textarea" placeholder="Character name, role, appearance, personality…" style="display:none;"></textarea>
+      <div id="beat-brief-charSupport3-row" style="display:none;flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Beat Brief</span>
+        <span id="beat-brief-charSupport3-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilBeatBrief('charSupport3')">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="beat-brief-charSupport3-clear" onclick="clearBeatBrief('charSupport3')" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1550,6 +1586,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('world')">✦ Wizard</button>
       </div>
       <textarea id="worldLore" class="lore-panel-textarea-tall" placeholder="Time period, location, atmosphere, rules of the world…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">World Brief</span>
+        <span id="world-brief-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilWorldBrief()">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="world-brief-clear" onclick="clearWorldBrief()" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1560,6 +1602,12 @@
         <button type="button" class="wizard-trigger-btn" onclick="openWizard('tone')">✦ Wizard</button>
       </div>
       <textarea id="toneStyle" class="lore-panel-textarea-tall" placeholder="Heat level, pacing, POV, themes, what to avoid…"></textarea>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+        <span style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold);white-space:nowrap;">Tone Brief</span>
+        <span id="tone-brief-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+        <button type="button" class="wizard-trigger-btn" onclick="distilToneBrief()">✦ Distil</button>
+        <button type="button" class="wizard-trigger-btn" id="tone-brief-clear" onclick="clearToneBrief()" style="display:none;">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -1587,6 +1635,7 @@
           <option value="amateur">Amateur — candid phone shot</option>
           <option value="selfie">Selfie — front camera, intimate</option>
           <option value="boudoir">Boudoir — soft, warm, sensual</option>
+          <option value="natural">Natural — observer perspective, no camera</option>
           <option value="cinematic">Cinematic — film still, dramatic</option>
         </select>
       </div>
@@ -1635,6 +1684,12 @@
               <option value="">— apply preset —</option>
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char2')">Save</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-char2-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('char2')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-char2-distil-clear" onclick="clearPortraitAppearance('char2')" style="display:none;">Clear</button>
           </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-char2-btn" onclick="generatePortrait('char2')">
@@ -1688,6 +1743,12 @@
               <option value="">— apply preset —</option>
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport')">Save</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-charSupport-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('charSupport')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-charSupport-distil-clear" onclick="clearPortraitAppearance('charSupport')" style="display:none;">Clear</button>
           </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-charSupport-btn" onclick="generatePortrait('charSupport')">
@@ -1743,6 +1804,12 @@
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport2')">Save</button>
           </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-charSupport2-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('charSupport2')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-charSupport2-distil-clear" onclick="clearPortraitAppearance('charSupport2')" style="display:none;">Clear</button>
+          </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-charSupport2-btn" onclick="generatePortrait('charSupport2')">
               <span id="portrait-charSupport2-label">✦ Generate Portrait</span>
@@ -1797,6 +1864,12 @@
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('charSupport3')">Save</button>
           </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-charSupport3-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('charSupport3')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-charSupport3-distil-clear" onclick="clearPortraitAppearance('charSupport3')" style="display:none;">Clear</button>
+          </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-charSupport3-btn" onclick="generatePortrait('charSupport3')">
               <span id="portrait-charSupport3-label">✦ Generate Portrait</span>
@@ -1849,6 +1922,12 @@
               <option value="">— apply preset —</option>
             </select>
             <button type="button" class="portrait-pose-change-btn" onclick="savePortraitPreset('char1')">Save</button>
+          </div>
+          <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;align-items:flex-start;">
+            <span class="portrait-pose-label" style="padding-top:2px;">Appearance</span>
+            <span id="portrait-char1-distil-status" style="flex:1;font-size:0.7rem;color:var(--muted);font-style:italic;line-height:1.4;"></span>
+            <button type="button" class="portrait-pose-change-btn" onclick="distilPortraitAppearance('char1')">✦ Distil</button>
+            <button type="button" class="portrait-pose-change-btn" id="portrait-char1-distil-clear" onclick="clearPortraitAppearance('char1')" style="display:none;">Clear</button>
           </div>
           <div class="portrait-actions">
             <button type="button" class="portrait-btn" id="portrait-char1-btn" onclick="generatePortrait('char1')">
@@ -2013,6 +2092,7 @@
         <option value="amateur">Amateur</option>
         <option value="selfie">Selfie</option>
         <option value="boudoir">Boudoir</option>
+        <option value="natural">Natural</option>
         <option value="cinematic">Cinematic</option>
       </select>
     </div>
@@ -2087,7 +2167,7 @@
     <div class="settings-group-title">About</div>
     <div class="setting-row">
       <div><div class="setting-label">Version</div><div class="setting-sub">Novella Studio</div></div>
-      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v154</span>
+      <span style="font-family:'Jost',sans-serif;font-size:0.85rem;color:var(--gold);">v168</span>
     </div>
   </div>
 
@@ -2176,8 +2256,8 @@
     <label class="field-label" style="margin-top:12px;">Chapter Summary (optional)</label>
     <textarea class="sheet-textarea" id="modalChapterSummary" placeholder="Brief overview of what this chapter covers…" rows="3"></textarea>
     <div class="sheet-actions">
-      <button class="btn-cancel" type="button" id="chCancelBtn">Cancel</button>
-      <button class="btn-save" type="button" id="chSaveBtn">Save Chapter</button>
+      <button class="btn-cancel" type="button" id="chCancelBtn" ontouchstart="event.preventDefault();closeChapterModal()" onclick="closeChapterModal()">Cancel</button>
+      <button class="btn-save" type="button" id="chSaveBtn" ontouchstart="event.preventDefault();saveChapter()" onclick="saveChapter()">Save Chapter</button>
     </div>
   </div>
 </div>
@@ -2214,8 +2294,8 @@
       </div>
     </div>
     <div class="sheet-actions">
-      <button class="btn-cancel" type="button" id="beatCancelBtn">Cancel</button>
-      <button class="btn-save" type="button" id="beatSaveBtn">Save Beat</button>
+      <button class="btn-cancel" type="button" id="beatCancelBtn" ontouchstart="event.preventDefault();closeBeatModal()" onclick="closeBeatModal()">Cancel</button>
+      <button class="btn-save" type="button" id="beatSaveBtn" ontouchstart="event.preventDefault();saveBeat()" onclick="saveBeat()">Save Beat</button>
     </div>
   </div>
 </div>
@@ -2374,6 +2454,7 @@
 // stories = [ { id, title, createdAt, data: { chapters, writtenScenes, lore, settings, storyState } } ]
 // ══════════════════════════════
 const STORIES_KEY = 'novella_studio_stories_v1';
+let stories = [];
 
 // ══════════════════════════════
 // INDEXEDDB — PORTRAIT STORAGE
@@ -2583,6 +2664,7 @@ function saveCurrentStory() {
     settings: {
       veniceImageModel: document.getElementById('veniceImageModel').value,
       portraitStyle: document.getElementById('portraitStyle').value,
+      sceneImgStyle: document.getElementById('sceneImgStyle').value,
       model: document.getElementById('modelSelect').value,
       length: document.getElementById('lengthTarget').value,
       heatLevel: document.getElementById('heatLevel').value,
@@ -2595,8 +2677,24 @@ function saveCurrentStory() {
       timeframe: document.getElementById('planTimeframe').value,
       summaries: planSummaries,
       stage: planCurrentStage,
-    }
-    // portraits are stored in IndexedDB — not in localStorage
+    },
+    portraitAppearance: {
+      char1: portraitState.char1.appearanceTags || '',
+      char2: portraitState.char2.appearanceTags || '',
+      charSupport: portraitState.charSupport.appearanceTags || '',
+      charSupport2: portraitState.charSupport2.appearanceTags || '',
+      charSupport3: portraitState.charSupport3.appearanceTags || '',
+    },
+    beatBriefs: {
+      char1: beatBriefs.char1 || '',
+      char2: beatBriefs.char2 || '',
+      charSupport: beatBriefs.charSupport || '',
+      charSupport2: beatBriefs.charSupport2 || '',
+      charSupport3: beatBriefs.charSupport3 || '',
+    },
+    worldBrief: worldBrief || '',
+    toneBrief: toneBrief || ''
+    // portrait images are stored in IndexedDB — not in localStorage
   };
   story.updatedAt = new Date().toISOString();
   saveStories();
@@ -2630,6 +2728,7 @@ function loadStoryIntoApp(story) {
   const s = d.settings || {};
   document.getElementById('veniceImageModel').value = s.veniceImageModel || 'hidream';
   document.getElementById('portraitStyle').value = s.portraitStyle || 'studio';
+  document.getElementById('sceneImgStyle').value = s.sceneImgStyle || 'natural';
   syncGalleryPortraitStyle();
   ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(renderPortraitPresetSelect);
   document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
@@ -2661,6 +2760,28 @@ function loadStoryIntoApp(story) {
     // Fallback — render empty carousels
     ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) { renderPortraitCarousel(id, []); renderPortraitPresetSelect(id); });
   });
+
+  // Restore distilled portrait appearance tags
+  const pa = d.portraitAppearance || {};
+  ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) {
+    portraitState[id].appearanceTags = pa[id] || '';
+    renderDistilStatus(id);
+  });
+
+  // Restore beat briefs
+  const bb = d.beatBriefs || {};
+  ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) {
+    beatBriefs[id] = bb[id] || '';
+    renderBeatBriefStatus(id);
+  });
+
+  // Restore world brief
+  worldBrief = d.worldBrief || '';
+  renderWorldBriefStatus();
+
+  // Restore tone brief
+  toneBrief = d.toneBrief || '';
+  renderToneBriefStatus();
 
   // Restore plan
   const plan = d.plan || {};
@@ -3203,35 +3324,23 @@ function generateSceneImage() {
   // Detect character
   var charId = detectSceneCharacter(beat, sceneText);
   var charLore = document.getElementById(charId).value.trim();
-  var physCtx = physicalContinuity ? physicalContinuity.slice(0, 300) : '';
+  var physCtx = physicalContinuity ? physicalContinuity.slice(0, 500) : '';
 
-  // Extract protagonist physical appearance (secondary character in scene)
-  var char1FullLore = document.getElementById('char1').value.trim();
-  var protagonistPhysical = '';
-  if (charId !== 'char1' && char1FullLore) {
-    // Extract only physical appearance lines — Name, Build, Face, Penis excluded for brevity
-    var physLines = [];
-    ['Name:', 'Build:', 'Face:', 'Ethnicity:'].forEach(function(field) {
-      var idx = char1FullLore.indexOf(field);
-      if (idx > -1) {
-        var end = char1FullLore.indexOf('\n', idx);
-        var line = end > -1 ? char1FullLore.slice(idx, end) : char1FullLore.slice(idx, idx + 80);
-        physLines.push(line.trim());
-      }
-    });
-    // Fallback — just grab first 3 lines if structured fields not found
-    if (!physLines.length) {
-      physLines = char1FullLore.split('\n').slice(0, 3).filter(Boolean);
-    }
-    protagonistPhysical = physLines.join(', ').slice(0, 200);
-  }
+  // Male presence: subject is not char1 and char1 lore exists
+  var maleInScene = charId !== 'char1' && !!document.getElementById('char1').value.trim();
 
-  // Extract locked physical tags from subject lore — same pattern as portrait generation
-  var subjectLockedTags = buildStructuredTags(charLore, charId);
+  // Use distilled appearance tags if available — same priority as portrait generation
+  var subjectLockedTags = (portraitState[charId] && portraitState[charId].appearanceTags)
+    ? portraitState[charId].appearanceTags
+    : buildStructuredTags(charLore, charId);
+
+  // World lore for setting context — prefer world brief, fall back to first 400 chars of full lore
+  var worldLoreRaw = document.getElementById('worldLore').value.trim();
+  var worldCtx = worldBrief || worldLoreRaw.slice(0, 400);
 
   dbg('[SceneImg] Generating for beat: ' + beat.title + ' | charId=' + charId);
   dbg('[SceneImg] Subject locked tags: ' + subjectLockedTags);
-  dbg('[SceneImg] Protagonist physical: ' + (protagonistPhysical || '(none — char1 is subject or no lore)'));
+  dbg('[SceneImg] Using distilled tags: ' + !!(portraitState[charId] && portraitState[charId].appearanceTags));
   dbg('[SceneImg] Subject lore (first 150): ' + charLore.slice(0, 150));
 
   // Show generating state on button
@@ -3268,7 +3377,8 @@ function generateSceneImage() {
     var requestBody = {
       model: model,
       prompt: imagePrompt,
-      negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text, logo',
+      negative_prompt: 'ugly, deformed, disfigured, blurry, low quality, bad anatomy, extra limbs, watermark, text, logo' +
+        (maleInScene ? ', man face, male face, male portrait, male body, two people' : ''),
       width: 832, height: 1216, steps: 30,
       hide_watermark: true, return_binary: false, safe_mode: false,
       seed: seedVal
@@ -3323,9 +3433,6 @@ function generateSceneImage() {
   if (apiKey) {
     var orModel = 'deepseek/deepseek-v3.2-20251201';
 
-    // Two-character scene: focus entirely on female, imply male through POV/hands/context
-    var maleInScene = !!protagonistPhysical;
-
     var orSystem = 'You are a Stable Diffusion prompt engineer for photorealistic adult scene generation specialising in lustify-sdxl. ' +
       'First write one line: "PEAK FRAME: [single sentence — the exact visual moment at this beat\'s climax: the specific action, pose, and key detail that makes this scene immediately recognisable]". ' +
       'This line will be stripped from the final output — it anchors your subsequent tags to one specific moment rather than averaging the whole scene.\n\n' +
@@ -3348,11 +3455,13 @@ function generateSceneImage() {
     var sentBreak = sceneTail.match(/[.!?]\s+[A-Z]/);
     var sceneClimax = (sentBreak && sentBreak.index < 200) ? sceneTail.slice(sentBreak.index + sentBreak[0].length - 1).trim() : sceneTail.trim();
 
-    var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n\n' +
+    var orPrompt = 'HEAT LEVEL: ' + explicitInstruction + '\n' +
+      'IMAGE STYLE: ' + getSceneImgStyleInstruction() + '\n\n' +
       (subjectLockedTags ? '== LOCKED CHARACTER APPEARANCE — include ALL of these tags EXACTLY, do not change or omit any ==\n' + subjectLockedTags + '\n\n' : '') +
-      '== FEMALE SUBJECT LORE (for context — locked tags above take priority for appearance) ==\n' + charLore.slice(0, 500) + '\n\n' +
+      '== FEMALE SUBJECT LORE (for context — locked tags above take priority for appearance) ==\n' + charLore.slice(0, 800) + '\n\n' +
       (maleInScene ? '== MALE PRESENCE (implied only — do NOT render his face or full body) ==\nMale is present in the scene. Imply through hands, POV, or partial torso only.\n\n' : '') +
-      (physCtx ? '== PHYSICAL STATE ==\n' + physCtx + '\n\n' : '') +
+      (physCtx ? '== PHYSICAL STATE (clothing and position at this moment) ==\n' + physCtx + '\n\n' : '') +
+      (worldCtx ? '== WORLD & SETTING CONTEXT (use for accurate location and atmosphere tags) ==\n' + worldCtx + '\n\n' : '') +
       '== BEAT INTENT — what this beat is about ==\nTitle: ' + beat.title + '\n' +
       (beat.desc ? 'Description: ' + beat.desc + '\n' : '') +
       (beat.loc ? 'Location: ' + beat.loc + '\n' : '') + '\n' +
@@ -3387,7 +3496,7 @@ function generateSceneImage() {
             .replace(/\s{2,}/g, ' ').trim();
           dbg('[SceneImg] Cleaned prompt (labels stripped, ' + cleanedPrompt.length + ' chars): ' + cleanedPrompt);
           // Deduplicate comma-separated tags before sending
-          var rawFinal = cleanedPrompt + ', photorealistic, sharp focus, detailed skin, 8k, hyperrealistic';
+          var rawFinal = cleanedPrompt + ', ' + getSceneImgQualityTags();
           var seen = {}, dedupedTags = [];
           rawFinal.split(',').forEach(function(t) {
             var tag = t.trim().toLowerCase();
@@ -3601,29 +3710,31 @@ function openRenameStory(id) {
 function closeStoryModal() { document.getElementById('storyModal').classList.remove('open'); }
 
 function saveStoryModal() {
-  const title = document.getElementById('storyNameInput').value.trim();
-  if (!title) { document.getElementById('storyNameInput').focus(); return; }
+  try {
+    const title = document.getElementById('storyNameInput').value.trim();
+    if (!title) { showToast('Enter a story title first'); return; }
 
-  if (editingStoryId) {
-    const story = stories.find(s => s.id === editingStoryId);
-    if (story) {
-      story.title = title;
-      if (activeStoryId === editingStoryId) {
-        document.getElementById('activeStoryLabel').textContent = title;
+    if (editingStoryId) {
+      const story = stories.find(s => s.id === editingStoryId);
+      if (story) {
+        story.title = title;
+        if (activeStoryId === editingStoryId) {
+          document.getElementById('activeStoryLabel').textContent = title;
+        }
       }
+      saveStories();
+      closeStoryModal();
+      renderStoriesList();
+    } else {
+      const newStory = { id: genId(), title, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), data: {} };
+      stories.push(newStory);
+      saveStories();
+      closeStoryModal();
+      openStory(newStory.id);
     }
-  } else {
-    const newStory = { id: genId(), title, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), data: {} };
-    stories.push(newStory);
-    saveStories();
-    closeStoryModal();
-    openStory(newStory.id);
-    return;
+  } catch(e) {
+    showToast('Error: ' + (e && e.message ? e.message.slice(0,80) : String(e)));
   }
-
-  saveStories();
-  closeStoryModal();
-  renderStoriesList();
 }
 
 function deleteStory(id) {
@@ -3639,6 +3750,9 @@ function deleteStory(id) {
 // PLAN — RUNTIME STATE
 // ══════════════════════════════
 let planSummaries = [];   // [{title, summary, beatCount}]
+var beatBriefs = { char1: '', char2: '', charSupport: '', charSupport2: '', charSupport3: '' };
+var worldBrief = '';
+var toneBrief = '';
 let planCurrentStage = 1;
 
 // ── STAGE NAVIGATION ──
@@ -3909,7 +4023,7 @@ function draftSynopsisFromChars() {
   var char1 = document.getElementById('char1').value.trim();
   var char2 = document.getElementById('char2').value.trim();
   var worldLore = document.getElementById('worldLore').value.trim();
-  var toneStyle = document.getElementById('toneStyle').value.trim();
+  var toneStyle = getToneStyle();
 
   if (!char1 && !char2) { showToast('Add character details in Lore first'); return; }
 
@@ -3967,7 +4081,7 @@ function refineSynopsis() {
   var char1 = document.getElementById('char1').value.trim();
   var char2 = document.getElementById('char2').value.trim();
   var activeSupportSlots = getActiveSupportLore();
-  var toneStyle = document.getElementById('toneStyle').value.trim();
+  var toneStyle = getToneStyle();
 
   var systemMsg = 'You are a story development editor for adult romance and erotica fiction. ' +
     'Your job is to take a rough story plot and expand it into a rich, detailed narrative synopsis in flowing prose. ' +
@@ -4031,11 +4145,11 @@ function generateChapterSummaries() {
 
   // Build full lore + persona context
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const toneStyle = getToneStyle();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -4174,7 +4288,7 @@ function refineChapterSummary(i) {
   btn.textContent = 'Refining…';
 
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
+  const toneStyle = getToneStyle();
   const systemMsg = (persona || 'You are a story editor for adult romance fiction.')
     + (toneStyle ? '\n\nTONE & STYLE to maintain:\n' + toneStyle : '')
     + '\n\nWhen refining, preserve the user\'s intent and edits. Keep the heat level and any explicit content — do not sanitise.';
@@ -4272,11 +4386,11 @@ function generateChapterBeats(chIdx) {
   const beatCount = ch.beatCount || 4;
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const toneStyle = getToneStyle();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -4393,11 +4507,11 @@ function doGenerateBeatsSequential(apiKey, model, append) {
 
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const toneStyle = getToneStyle();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -4546,11 +4660,11 @@ function retryChapterBeats(chIdx) {
 
   const synopsis = document.getElementById('planSynopsis').value.trim();
   const persona = document.getElementById('systemPrefix').value.trim();
-  const toneStyle = document.getElementById('toneStyle').value.trim();
-  const char1 = document.getElementById('char1').value.trim();
-  const char2 = document.getElementById('char2').value.trim();
-  const activeSupportSlots = getActiveSupportLore();
-  const worldLore = document.getElementById('worldLore').value.trim();
+  const toneStyle = getToneStyle();
+  const char1 = getBeatLore('char1');
+  const char2 = getBeatLore('char2');
+  const activeSupportSlots = getActiveSupportBeatLore();
+  const worldLore = getWorldLore();
 
   const loreCtx = [
     char1 ? 'PROTAGONIST:\n' + char1 : '',
@@ -4769,11 +4883,11 @@ const PORTRAIT_POSES_FLAT = Object.values(PORTRAIT_POSE_GROUPS).flat();
 
 // Per-character state
 var portraitState = {
-  char1: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', erect: false, holding: false },
-  char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
-  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
-  charSupport2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false },
-  charSupport3: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false }
+  char1: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', erect: false, holding: false, appearanceTags: '' },
+  char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
+  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
+  charSupport2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
+  charSupport3: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' }
 };
 
 function renderPortraitCarousel(charId, images) {
@@ -5103,10 +5217,31 @@ function getPortraitQualityTags() {
   if (style === 'boudoir') {
     return 'boudoir photography, soft diffused lighting, warm tones, silk sheets, intimate bedroom setting, shallow depth of field, sensual mood, candle or lamp light, romantic atmosphere, high-end boudoir shoot';
   }
+  if (style === 'natural') {
+    return 'natural candid photography, eye level perspective, natural light, ambient lighting, sharp focus, depth of field, bokeh background, realistic everyday environment, blurred background, no studio backdrop, no plain background, unposed authentic moment, no phone, no camera, photorealistic, 8k';
+  }
   if (style === 'cinematic') {
     return 'cinematic photography, film still, dramatic lighting, shallow depth of field, subtle colour grade, movie quality, anamorphic lens, muted tones, professional cinematography, 35mm film aesthetic';
   }
   return 'photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic';
+}
+
+function getSceneImgQualityTags() {
+  var styleEl = document.getElementById('sceneImgStyle');
+  var style = styleEl ? styleEl.value : 'natural';
+  if (style === 'natural') return 'natural candid photography, eye level perspective, natural light, ambient lighting, sharp focus, realistic depth of field, unposed authentic moment, environmental portrait, no phone, no camera, photorealistic, 8k';
+  if (style === 'cinematic') return 'cinematic photography, film still, dramatic lighting, shallow depth of field, subtle colour grade, anamorphic lens, muted tones, professional cinematography, photorealistic';
+  if (style === 'boudoir') return 'boudoir photography, soft diffused lighting, warm tones, intimate setting, shallow depth of field, sensual mood, candle or lamp light, romantic atmosphere, photorealistic, 8k';
+  return 'photorealistic, sharp focus, soft studio lighting, detailed skin, 8k, hyperrealistic';
+}
+
+function getSceneImgStyleInstruction() {
+  var styleEl = document.getElementById('sceneImgStyle');
+  var style = styleEl ? styleEl.value : 'natural';
+  if (style === 'natural') return 'Style: natural candid photography — eye level observer perspective, natural or ambient light, unposed authentic moment, no phone or camera visible in frame, environmental setting.';
+  if (style === 'cinematic') return 'Style: cinematic film still — dramatic directional lighting, subtle colour grade, shallow depth of field, muted palette, movie aesthetic.';
+  if (style === 'boudoir') return 'Style: boudoir photography — soft warm lighting, intimate setting, sensual and romantic mood, shallow depth of field.';
+  return 'Style: professional studio — sharp focus, polished lighting, clean background.';
 }
 
 function buildFallbackPrompt(lore, charId, pose) {
@@ -5194,36 +5329,375 @@ function buildStructuredTags(loreTruncated, charId) {
   return tags.filter(Boolean).join(', ');
 }
 
-function buildPortraitPromptFromOR(loreTruncated, charId) {
+function renderDistilStatus(charId) {
+  var tags = portraitState[charId].appearanceTags || '';
+  var statusEl = document.getElementById('portrait-' + charId + '-distil-status');
+  var clearBtn = document.getElementById('portrait-' + charId + '-distil-clear');
+  if (!statusEl) return;
+  if (tags) {
+    statusEl.textContent = '✓ ' + tags.slice(0, 60) + (tags.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editPortraitAppearance(charId); };
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — uses lore excerpt';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function editPortraitAppearance(charId) {
+  var tags = portraitState[charId].appearanceTags || '';
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = tags;
+  openTextExpand(fakeEl, 'Appearance Tags', function(val) {
+    portraitState[charId].appearanceTags = val.trim();
+    renderDistilStatus(charId);
+    saveCurrentStory();
+  });
+}
+
+// ══════════════════════════════
+// BEAT BRIEF — distilled behavioural lore for beat generation
+// ══════════════════════════════
+
+function renderBeatBriefStatus(charId) {
+  var brief = beatBriefs[charId] || '';
+  var statusEl = document.getElementById('beat-brief-' + charId + '-status');
+  var clearBtn = document.getElementById('beat-brief-' + charId + '-clear');
+  if (!statusEl) return;
+  if (brief) {
+    statusEl.textContent = '✓ ' + brief.slice(0, 60) + (brief.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editBeatBrief(charId); };
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — full lore used';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function distilBeatBrief(charId) {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById(charId).value.trim();
+  if (!loreText) { showToast('Add character lore first'); return; }
+
+  var statusEl = document.getElementById('beat-brief-' + charId + '-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var prompt = 'Extract a beat generation brief from this character lore. This brief will be used by an AI story planner to generate story beats — it needs to know how this character BEHAVES and REACTS, not what they look like.\n\n' +
+    'Write a plain prose paragraph of 100-150 words covering ONLY:\n' +
+    '1. Name, age, role in the story\n' +
+    '2. Core personality — 2-3 traits, how they come across vs how they actually are\n' +
+    '3. Emotional pattern — how they handle vulnerability, tension, intimacy\n' +
+    '4. What they want from this relationship and what holds them back\n' +
+    '5. How they behave in charged or intimate situations (do they take charge, hold back, deflect, push)\n' +
+    '6. Their core vulnerability or private fear\n\n' +
+    'Do NOT include: physical appearance, anatomy, speech pattern detail, full backstory, kink lists, or narrative meta-commentary.\n\n' +
+    'Character lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 250, label: 'beatBrief',
+      onDone: function(result) {
+        beatBriefs[charId] = result.trim();
+        renderBeatBriefStatus(charId);
+        saveCurrentStory();
+        showToast('Beat brief distilled ✓');
+      }
+    }
+  );
+}
+
+function clearBeatBrief(charId) {
+  beatBriefs[charId] = '';
+  renderBeatBriefStatus(charId);
+  saveCurrentStory();
+  showToast('Beat brief cleared — full lore will be used');
+}
+
+function editBeatBrief(charId) {
+  var brief = beatBriefs[charId] || '';
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = brief;
+  openTextExpand(fakeEl, 'Beat Brief', function(val) {
+    beatBriefs[charId] = val.trim();
+    renderBeatBriefStatus(charId);
+    saveCurrentStory();
+  });
+}
+
+function getBeatLore(charId) {
+  return beatBriefs[charId] || document.getElementById(charId).value.trim();
+}
+
+function getActiveSupportBeatLore() {
+  var result = [];
+  var slots = ['charSupport', 'charSupport2', 'charSupport3'];
+  var labels = ['Supporting Cast', 'Supporting Cast 2', 'Supporting Cast 3'];
+  slots.forEach(function(id, i) {
+    var active = window._supportSlotActive ? window._supportSlotActive[id] !== false : true;
+    if (!active) return;
+    var lore = getBeatLore(id);
+    if (lore) result.push({ label: labels[i], lore: lore });
+  });
+  return result;
+}
+
+function getWorldLore() {
+  return worldBrief || document.getElementById('worldLore').value.trim();
+}
+
+// ══════════════════════════════
+// WORLD BRIEF — distilled setting/rules lore for beat generation
+// ══════════════════════════════
+
+function renderWorldBriefStatus() {
+  var statusEl = document.getElementById('world-brief-status');
+  var clearBtn = document.getElementById('world-brief-clear');
+  if (!statusEl) return;
+  if (worldBrief) {
+    statusEl.textContent = '✓ ' + worldBrief.slice(0, 60) + (worldBrief.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editWorldBrief(); };
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — full lore used';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function distilWorldBrief() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById('worldLore').value.trim();
+  if (!loreText) { showToast('Add world lore first'); return; }
+
+  var statusEl = document.getElementById('world-brief-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var prompt = 'Extract a world brief from this world/setting lore. This brief will be used by an AI story planner to generate story beats — it needs the locations, social rules, and atmosphere that directly affect character behaviour.\n\n' +
+    'Write a plain prose paragraph of 150-200 words covering ONLY:\n' +
+    '1. Setting name, type, and time period\n' +
+    '2. Key named locations characters will use (rooms, outdoor areas, facilities)\n' +
+    '3. Social rules and norms that affect how characters behave — what is allowed, expected, or taboo\n' +
+    '4. Any customs, signals, or rituals characters would follow\n' +
+    '5. The emotional atmosphere — what the setting enables or encourages\n\n' +
+    'Do NOT include: sensory prose, physical descriptions of decor, architectural detail, or anything that does not directly constrain or enable character behaviour.\n\n' +
+    'World lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 350, label: 'worldBrief',
+      onDone: function(result) {
+        worldBrief = result.trim();
+        renderWorldBriefStatus();
+        saveCurrentStory();
+        showToast('World brief distilled ✓');
+      }
+    }
+  );
+}
+
+function clearWorldBrief() {
+  worldBrief = '';
+  renderWorldBriefStatus();
+  saveCurrentStory();
+  showToast('World brief cleared — full lore will be used');
+}
+
+function editWorldBrief() {
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = worldBrief;
+  openTextExpand(fakeEl, 'World Brief', function(val) {
+    worldBrief = val.trim();
+    renderWorldBriefStatus();
+    saveCurrentStory();
+  });
+}
+
+// ══════════════════════════════
+// TONE BRIEF — distilled beat-planning lore for beat/chapter generation
+// ══════════════════════════════
+
+function getToneStyle() {
+  return toneBrief || document.getElementById('toneStyle').value.trim();
+}
+
+function renderToneBriefStatus() {
+  var statusEl = document.getElementById('tone-brief-status');
+  var clearBtn = document.getElementById('tone-brief-clear');
+  if (!statusEl) return;
+  if (toneBrief) {
+    statusEl.textContent = '✓ ' + toneBrief.slice(0, 60) + (toneBrief.length > 60 ? '…' : '');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.style.cursor = 'pointer';
+    statusEl.style.textDecoration = 'underline dotted';
+    statusEl.onclick = function() { editToneBrief(); };
+    if (clearBtn) clearBtn.style.display = '';
+  } else {
+    statusEl.textContent = 'Not distilled — full lore used';
+    statusEl.style.color = 'var(--muted)';
+    statusEl.style.cursor = '';
+    statusEl.style.textDecoration = '';
+    statusEl.onclick = null;
+    if (clearBtn) clearBtn.style.display = 'none';
+  }
+}
+
+function distilToneBrief() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById('toneStyle').value.trim();
+  if (!loreText) { showToast('Add tone lore first'); return; }
+
+  var statusEl = document.getElementById('tone-brief-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var prompt = 'Extract a beat-planning brief from this tone and style lore. This brief will be used by an AI story planner to generate story beat titles and summaries — it needs directives about content and emotional requirements, NOT prose craft instructions.\n\n' +
+    'Write a plain prose paragraph of 100-120 words covering ONLY:\n' +
+    '1. Explicit content directive — heat level, what must be included, nothing faded to black\n' +
+    '2. Emotional palette for sexual/intimate beats — what emotional layers must be present (shame, gratitude, fear, longing, etc.)\n' +
+    '3. Protagonist\'s dynamic in intimate situations — submissive/dominant lean, fears, what releases them\n' +
+    '4. Partner\'s dynamic — who leads, how they signal, how they interact\n' +
+    '5. Any structural or content rules for beats (e.g. intimacy always carries emotional weight)\n\n' +
+    'Do NOT include: POV mechanics, prose style, sentence rhythm, voice mode examples, dialogue tone, or any instruction about HOW to write — only WHAT should happen.\n\n' +
+    'Tone lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 250, label: 'toneBrief',
+      onDone: function(result) {
+        toneBrief = result.trim();
+        renderToneBriefStatus();
+        saveCurrentStory();
+        showToast('Tone brief distilled ✓');
+      }
+    }
+  );
+}
+
+function clearToneBrief() {
+  toneBrief = '';
+  renderToneBriefStatus();
+  saveCurrentStory();
+  showToast('Tone brief cleared — full lore will be used');
+}
+
+function editToneBrief() {
+  var fakeEl = document.createElement('textarea');
+  fakeEl.value = toneBrief;
+  openTextExpand(fakeEl, 'Tone Brief', function(val) {
+    toneBrief = val.trim();
+    renderToneBriefStatus();
+    saveCurrentStory();
+  });
+}
+
+function distilPortraitAppearance(charId) {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var loreText = document.getElementById(charId).value.trim();
+  if (!loreText) { showToast('Add character lore first'); return; }
+
+  var statusEl = document.getElementById('portrait-' + charId + '-distil-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var isFemale = charId !== 'char1';
+  var genderNote = isFemale
+    ? 'FEMALE character. Include breast size, body shape, all female physical attributes.'
+    : 'MALE character. Male tags only. No female anatomy.';
+
+  var prompt = 'Extract Stable Diffusion image generation tags from this character lore.\n\n' +
+    'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
+    genderNote + '\n\n' +
+    'Include ONLY visual physical attributes: age (e.g. "42 year old woman"), ethnicity/skin tone, body shape and build, face shape and features, eye colour, hair colour and length and style, distinctive physical details, skin texture, body proportions.\n\n' +
+    'Do NOT include: pose, action, clothing, personality, backstory, psychology, kinks, speech patterns, relationships, or narrative role.\n\n' +
+    'Maximum 80 words of tags.\n\nCharacter lore:\n' + loreText;
+
+  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 200, label: 'distilAppearance',
+      onDone: function(result) {
+        var tags = result.trim().replace(/^[\s\n,]+|[\s\n,]+$/g, '');
+        portraitState[charId].appearanceTags = tags;
+        renderDistilStatus(charId);
+        saveCurrentStory();
+        showToast('Appearance distilled ✓');
+      }
+    }
+  );
+}
+
+function clearPortraitAppearance(charId) {
+  portraitState[charId].appearanceTags = '';
+  renderDistilStatus(charId);
+  saveCurrentStory();
+  showToast('Appearance cleared — will use lore excerpt');
+}
+
+function buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) {
   // Pose/action tags are injected AFTER this LLM step to bypass content filters.
   // This function generates appearance-only tags — body, face, clothing, style.
   var clothingInstruction = buildClothingPromptTerms(charId);
   var isFemale = charId !== 'char1';
 
+  var poseContext = selectedPose ? 'The image will be posed as: ' + selectedPose + '. Do NOT generate setting, background, environment, or location tags — the pose already defines the location.' : '';
+
   var genderInstruction = isFemale
-    ? 'IMPORTANT: FEMALE character. Output appearance tags only — body, face, hair, clothing. Do NOT include pose, position, action, or composition tags.'
-    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms. Output appearance tags only — do NOT include pose or action tags.';
+    ? 'IMPORTANT: FEMALE character. Output appearance tags only — body, face, hair, clothing, skin. Do NOT include: pose, position, action, composition, setting, background, environment, location, or scene tags. Appearance only.'
+    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms. Output appearance tags only — do NOT include pose, action, setting, background, environment, or location tags.';
 
   var styleEl = document.getElementById('portraitStyle');
   var portraitStyleVal = styleEl ? styleEl.value : 'studio';
   var styleInstruction = portraitStyleVal === 'amateur'
-    ? 'Style: candid phone photo, natural light, unposed, slightly grainy, real setting.'
+    ? 'Style context: candid phone photo aesthetic — natural uneven light, slightly grainy texture.'
     : portraitStyleVal === 'selfie'
-    ? 'Style: personal selfie — front camera, bedroom or bathroom mirror, close and intimate framing, casual indoor lighting, slightly wide-angle lens distortion.'
+    ? 'Style context: personal selfie aesthetic — close intimate framing, casual indoor light, slight wide-angle distortion.'
     : portraitStyleVal === 'boudoir'
-    ? 'Style: boudoir photography — soft warm lighting, intimate bedroom setting, silk or linen textures, sensual and romantic mood, shallow depth of field.'
+    ? 'Style context: boudoir photography aesthetic — soft warm light, sensual mood, silk or linen texture context.'
+    : portraitStyleVal === 'natural'
+    ? 'Style context: natural candid photography aesthetic — natural ambient light quality, no dramatic studio lighting or heavy makeup styling.'
     : portraitStyleVal === 'cinematic'
-    ? 'Style: cinematic film still — dramatic directional lighting, subtle colour grade, shallow depth of field, muted palette, movie aesthetic.'
-    : 'Style: professional studio portrait, sharp focus, polished lighting.';
+    ? 'Style context: cinematic photography aesthetic — dramatic directional light, subtle colour grade, muted palette.'
+    : 'Style context: studio portrait aesthetic — sharp focus, polished even lighting.';
 
-  // Extract structured physical tags directly from lore — these override model inference
+  // If distilled appearance tags exist, use them as locked ground truth — skip regex extraction and lore truncation
+  var storedTags = portraitState[charId].appearanceTags || '';
+  if (storedTags) {
+    return 'Generate Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags.\n\n' +
+      genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
+      'LOCKED CHARACTER APPEARANCE — use these EXACTLY, do not alter or omit:\n' + storedTags + '\n\n' +
+      'Required clothing/state: ' + clothingInstruction + '\n\n' +
+      'Output only: the locked appearance tags + the clothing/state. No setting, background, environment, location, or style context tags.';
+  }
+
+  // Fallback: extract structured physical tags directly from lore via regex
   var structuredTags = buildStructuredTags(loreTruncated, charId);
 
   return 'Convert this character description into Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags describing appearance.\n\n' +
-    genderInstruction + '\n' + styleInstruction + '\n\n' +
+    genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
     'LOCKED PHYSICAL TAGS — include these EXACTLY as written, do not modify:\n' + structuredTags + '\n\n' +
     'Required clothing/state: ' + clothingInstruction + '\n\n' +
-    'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
+    'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Appearance only — no setting, background, or location tags. Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
 }
 
 // ══════════════════════════════
@@ -5516,18 +5990,18 @@ function poseToSDTerm(pose) {
     'Standing in doorway': 'standing in doorway, natural light from behind, full body',
     'Leaning against wall': 'leaning against wall, relaxed pose, three-quarter body',
     'Looking out a window': 'standing at window, looking out, soft window light on face',
-    'In bed — morning light': 'lying in bed, morning light, soft sheets, looking at camera',
-    'Lying on bed': 'lying on bed, looking at camera, reclined',
-    'From behind on bed': 'full body, lying face down on bed, rear view, looking back over shoulder, intimate',
-    'From behind on armchair': 'full body, kneeling on armchair facing away, rear view, looking back over shoulder, intimate',
-    'Reclining on sofa': 'reclining on sofa, relaxed, looking at camera',
+    'In bed — morning light': 'lying in bed, morning light, soft sheets, looking at camera, indoor bedroom, interior room',
+    'Lying on bed': 'lying on back in bed, facing camera, full body, soft sheets, bedroom, indoor, relaxed expression',
+    'From behind on bed': 'full body, lying face down on bed, rear view, looking back over shoulder, intimate, indoor bedroom',
+    'From behind on armchair': 'full body, kneeling on armchair facing away, rear view, looking back over shoulder, intimate, indoor',
+    'Reclining on sofa': 'reclining on sofa, relaxed, looking at camera, indoor living room',
     'Seated': 'seated, upper body visible, natural pose',
     'In a hotel room': 'in hotel room, standing or seated, interior light',
     'Wrapped in a towel': 'wrapped in towel, just out of shower, bathroom or bedroom',
     'In lingerie — standing': 'standing in lingerie, full body, confident pose',
     'In lingerie — seated on bed': 'seated on bed in lingerie, half body, intimate',
     'Getting dressed — caught mid': 'caught mid-dress, candid, turning toward camera',
-    'In the shower — suggested': 'in shower, steamy glass, half obscured, suggested nudity',
+    'In the shower — suggested': 'standing in shower, indoor bathroom, steamy shower enclosure, frosted glass, water droplets, wet skin, suggested nudity, bathroom interior',
     'Candlelit — low light': 'candlelit portrait, warm low light, intimate atmosphere',
     'Reading — distracted': 'seated reading, looking up distracted, natural light',
     'At a bar — holding drink': 'standing at bar, holding drink, half body',
@@ -5554,7 +6028,7 @@ function poseToSDTerm(pose) {
     'Nude — over the knee': 'nude, draped over knee face down, rear view, intimate, submissive',
     'Against the wall — full body': 'full body, pressed against wall, facing camera, nude or lingerie, arms above head or at sides',
     'On knees — looking up': 'nude, kneeling on floor, looking up at camera, submissive, breasts visible, full body',
-    'On knees — mouth open upward': 'nude, kneeling, mouth open, looking up, submissive, close to camera, explicit oral ready',
+    'On knees — mouth open upward': 'nude woman, kneeling on floor, face tilted up toward camera, mouth open wide tongue out, looking directly up at camera, POV from above looking down, breasts visible from above, submissive, explicit oral ready, close POV shot from above',
     'Straddling — facing camera': 'nude or lingerie, straddling, facing camera, breasts visible, full body, riding position',
     'Straddling — facing away': 'nude, straddling, facing away from camera, rear view, looking back over shoulder',
     'Hands and knees — rear view': 'nude, on all fours, rear view, full body, explicit, doggy style position',
@@ -5597,33 +6071,33 @@ function poseToSDTerm(pose) {
     'Dishevelled — makeup smeared': 'close up portrait, mascara and makeup running and smeared, post-sex, teary eyes, explicit aftermath',
     'Swallowing — throat visible': 'close up of throat and lower face, swallowing, throat moving, chin tilted up, explicit post-oral',
     'Open mouth — tongue out waiting': 'close up face, mouth open wide, tongue extended flat, looking up at camera, waiting expression, explicit oral ready',
-    'Oral giving — from below POV': 'nude woman, performing fellatio, POV shot from above, looking up at camera, mouth on penis, explicit oral sex, from below angle',
-    'Oral giving — side view': 'nude woman, side profile, performing oral sex, mouth on penis, hand on shaft, side view, explicit',
-    'Oral receiving — on back': 'nude woman, lying on back, legs apart, receiving oral sex, head back in pleasure, breasts visible, facing camera, explicit',
-    'Deep throat — from above POV': 'nude woman, deep throating, POV from above, head tilted back, penis deep in throat, saliva, extreme oral, looking up',
-    'Deep throat — side view': 'nude woman, side view, deep throat oral sex, head pushed down, throat bulging, explicit, saliva',
-    '69 — on top': 'nude woman, 69 position on top, performing oral sex while receiving, side or rear angle, full body explicit',
-    '69 — on bottom': 'nude woman, 69 position on bottom, receiving oral while giving, side view, legs spread, explicit',
-    'Missionary — legs raised': 'nude woman, lying on back, legs raised high, missionary sex position, penetration, breasts visible, facing camera, explicit',
-    'Missionary — legs wrapped': 'nude woman, legs wrapped around partner, missionary position, penetration, breasts visible, arched back, explicit',
-    'Missionary — pushed down': 'nude woman, pinned down, missionary position, wrists held, penetration, breasts forward, explicit',
-    'Doggy — rear view': 'nude woman, doggy style position, rear view, penetration, hands gripping hips, explicit, full body',
-    'Doggy — side view': 'nude woman, doggy style, side profile view, penetration, breasts hanging, explicit, full body',
-    'Doggy — looking back at camera': 'nude woman, doggy style position, looking back over shoulder at camera, rear three-quarter view, penetration, explicit',
-    'Standing from behind': 'nude woman, standing bent slightly, taken from behind standing, rear view, looking back, penetration, explicit',
-    'Cowgirl — facing camera': 'nude woman, cowgirl riding position, facing camera, breasts bouncing, riding penis, full body, explicit, straddling',
-    'Cowgirl — facing away': 'nude woman, reverse cowgirl, facing away from camera, riding, rear view, explicit, full body',
-    'Cowgirl — leaning forward': 'nude woman, cowgirl leaning forward, hands on chest, riding, breasts visible from side, explicit',
-    'Against wall — lifted': 'nude woman, lifted against wall, legs wrapped around partner, penetration, face visible, explicit, full body',
-    'Edge of bed — lying back': 'nude woman, lying at edge of bed, legs hanging or raised, penetration from standing partner, explicit, breasts visible',
-    'Side lying — spooning': 'nude woman, side lying spooning position, taken from behind, side view, penetration, breasts visible, intimate explicit',
-    'Bent over — standing penetration': 'nude woman, bent forward at waist, penetrated from behind standing, rear view, looking back, explicit',
-    'Anal — doggy rear view': 'nude woman, doggy style, anal sex, rear view, explicit anal penetration, full body',
-    'Anal — doggy looking back': 'nude woman, doggy style anal, looking back at camera over shoulder, rear three-quarter view, explicit anal',
-    'Anal — riding facing away': 'nude woman, reverse cowgirl anal position, facing away, riding explicit anal, rear view',
-    'Anal — bent over edge': 'nude woman, bent over bed or desk edge, anal penetration from behind, rear view, looking back, explicit',
-    'Pulling out — climax moment': 'nude woman, on knees or lying, climax pullout moment, cum shot, explicit finish, satisfied expression',
-    'Internal — arched at climax': 'nude woman, arched back, internal climax, legs wrapped, full penetration, eyes closed in pleasure, explicit',
+    'Oral giving — from below POV': 'nude woman, kneeling, performing fellatio, POV from above looking down at her, face tilted up making eye contact with camera, mouth on penis, looking up at camera while sucking, explicit oral sex, breasts visible from above, man looking down POV',
+    'Oral giving — side view': 'nude woman, side profile, performing oral sex, mouth on penis, hand on shaft, side view, explicit, male hands only no male face no male body',
+    'Oral receiving — on back': 'nude woman, lying on back, legs apart, receiving oral sex, male face between legs, head back in pleasure, breasts visible, facing camera, explicit, male presence implied',
+    'Deep throat — from above POV': 'nude woman, deep throating, POV from above, head tilted back, penis in throat, saliva, explicit oral, looking up at camera, male presence implied',
+    'Deep throat — side view': 'nude woman, side view, deep throat oral sex, head pushed down by male hand, throat, explicit, saliva, male hands only no male face no male body',
+    '69 — on top': 'nude woman, 69 position on top, performing oral sex while receiving, side view, full body, explicit, male presence implied below',
+    '69 — on bottom': 'nude woman, 69 position on bottom, receiving oral while giving, side view, legs spread, explicit, male presence implied above',
+    'Missionary — legs raised': 'nude woman, lying on back, legs raised high and held apart, missionary sex position, male hands gripping legs, breasts visible, facing camera, explicit, male hands only no male face',
+    'Missionary — legs wrapped': 'nude woman, legs wrapped around partner, missionary position, breasts visible, arched back, ecstatic expression, explicit, male torso partial only no male face',
+    'Missionary — pushed down': 'nude woman, pinned down, missionary position, wrists held by male hands, breasts forward, explicit, male hands only no male face no male body',
+    'Doggy — rear view': 'nude woman, doggy style position, rear view, male hands gripping hips, explicit, full body, no male face no male body',
+    'Doggy — side view': 'nude woman, doggy style, side profile view, breasts hanging, explicit, full body, male torso partial from behind only no male face',
+    'Doggy — looking back at camera': 'nude woman, doggy style position, looking back over shoulder at camera, rear three-quarter view, explicit, male hands on hips only no male face',
+    'Standing from behind': 'nude woman, standing bent slightly, taken from behind, rear view, looking back, explicit, male hands on waist only no male face no male body',
+    'Cowgirl — facing camera': 'nude woman, cowgirl riding position, on top straddling, facing camera, breasts bouncing, full body, explicit, male legs visible below only no male face no male torso',
+    'Cowgirl — facing away': 'nude woman, reverse cowgirl, on top facing away from camera, riding, rear view, explicit, full body, male legs below only no male face',
+    'Cowgirl — leaning forward': 'nude woman, cowgirl position, leaning forward toward camera, POV shot from below, breasts hanging forward dangling toward viewer, face looking down at camera, riding on top, explicit, intimate POV',
+    'Against wall — lifted': 'nude woman, lifted against wall, legs wrapped around unseen partner, face visible, explicit, full body, male hands on thighs only no male face no male body',
+    'Edge of bed — lying back': 'nude woman, lying at edge of bed, legs raised and hanging, penetration from standing partner, explicit, breasts visible, male legs only no male face no male torso',
+    'Side lying — spooning': 'nude woman, side lying spooning position, taken from behind, side view, breasts visible, intimate explicit, male arm around her only no male face',
+    'Bent over — standing penetration': 'nude woman, bent forward at waist, from behind standing, rear view, looking back, explicit, male hands on hips only no male face no male body',
+    'Anal — doggy rear view': 'nude woman, doggy style, anal sex, rear view, explicit anal, full body, male hands gripping hips only no male face no male body',
+    'Anal — doggy looking back': 'nude woman, doggy style anal, looking back at camera over shoulder, rear three-quarter view, explicit anal, male hands on hips only no male face',
+    'Anal — riding facing away': 'nude woman, reverse cowgirl anal position, facing away, riding, rear view, explicit anal, male legs below only no male face no male torso',
+    'Anal — bent over edge': 'nude woman, bent over bed edge, anal from behind, rear view, looking back, explicit, male hands on waist only no male face no male body',
+    'Pulling out — climax moment': 'nude woman, on knees, climax pullout moment, cum shot, explicit finish, satisfied expression, looking up, male presence implied above',
+    'Internal — arched at climax': 'nude woman, arched back, climax, legs wrapped around unseen partner, eyes closed in pleasure, explicit, male hands on waist only no male face',
   };
   return map[pose] || 'half body shot, from waist up';
 }
@@ -5772,33 +6246,46 @@ function upscalePortrait(charId, b64, pose, veniceKey) {
 
 function doUpscaleFetch(charId, b64, mimeType, veniceKey) {
   var dataUri = 'data:' + mimeType + ';base64,' + b64;
-  dbg('[Upscale] sending to Venice: mimeType=' + mimeType + ' b64len=' + b64.length);
+  var requestBody = { image: dataUri, scale: 2 };
+  dbg('[Upscale] sending to Venice: mimeType=' + mimeType + ' b64len=' + b64.length + ' dataUriLen=' + dataUri.length);
+  dbg('[Upscale] request body (first 80 chars of image field): ' + dataUri.slice(0, 80));
   fetch('https://api.venice.ai/api/v1/image/upscale', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
-    body: JSON.stringify({
-      image: dataUri,
-      scale: 2
-    })
+    body: JSON.stringify(requestBody)
   }).then(function(res) {
-    dbg('[Venice] upscale status=' + res.status);
-    if (!res.ok) throw new Error('Upscale error ' + res.status);
+    dbg('[Upscale] response status=' + res.status + ' ok=' + res.ok);
+    dbg('[Upscale] response headers content-type=' + res.headers.get('content-type'));
+    if (!res.ok) {
+      return res.text().then(function(body) {
+        dbg('[Upscale] error body (first 300 chars): ' + body.slice(0, 300));
+        var msg;
+        try { msg = JSON.parse(body); msg = msg.message || msg.error || JSON.stringify(msg); }
+        catch(e) { msg = body.slice(0, 200); }
+        throw new Error('Venice upscale ' + res.status + ': ' + msg);
+      });
+    }
     return res.json();
   }).then(function(data) {
+    dbg('[Upscale] response keys: ' + Object.keys(data).join(', '));
+    dbg('[Upscale] data.image present: ' + !!data.image + ' data.images present: ' + !!(data.images && data.images[0]));
     var upscaled = data.image || (data.images && data.images[0]);
-    if (!upscaled) throw new Error('No upscaled image returned');
+    if (!upscaled) {
+      dbg('[Upscale] full response: ' + JSON.stringify(data).slice(0, 400));
+      throw new Error('No upscaled image in response');
+    }
     if (upscaled.indexOf(',') > -1) upscaled = upscaled.split(',')[1];
     var state = portraitState[charId];
     if (state.images.length > 0) {
       state.images[state.images.length - 1].b64 = upscaled;
       if (activeStoryId) idbSavePortraits(activeStoryId, charId, state.images);
       renderPortraitCarousel(charId, state.images);
-      dbg('[Venice] ✓ upscale done — portrait replaced with 2x (1664×2432)');
+      dbg('[Upscale] ✓ done — portrait replaced with 2x (1664×2432)');
       showToast('Portrait upscaled to 2x ✓');
     }
   }).catch(function(err) {
-    dbg('[Venice] ✗ upscale failed: ' + err.message + ' — original kept');
-    showToast('Upscale failed — original kept');
+    dbg('[Upscale] ✗ failed: ' + err.message);
+    showToast('Upscale failed: ' + err.message.slice(0, 120));
   });
 }
 
@@ -5838,7 +6325,7 @@ function generatePortrait(charId) {
 
   var model = document.getElementById('veniceImageModel').value;
   var openRouterKey = document.getElementById('apiKey').value.trim();
-  var loreTruncated = loreText.slice(0, 600);
+  var loreTruncated = loreText.slice(0, 800);
 
   function doGenerate(imagePrompt) {
     var veniceT0 = Date.now();
@@ -5850,10 +6337,14 @@ function generatePortrait(charId) {
     // This ensures Lock always has a seed to capture
     if (!seedVal) seedVal = Math.floor(Math.random() * 999999999) + 1;
     portraitState[charId].lastSeed = seedVal;
+    var portraitStyleForNeg = document.getElementById('portraitStyle') ? document.getElementById('portraitStyle').value : 'studio';
+    var studioNegatives = portraitStyleForNeg === 'natural'
+      ? ', studio background, studio lighting, studio light, plain background, grey background, white background, solid background, seamless background, gradient background, backdrop, photography studio, ring light, softbox, professional lighting setup'
+      : '';
     var requestBody = {
       model: model,
       prompt: imagePrompt,
-      negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus',
+      negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives,
       width: 832,
       height: 1216,
       steps: 30,
@@ -5932,7 +6423,7 @@ function generatePortrait(charId) {
     var orPromptModel = 'deepseek/deepseek-v3.2-20251201';
     dbg('Building image prompt via OpenRouter…');
     streamingFetch(openRouterKey, orPromptModel,
-      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId) }],
+      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
       { maxTokens: 300, label: 'portraitPrompt',
         onDone: function(prompt) {
           prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
@@ -5984,6 +6475,8 @@ function switchSupportSlot(slotId) {
   ['charSupport', 'charSupport2', 'charSupport3'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = id === slotId ? '' : 'none';
+    var row = document.getElementById('beat-brief-' + id + '-row');
+    if (row) row.style.display = id === slotId ? 'flex' : 'none';
   });
   // Update active toggle to reflect this slot's state
   var activeEl = document.getElementById('supportSlotActive');
@@ -6013,7 +6506,7 @@ function getActiveSupportLore() {
     if (!active) return;
     var el = document.getElementById(id);
     var val = el ? el.value.trim() : '';
-    if (val) result.push({ label: labels[i], lore: val });
+    if (val) result.push({ id: id, label: labels[i], lore: val });
   });
   return result;
 }
@@ -6250,6 +6743,7 @@ function selectBeat(chIdx, bIdx) {
     proseOut.innerHTML = '<div class="prose-area">' + escapeHtml(writtenScenes[key]) + '</div>';
     document.getElementById('btnCopy').style.display = '';
     document.getElementById('btnRewrite').style.display = '';
+    document.getElementById('sceneImgStyle').style.display = '';
     document.getElementById('btnSceneImg').style.display = '';
   } else {
     proseOut.innerHTML = '<div class="prose-placeholder"><div class="p-icon">♡</div><h3>' + escapeHtml(beat.title) + '</h3><p>' + (beat.desc ? escapeHtml(beat.desc) : 'Tap <strong>Write Scene</strong> to generate this beat.') + '</p></div>';
@@ -6951,10 +7445,24 @@ function buildContext() {
   const includeHistory = document.getElementById('includeHistory').checked;
   const activeSupportLore = getActiveSupportLore();
 
+  function charSection(heading, lore, charId) {
+    var tags = portraitState && portraitState[charId] ? portraitState[charId].appearanceTags : '';
+    var block = '## ' + heading + '\n';
+    if (tags) block += 'PHYSICAL APPEARANCE (locked — do not contradict):\n' + tags + '\n\n';
+    block += lore + '\n\n';
+    return block;
+  }
+
   let ctx = '';
-  if (char1) ctx += '## PROTAGONIST\n' + char1 + '\n\n';
-  if (char2) ctx += '## LOVE INTEREST\n' + char2 + '\n\n';
-  activeSupportLore.forEach(function(s) { ctx += '## ' + s.label.toUpperCase() + '\n' + s.lore + '\n\n'; });
+  if (char1) ctx += charSection('PROTAGONIST', char1, 'char1');
+  if (char2) ctx += charSection('LOVE INTEREST', char2, 'char2');
+  activeSupportLore.forEach(function(s) {
+    var tags = portraitState && portraitState[s.id] ? portraitState[s.id].appearanceTags : '';
+    var block = '## ' + s.label.toUpperCase() + '\n';
+    if (tags) block += 'PHYSICAL APPEARANCE (locked — do not contradict):\n' + tags + '\n\n';
+    block += s.lore + '\n\n';
+    ctx += block;
+  });
   if (worldLore) ctx += '## WORLD & SETTING\n' + worldLore + '\n\n';
   if (toneStyle) ctx += '## TONE & STYLE\n' + toneStyle + '\n\n';
   if (storyState) ctx += '## CURRENT STORY STATE\n' + storyState + '\n\n';
@@ -7136,6 +7644,7 @@ function writeScene() {
   document.getElementById('btnWrite').textContent = 'Writing\u2026';
   document.getElementById('btnCopy').style.display = 'none';
   document.getElementById('btnRewrite').style.display = 'none';
+  document.getElementById('sceneImgStyle').style.display = 'none';
   document.getElementById('btnSceneImg').style.display = 'none';
   acquireWakeLock();
 
@@ -7188,6 +7697,7 @@ function writeScene() {
           saveCurrentStory();
           document.getElementById('btnCopy').style.display = '';
           document.getElementById('btnRewrite').style.display = '';
+          document.getElementById('sceneImgStyle').style.display = '';
           document.getElementById('btnSceneImg').style.display = '';
           updateProseWordCount();
           updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
@@ -7536,7 +8046,7 @@ function generateWizardPreview() {
   if (btn) { btn.disabled = true; btn.textContent = 'Generating\u2026'; }
 
   var lore = buildLorePrompt();
-  var loreTruncated = lore.slice(0, 600);
+  var loreTruncated = lore.slice(0, 800);
   var model = document.getElementById('veniceImageModel').value;
   var poseSD = poseToSDTerm('Full body front');
 
