@@ -929,50 +929,6 @@
     animation: pulse 1.4s infinite;
   }
 
-  /* ── PERSONA SELECTOR ── */
-  .persona-bar {
-    padding: 10px 14px 6px;
-    border-bottom: 1px solid var(--border);
-    background: var(--cream);
-  }
-  .persona-bar-label {
-    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
-    color: var(--muted); margin-bottom: 7px;
-  }
-  .persona-chips {
-    display: flex; gap: 7px; flex-wrap: wrap;
-  }
-  .persona-chip {
-    padding: 5px 11px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-family: 'Jost', sans-serif; font-size: 0.72rem;
-    color: var(--muted); background: var(--surface);
-    cursor: pointer; transition: all 0.15s;
-    white-space: nowrap; max-width: 120px;
-    overflow: hidden; text-overflow: ellipsis;
-    user-select: none; -webkit-user-select: none;
-  }
-  .persona-chip.active {
-    border-color: var(--rose); color: var(--rose-deep);
-    background: #f9edef;
-  }
-  .persona-chip.default-chip {
-    border-style: dashed; border-color: var(--border);
-    color: var(--muted); font-size: 0.68rem; opacity: 0.7;
-    letter-spacing: 0.04em;
-  }
-  .persona-chip.default-chip.active {
-    border-style: dashed; border-color: var(--gold);
-    color: var(--gold); background: #fdf8f0; opacity: 1;
-  }
-    opacity: 0.38; border-style: dashed;
-  }
-  .persona-chip.empty.active {
-    opacity: 1; border-style: solid;
-    border-color: var(--gold); color: var(--gold); background: #fdf8f0;
-  }
-
   /* ── EDITOR SETTINGS BAR ── */
   .editor-settings-bar {
     display: flex; gap: 16px; padding: 7px 14px;
@@ -1002,18 +958,6 @@
     transition: border-color 0.15s, color 0.15s;
   }
   .scenario-chip:active { background: var(--border); color: var(--ink); }
-
-  /* ── PERSONA EDIT MODAL ── */
-  #personaModal {
-    display: none; position: fixed; inset: 0;
-    background: rgba(24,18,14,0.72); z-index: 600;
-    align-items: flex-end; justify-content: center;
-  }
-  #personaModal.open { display: flex; }
-  .persona-sheet {
-    background: var(--cream); border-radius: 20px 20px 0 0;
-    width: 100%; max-width: 600px; padding: 20px 16px 72px;
-  }
 
   /* ── LORE WIZARD ── */
   .wizard-trigger-btn {
@@ -1438,11 +1382,6 @@
       <div class="beat-label" id="edBeatLabel">Beat 1</div>
       <h2 id="edBeatTitle">—</h2>
       <div class="beat-desc-preview" id="edBeatDesc"></div>
-    </div>
-    <!-- Persona selector -->
-    <div class="persona-bar">
-      <div class="persona-bar-label">Writing Persona</div>
-      <div class="persona-chips" id="personaChips"></div>
     </div>
     <div class="editor-settings-bar">
       <div class="editor-setting">
@@ -2317,23 +2256,6 @@
   </div>
 </div>
 
-<!-- ── PERSONA EDIT MODAL ── -->
-<div id="personaModal">
-  <div class="persona-sheet">
-    <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;"></div>
-    <div style="font-family:var(--serif,serif);font-size:1.25rem;color:var(--rose-deep);font-style:italic;margin-bottom:4px;" id="personaModalTitle">Edit Persona</div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:14px;">Tap a chip to activate · Long-press to edit</div>
-    <label class="field-label">Preset Name</label>
-    <input class="sheet-input" id="personaNameInput" type="text" placeholder="e.g. Explicit Smut" maxlength="28" style="margin-bottom:12px;" />
-    <label class="field-label">System Persona</label>
-    <textarea class="sheet-textarea" id="personaTextInput" rows="6" placeholder="Describe the writing style, POV, heat level, what to do and avoid…" style="height:140px;"></textarea>
-    <div style="display:flex;gap:10px;margin-top:14px;">
-      <button type="button" id="personaCancelBtn" class="btn-cancel" style="flex:1;">Cancel</button>
-      <button type="button" id="personaClearBtn" class="btn-cancel" style="flex:1;color:#c0392b;border-color:#e74c3c;">Clear Slot</button>
-      <button type="button" id="personaSaveBtn" class="btn-save" style="flex:2;">Save</button>
-    </div>
-  </div>
-</div>
 
 <!-- ── CLOTHING PICKER ── -->
 <div id="clothingPicker" style="display:none;position:fixed;inset:0;background:rgba(24,18,14,0.78);z-index:810;align-items:flex-end;justify-content:center;">
@@ -2605,7 +2527,6 @@ var currentWriteAbort = null; // AbortController for in-flight scene generation
 // Per-story runtime state
 let chapters = [];
 let writtenScenes = {};
-let scenePersonas = {};
 let physicalContinuity = ''; // tracks clothing, position, who is present — updated after each scene
 var sceneImages = {}; // keyed chIdx-bIdx, value: {b64, prompt, charId, createdAt}
 let activeChIdx = null;
@@ -2647,7 +2568,6 @@ function saveCurrentStory() {
   story.data = {
     chapters,
     writtenScenes,
-    scenePersonas,
     storyState: document.getElementById('storyState').value,
     physicalContinuity: physicalContinuity,
     lore: {
@@ -2705,7 +2625,6 @@ function loadStoryIntoApp(story) {
   const d = story.data || {};
   chapters = d.chapters || [];
   writtenScenes = d.writtenScenes || {};
-  scenePersonas = d.scenePersonas || {};
   physicalContinuity = d.physicalContinuity || '';
   activeChIdx = null; activeBeatIdx = null;
 
@@ -2869,7 +2788,6 @@ function createSequel(sourceId) {
     data: {
       chapters: [],
       writtenScenes: {},
-      scenePersonas: {},
       storyState: '',
       physicalContinuity: '',
       lore: {
@@ -6769,7 +6687,6 @@ function renderChapters() {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
             <div style="display:flex;align-items:center;gap:6px;">
               <span class="beat-chip ${isWritten ? 'chip-written' : 'chip-pending'}">${isWritten ? '✓ Written' : 'Pending'}</span>
-              ${isWritten && scenePersonas[key] ? '<span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.06em;font-family:\'Jost\',sans-serif;">' + escapeHtml(scenePersonas[key]) + '</span>' : ''}
             </div>
             <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
               <button class="chapter-action-btn" onclick="openBeatModal(${bIdx}, ${chIdx})">Edit</button>
@@ -7496,7 +7413,7 @@ function exportAsHTML() {
 // ══════════════════════════════
 function clearStoryData() {
   if (!confirm('Clear all chapters, beats, lore and scenes for this story? This cannot be undone.')) return;
-  chapters = []; writtenScenes = {}; scenePersonas = {}; sceneImages = {}; physicalContinuity = ''; activeChIdx = null; activeBeatIdx = null;
+  chapters = []; writtenScenes = {}; sceneImages = {}; physicalContinuity = ''; activeChIdx = null; activeBeatIdx = null;
   renderPhysicalContinuity();
   renderSceneGallery();
   ['char1','char2','charSupport','worldLore','toneStyle','storyState'].forEach(id => document.getElementById(id).value = '');
@@ -7647,8 +7564,7 @@ function writeScene() {
   const key = activeChIdx + '-' + activeBeatIdx;
   const model = document.getElementById('modelSelect').value;
   dbg('model=' + model);
-  const systemPrefix = getActivePersonaText();
-  dbg('persona=' + (activePersonaIdx === null ? 'Setup' : (personas[activePersonaIdx].name || 'Slot ' + (activePersonaIdx+1))));
+  const systemPrefix = document.getElementById('systemPrefix').value.trim();
   dbg('calling buildContext...');
   const context = buildContext();
   dbg('context len=' + context.length);
@@ -7761,14 +7677,6 @@ function writeScene() {
           currentWriteAbort = null;
           cursor.remove();
           writtenScenes[key] = fullText;
-          // Record which persona was active when this scene was written
-          if (activePersonaIdx === null) {
-            scenePersonas[key] = 'Default';
-          } else if (personas[activePersonaIdx] && personas[activePersonaIdx].name) {
-            scenePersonas[key] = personas[activePersonaIdx].name;
-          } else {
-            scenePersonas[key] = 'Slot ' + (activePersonaIdx + 1);
-          }
           renderChapters();
           saveCurrentStory();
           document.getElementById('btnCopy').style.display = '';
@@ -9729,179 +9637,8 @@ function restoreFromBackup(input) {
 }
 
 
-const PERSONA_STORAGE_KEY = 'novella_studio_personas_v1';
-const PERSONA_SLOTS = 5;
-const DEFAULT_PERSONAS = [
-  { name: 'Explicit Smut', text: 'You are a skilled erotic fiction author. Write in third-person limited POV anchored to the male protagonist. Use explicit, direct language — no euphemisms, no fade-to-black. Describe physical sensation, desire, and action in charged, immediate detail — the reader should feel inside the moment. The protagonist is always the observer and recipient — desire and power flow toward him. Every scene should feel like it\'s happening now, to him, in his body.' },
-  { name: 'Slow Burn', text: 'You are a skilled romance novelist. Write in third-person limited POV. Prioritise longing, restraint, and charged subtext over explicit content. Let desire simmer beneath the surface — in a held gaze, a brushed hand, unspoken words. Deny the reader and the characters what they want for as long as possible.' },
-  { name: 'Emotional Aftermath', text: 'You are a literary fiction writer. Write in third-person limited POV. Focus on how the protagonist processes the physical and emotional residue after intimacy. Slow the prose down. Use involuntary memory, bodily sensation, and quiet observation to reveal emotional state — never name the emotion directly. The world around him should reflect his interior without comment.' },
-  { name: 'Voyeur Gaze', text: 'You are a skilled erotic fiction author specialising in the male voyeur perspective. Write in third-person limited POV locked entirely inside the protagonist\'s head. He is stationary, observing — never acting. His gaze moves slowly and deliberately across women in the room, cataloguing physical detail with precision: how fabric moves, what it reveals, what it conceals and implies. Interior monologue should feel compulsive — he cannot stop noticing. Freely render his explicit mental projections: what she looks like undressed, how she would move, what sounds she would make. These fantasies should feel vivid and physical, not abstract. The prose should have the quality of a man trying to maintain composure while his mind runs ahead of him. The room is real; his interior world is explicit.' },
-  { name: '', text: '' }
-];
-
-let personas = [];
-let activePersonaIdx = null; // null = use Setup persona
-
-function loadPersonas() {
-  try {
-    const raw = localStorage.getItem(PERSONA_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      personas = [];
-      for (let i = 0; i < PERSONA_SLOTS; i++) {
-        personas.push(parsed[i] || { name: '', text: '' });
-      }
-    } else {
-      personas = DEFAULT_PERSONAS.map(p => ({ name: p.name, text: p.text }));
-      savePersonas();
-    }
-    // Restore active persona index
-    const savedActive = localStorage.getItem(PERSONA_STORAGE_KEY + '_active');
-    if (savedActive !== null && savedActive !== '') {
-      const idx = parseInt(savedActive);
-      if (!isNaN(idx) && idx >= 0 && idx < PERSONA_SLOTS) {
-        activePersonaIdx = idx;
-      }
-    }
-  } catch(e) {
-    personas = DEFAULT_PERSONAS.map(p => ({ name: p.name, text: p.text }));
-  }
-}
-
-function savePersonas() {
-  try {
-    localStorage.setItem(PERSONA_STORAGE_KEY, JSON.stringify(personas));
-    localStorage.setItem(PERSONA_STORAGE_KEY + '_active', activePersonaIdx === null ? '' : String(activePersonaIdx));
-  } catch(e) {
-    showToast('⚠ Could not save persona — storage full?');
-  }
-}
-
-function renderPersonaChips() {
-  const container = document.getElementById('personaChips');
-  if (!container) return;
-  container.innerHTML = '';
-
-  // Default chip — fallback to Setup tab persona, visually distinct
-  const setupChip = document.createElement('div');
-  setupChip.className = 'persona-chip default-chip' + (activePersonaIdx === null ? ' active' : '');
-  setupChip.textContent = 'Default';
-  setupChip.title = 'Fallback — uses the AI Persona text from Setup tab';
-  setupChip.onclick = function() { setActivePersona(null); };
-  // Long-press navigates to Setup to edit the default text
-  let defTimer;
-  setupChip.addEventListener('pointerdown', function() {
-    defTimer = setTimeout(function() { defTimer = null; goScreen('settings'); showToast('Edit Default persona in Setup tab'); }, 600);
-  });
-  setupChip.addEventListener('pointerup', function() {
-    if (defTimer) { clearTimeout(defTimer); defTimer = null; setActivePersona(null); }
-  });
-  setupChip.addEventListener('pointercancel', function() { clearTimeout(defTimer); defTimer = null; });
-  container.appendChild(setupChip);
-
-  personas.forEach(function(p, i) {
-    const chip = document.createElement('div');
-    const isEmpty = !p.name.trim() && !p.text.trim();
-    chip.className = 'persona-chip' + (activePersonaIdx === i ? ' active' : '') + (isEmpty ? ' empty' : '');
-    chip.textContent = isEmpty ? ('Slot ' + (i + 1)) : p.name || ('Preset ' + (i + 1));
-    chip.title = isEmpty ? 'Long-press to set up this persona slot' : p.text;
-    chip.dataset.idx = i;
-
-    // Tap = activate (if not empty), long-press = edit
-    let pressTimer;
-    chip.addEventListener('pointerdown', function() {
-      pressTimer = setTimeout(function() { pressTimer = null; openPersonaModal(i); }, 600);
-    });
-    chip.addEventListener('pointerup', function() {
-      if (pressTimer) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
-        if (isEmpty) {
-          openPersonaModal(i);
-        } else {
-          setActivePersona(i);
-        }
-      }
-    });
-    chip.addEventListener('pointercancel', function() { clearTimeout(pressTimer); pressTimer = null; });
-    container.appendChild(chip);
-  });
-}
-
-function setActivePersona(idx) {
-  activePersonaIdx = idx;
-  // Persist the active selection
-  try { localStorage.setItem(PERSONA_STORAGE_KEY + '_active', idx === null ? '' : String(idx)); } catch(e) {}
-  renderPersonaChips();
-  if (idx === null) {
-    showToast('Using Default persona');
-  } else {
-    showToast('Persona: ' + (personas[idx].name || 'Preset ' + (idx + 1)));
-  }
-}
-
-function getActivePersonaText() {
-  if (activePersonaIdx === null) {
-    return document.getElementById('systemPrefix').value.trim();
-  }
-  const p = personas[activePersonaIdx];
-  return p.text.trim() || document.getElementById('systemPrefix').value.trim();
-}
-
-// Persona modal
-let editingPersonaIdx = null;
-
-function openPersonaModal(idx) {
-  editingPersonaIdx = idx;
-  const p = personas[idx];
-  document.getElementById('personaModalTitle').textContent = 'Persona Slot ' + (idx + 1);
-  document.getElementById('personaNameInput').value = p.name || '';
-  document.getElementById('personaTextInput').value = p.text || '';
-  document.getElementById('personaModal').classList.add('open');
-}
-
-function closePersonaModal() {
-  document.getElementById('personaModal').classList.remove('open');
-  editingPersonaIdx = null;
-}
-
-document.getElementById('personaSaveBtn').addEventListener('click', function() {
-  if (editingPersonaIdx === null) return;
-  personas[editingPersonaIdx] = {
-    name: document.getElementById('personaNameInput').value.trim(),
-    text: document.getElementById('personaTextInput').value.trim()
-  };
-  savePersonas();
-  // Auto-activate after save if non-empty
-  if (personas[editingPersonaIdx].name || personas[editingPersonaIdx].text) {
-    activePersonaIdx = editingPersonaIdx;
-  }
-  renderPersonaChips();
-  closePersonaModal();
-  showToast('Persona saved');
-});
-
-document.getElementById('personaClearBtn').addEventListener('click', function() {
-  if (editingPersonaIdx === null) return;
-  personas[editingPersonaIdx] = { name: '', text: '' };
-  savePersonas();
-  if (activePersonaIdx === editingPersonaIdx) activePersonaIdx = null;
-  renderPersonaChips();
-  closePersonaModal();
-  showToast('Slot cleared');
-});
-
-document.getElementById('personaCancelBtn').addEventListener('click', closePersonaModal);
-
-// Close on backdrop tap
-document.getElementById('personaModal').addEventListener('click', function(e) {
-  if (e.target === this) closePersonaModal();
-});
-
-// Init personas on load
+// Init on load
 loadGlobalKeys();
-loadPersonas();
-renderPersonaChips();
 initPinLock();
 wireExpandFields();
 
