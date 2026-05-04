@@ -7789,13 +7789,16 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
 
 function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, retryCount) {
   retryCount = retryCount || 0;
+
+  // Beat summary contains character names — use it as the primary identity anchor
+  var beatContext = 'Beat: "' + beat.title + '"';
+  if (beat.desc) beatContext += '\nBeat summary: ' + beat.desc;
+
+  // Also extract names from lore as a supplementary reference
   var char1 = document.getElementById('char1').value.trim();
   var char2 = document.getElementById('char2').value.trim();
-
-  // Include all active supporting character slots
   var supportLore = getActiveSupportLore();
 
-  // Extract name and role from each lore block
   function extractCharInfo(loreText, defaultRole) {
     if (!loreText) return null;
     var roleMatch = loreText.match(/^(PROTAGONIST|LOVE INTEREST|SUPPORTING CHARACTER)/m);
@@ -7812,14 +7815,16 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
    .filter(Boolean);
 
   var charList = charInfos.map(function(c) {
-    var desc = c.name;
-    if (c.role === 'protagonist') desc += ' (protagonist — if the scene is written in close third-person, "he/him/his" refers to this character)';
-    else if (c.role === 'love interest') desc += ' (love interest — "she/her/hers" typically refers to this character)';
-    else if (c.role) desc += ' (' + c.role + ')';
-    return '- ' + desc;
+    var d = c.name;
+    if (c.role === 'protagonist') d += ' (protagonist)';
+    else if (c.role === 'love interest') d += ' (love interest)';
+    else if (c.role) d += ' (' + c.role + ')';
+    return '- ' + d;
   }).join('\n');
 
-  var prompt = 'STORY CHARACTERS:\n' + charList + '\n\n' +
+  var prompt = (charList ? 'STORY CHARACTERS:\n' + charList + '\n\n' : '') +
+    'BEAT CONTEXT (use this to identify who "he/him/she/her" refers to in the scene below):\n' +
+    beatContext + '\n\n' +
     'Extract the physical state at the END of this scene.\n\n' +
     'IMPORTANT: A character is physically present only if they are in the scene in person. ' +
     'Do NOT include a character who is only mentioned, thought about, or referenced in dialogue — only characters who are physically there.\n\n' +
@@ -7830,7 +7835,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
     '[Name] clothing: [exactly what they are wearing, or "nude"]\n' +
     '[Name] position: [physical position/activity at scene end]\n' +
     'Last physical action: [one sentence — what physically just happened]\n\n' +
-    'Scene (beat: "' + beat.title + '"):\n' + sceneText.slice(0, 4000);
+    'Scene:\n' + sceneText.slice(0, 4000);
 
   streamingFetch(apiKey, model,
     [
