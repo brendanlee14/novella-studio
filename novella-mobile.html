@@ -3340,6 +3340,20 @@ function generateSceneImage() {
       showToast('Scene image generated \u2713 — view in Gallery');
       dbg('[Venice] \u2190 sceneImage done elapsed=' + (Date.now() - veniceT0) + 'ms');
 
+      // Upscale silently in background
+      var capturedKey = key;
+      var capturedChIdx = activeChIdx;
+      var capturedBIdx = activeBeatIdx;
+      upscaleImage(b64, veniceKey, function(upscaled) {
+        if (sceneImages[capturedKey]) {
+          sceneImages[capturedKey].b64 = upscaled;
+          if (activeStoryId) idbSaveSceneImage(activeStoryId, capturedChIdx, capturedBIdx, sceneImages[capturedKey]);
+          dbg('[Upscale] ✓ scene image upscaled key=' + capturedKey);
+        }
+      }, function(err) {
+        dbg('[Upscale] scene image upscale failed: ' + err.message);
+      });
+
       // Switch to gallery scenes tab
       goScreen('gallery');
       galleryGoTab(2);
@@ -6211,74 +6225,71 @@ function detectImageMimeType(b64) {
   return 'image/jpeg'; // fallback
 }
 
-function upscalePortrait(charId, b64, pose, veniceKey) {
+function upscaleImage(b64, veniceKey, onSuccess, onError) {
   var mimeType = detectImageMimeType(b64);
-  dbg('[Upscale] → start charId=' + charId + ' mimeType=' + mimeType + ' b64len=' + b64.length);
+  dbg('[Upscale] → start mimeType=' + mimeType + ' b64len=' + b64.length);
 
-  // Venice upscale rejects WebP — convert to JPEG via canvas first
+  function doFetch(b64ToSend, mime) {
+    dbg('[Upscale] sending: mimeType=' + mime + ' b64len=' + b64ToSend.length);
+    fetch('https://api.venice.ai/api/v1/image/upscale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
+      body: JSON.stringify({ image: b64ToSend, scale: 2 })
+    }).then(function(res) {
+      dbg('[Upscale] response status=' + res.status + ' ok=' + res.ok);
+      if (!res.ok) {
+        return res.text().then(function(body) {
+          dbg('[Upscale] error body: ' + body.slice(0, 300));
+          var msg;
+          try { msg = JSON.parse(body); msg = msg.message || msg.error || JSON.stringify(msg); }
+          catch(e) { msg = body.slice(0, 200); }
+          throw new Error('Venice upscale ' + res.status + ': ' + msg);
+        });
+      }
+      return res.json();
+    }).then(function(data) {
+      var upscaled = data.image || (data.images && data.images[0]);
+      if (!upscaled) throw new Error('No upscaled image in response');
+      if (upscaled.indexOf(',') > -1) upscaled = upscaled.split(',')[1];
+      dbg('[Upscale] ✓ done');
+      onSuccess(upscaled);
+    }).catch(function(err) {
+      dbg('[Upscale] ✗ failed: ' + err.message);
+      if (onError) onError(err);
+    });
+  }
+
   if (mimeType !== 'image/jpeg') {
-    dbg('[Upscale] Converting ' + mimeType + ' → image/jpeg for upscale API compatibility');
+    dbg('[Upscale] Converting ' + mimeType + ' → image/jpeg');
     var img = new Image();
     img.onload = function() {
       var canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = img.width; canvas.height = img.height;
       canvas.getContext('2d').drawImage(img, 0, 0);
-      var jpegDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-      var jpegB64 = jpegDataUrl.split(',')[1];
-      dbg('[Upscale] Converted to JPEG: new b64len=' + jpegB64.length);
-      doUpscaleFetch(charId, jpegB64, 'image/jpeg', veniceKey);
+      var jpegB64 = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+      dbg('[Upscale] Converted: new b64len=' + jpegB64.length);
+      doFetch(jpegB64, 'image/jpeg');
     };
     img.onerror = function() {
-      dbg('[Upscale] Conversion failed — attempting upscale with original format');
-      doUpscaleFetch(charId, b64, mimeType, veniceKey);
+      dbg('[Upscale] Conversion failed — attempting with original format');
+      doFetch(b64, mimeType);
     };
     img.src = 'data:' + mimeType + ';base64,' + b64;
-    return;
+  } else {
+    doFetch(b64, mimeType);
   }
-  doUpscaleFetch(charId, b64, mimeType, veniceKey);
 }
 
-function doUpscaleFetch(charId, b64, mimeType, veniceKey) {
-  var requestBody = { image: b64, scale: 2 };
-  dbg('[Upscale] sending to Venice: mimeType=' + mimeType + ' b64len=' + b64.length);
-  dbg('[Upscale] request body (first 80 chars of image field): ' + b64.slice(0, 80));
-  fetch('https://api.venice.ai/api/v1/image/upscale', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + veniceKey },
-    body: JSON.stringify(requestBody)
-  }).then(function(res) {
-    dbg('[Upscale] response status=' + res.status + ' ok=' + res.ok);
-    dbg('[Upscale] response headers content-type=' + res.headers.get('content-type'));
-    if (!res.ok) {
-      return res.text().then(function(body) {
-        dbg('[Upscale] error body (first 300 chars): ' + body.slice(0, 300));
-        var msg;
-        try { msg = JSON.parse(body); msg = msg.message || msg.error || JSON.stringify(msg); }
-        catch(e) { msg = body.slice(0, 200); }
-        throw new Error('Venice upscale ' + res.status + ': ' + msg);
-      });
-    }
-    return res.json();
-  }).then(function(data) {
-    dbg('[Upscale] response keys: ' + Object.keys(data).join(', '));
-    dbg('[Upscale] data.image present: ' + !!data.image + ' data.images present: ' + !!(data.images && data.images[0]));
-    var upscaled = data.image || (data.images && data.images[0]);
-    if (!upscaled) {
-      dbg('[Upscale] full response: ' + JSON.stringify(data).slice(0, 400));
-      throw new Error('No upscaled image in response');
-    }
-    if (upscaled.indexOf(',') > -1) upscaled = upscaled.split(',')[1];
+function upscalePortrait(charId, b64, pose, veniceKey) {
+  upscaleImage(b64, veniceKey, function(upscaled) {
     var state = portraitState[charId];
     if (state.images.length > 0) {
       state.images[state.images.length - 1].b64 = upscaled;
       if (activeStoryId) idbSavePortraits(activeStoryId, charId, state.images);
       renderPortraitCarousel(charId, state.images);
-      dbg('[Upscale] ✓ done — portrait replaced with 2x (1664×2432)');
       showToast('Portrait upscaled to 2x ✓');
     }
-  }).catch(function(err) {
-    dbg('[Upscale] ✗ failed: ' + err.message);
+  }, function(err) {
     showToast('Upscale failed: ' + err.message.slice(0, 120));
   });
 }
