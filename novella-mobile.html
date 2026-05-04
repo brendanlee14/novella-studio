@@ -7814,17 +7814,15 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
   ].concat(supportLore.map(function(s) { return extractCharInfo(s.lore, 'supporting character'); }))
    .filter(Boolean);
 
-  var charList = charInfos.map(function(c) {
-    var d = c.name;
-    if (c.role === 'protagonist') d += ' (protagonist)';
-    else if (c.role === 'love interest') d += ' (love interest)';
-    else if (c.role) d += ' (' + c.role + ')';
-    return '- ' + d;
+  // Build explicit pronoun map — this is the primary identity anchor
+  var pronounLines = charInfos.map(function(c) {
+    if (c.role === 'protagonist') return 'PROTAGONIST: ' + c.name + ' — "he/him/his" in the scene refers to ' + c.name;
+    if (c.role === 'love interest') return 'LOVE INTEREST: ' + c.name + ' — "she/her/hers" in the scene refers to ' + c.name;
+    return 'SUPPORTING CHARACTER: ' + c.name;
   }).join('\n');
 
-  var prompt = (charList ? 'STORY CHARACTERS:\n' + charList + '\n\n' : '') +
-    'BEAT CONTEXT (use this to identify who "he/him/she/her" refers to in the scene below):\n' +
-    beatContext + '\n\n' +
+  var prompt = (pronounLines ? 'CHARACTER IDENTITY — use these mappings when reading the scene:\n' + pronounLines + '\n\n' : '') +
+    'BEAT CONTEXT:\n' + beatContext + '\n\n' +
     'Extract the physical state at the END of this scene.\n\n' +
     'IMPORTANT: A character is physically present only if they are in the scene in person. ' +
     'Do NOT include a character who is only mentioned, thought about, or referenced in dialogue — only characters who are physically there.\n\n' +
