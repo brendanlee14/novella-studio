@@ -6246,13 +6246,30 @@ function upscaleImage(b64, veniceKey, onSuccess, onError) {
           throw new Error('Venice upscale ' + res.status + ': ' + msg);
         });
       }
-      return res.json();
-    }).then(function(data) {
-      var upscaled = data.image || (data.images && data.images[0]);
-      if (!upscaled) throw new Error('No upscaled image in response');
-      if (upscaled.indexOf(',') > -1) upscaled = upscaled.split(',')[1];
-      dbg('[Upscale] ✓ done');
-      onSuccess(upscaled);
+      var ct = res.headers.get('content-type') || '';
+      dbg('[Upscale] response content-type=' + ct);
+      if (ct.indexOf('image/') === 0) {
+        // Venice returns raw binary image — read as blob then convert to base64
+        return res.blob().then(function(blob) {
+          return new Promise(function(resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function() { resolve(reader.result.split(',')[1]); };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        }).then(function(upscaledB64) {
+          dbg('[Upscale] ✓ done (binary response)');
+          onSuccess(upscaledB64);
+        });
+      }
+      // JSON response path
+      return res.json().then(function(data) {
+        var upscaled = data.image || (data.images && data.images[0]);
+        if (!upscaled) throw new Error('No upscaled image in response');
+        if (upscaled.indexOf(',') > -1) upscaled = upscaled.split(',')[1];
+        dbg('[Upscale] ✓ done (JSON response)');
+        onSuccess(upscaled);
+      });
     }).catch(function(err) {
       dbg('[Upscale] ✗ failed: ' + err.message);
       if (onError) onError(err);
