@@ -7794,16 +7794,32 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
 
   // Include all active supporting character slots
   var supportLore = getActiveSupportLore();
-  var allLore = [char1, char2].concat(supportLore.map(function(s) { return s.lore; }));
 
-  var charNames = allLore
-    .map(function(c) { return c.match(/^Name:\s*(\S+)/m); })
-    .map(function(m) { return m ? m[1] : null; })
-    .filter(Boolean);
+  // Extract name and role from each lore block
+  function extractCharInfo(loreText, defaultRole) {
+    if (!loreText) return null;
+    var roleMatch = loreText.match(/^(PROTAGONIST|LOVE INTEREST|SUPPORTING CHARACTER)/m);
+    var nameMatch = loreText.match(/^Name:\s*([^,\n]+)/m);
+    var name = nameMatch ? nameMatch[1].trim() : null;
+    var role = roleMatch ? roleMatch[1].toLowerCase() : (defaultRole || null);
+    return name ? { name: name, role: role } : null;
+  }
 
-  var charList = charNames.join(', ');
+  var charInfos = [
+    extractCharInfo(char1, 'protagonist'),
+    extractCharInfo(char2, 'love interest')
+  ].concat(supportLore.map(function(s) { return extractCharInfo(s.lore, 'supporting character'); }))
+   .filter(Boolean);
 
-  var prompt = 'Story characters: ' + charList + '\n\n' +
+  var charList = charInfos.map(function(c) {
+    var desc = c.name;
+    if (c.role === 'protagonist') desc += ' (protagonist — if the scene is written in close third-person, "he/him/his" refers to this character)';
+    else if (c.role === 'love interest') desc += ' (love interest — "she/her/hers" typically refers to this character)';
+    else if (c.role) desc += ' (' + c.role + ')';
+    return '- ' + desc;
+  }).join('\n');
+
+  var prompt = 'STORY CHARACTERS:\n' + charList + '\n\n' +
     'Extract the physical state at the END of this scene.\n\n' +
     'IMPORTANT: A character is physically present only if they are in the scene in person. ' +
     'Do NOT include a character who is only mentioned, thought about, or referenced in dialogue — only characters who are physically there.\n\n' +
@@ -7818,7 +7834,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
 
   streamingFetch(apiKey, model,
     [
-      { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Be precise about clothing — if an item was removed, say so. Never invent details not in the scene. Skip entries for characters who are absent.' },
+      { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Always use the character\'s actual name (from the STORY CHARACTERS list) — never use generic labels like "Man" or "Woman". Be precise about clothing — if an item was removed, say so. Never invent details not in the scene. Skip entries for characters who are absent.' },
       { role: 'user', content: prompt }
     ],
     { maxTokens: 500, label: 'physicalContinuity',
