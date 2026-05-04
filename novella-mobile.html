@@ -5158,8 +5158,8 @@ function onPopupSwipeMove(e) {
 }
 function onPopupSwipeEnd(e) {
   var dy = (e.changedTouches[0] ? e.changedTouches[0].clientY : swipeStartY) - swipeStartY;
-  document.getElementById('popupImg').style.transform = 'scale(1)';
-  if (dy > 80) closePortraitPopup();
+  document.getElementById('popupImg').style.transform = 'scale(' + popupScale + ')';
+  if (popupScale <= 1 && dy > 80) closePortraitPopup();
 }
 
 function downloadPortraitFromPopup() {
