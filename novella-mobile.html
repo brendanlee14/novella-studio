@@ -6464,7 +6464,10 @@ function generatePortrait(charId) {
           // Only add facing-camera terms for non-rear-view poses
           var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
           var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
-          var fullPrompt = poseTerms + facingTerms + ', ' + sanitiseVenicePrompt(prompt) + ', ' + getPortraitQualityTags();
+          // Always inject locked appearance tags directly into Venice prompt — OR may not reproduce them faithfully
+          var lockedTags = portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId);
+          var lockedPart = lockedTags ? lockedTags + ', ' : '';
+          var fullPrompt = poseTerms + facingTerms + ', ' + lockedPart + sanitiseVenicePrompt(prompt) + ', ' + getPortraitQualityTags();
           dbg('OR prompt built: ' + fullPrompt.slice(0, 80) + '…');
           doGenerate(fullPrompt);
         },
