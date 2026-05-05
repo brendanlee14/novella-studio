@@ -6468,10 +6468,13 @@ function generatePortrait(charId) {
           // Always inject locked appearance tags directly into Venice prompt — OR may not reproduce them faithfully
           var lockedTags = portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId);
           var lockedPart = lockedTags ? lockedTags + ', ' : '';
-          // Cap OR supplement to 350 chars when locked tags are present — they already cover identity
           var orPart = sanitiseVenicePrompt(prompt);
-          if (lockedPart) orPart = orPart.slice(0, 350);
-          var fullPrompt = poseTerms + facingTerms + ', ' + lockedPart + orPart + ', ' + getPortraitQualityTags();
+          var qualityPart = getPortraitQualityTags();
+          var base = poseTerms + facingTerms + ', ' + lockedPart;
+          // Cap total Venice prompt at 1400 chars (lustify-sdxl may have old 1500 limit)
+          var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
+          if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
+          var fullPrompt = base + orPart + ', ' + qualityPart;
           dbg('OR prompt built: ' + fullPrompt.slice(0, 80) + '…');
           doGenerate(fullPrompt);
         },
