@@ -6389,13 +6389,14 @@ function generatePortrait(charId) {
     }).then(function(res) {
       dbg('[Venice] status=' + res.status + ' (' + (Date.now() - veniceT0) + 'ms)');
       if (!res.ok) {
-        return res.json().then(function(e) {
-          var msg = e.message || e.error || 'Venice error ' + res.status;
+        return res.text().then(function(body) {
+          var msg = 'Venice error ' + res.status;
+          try { var e = JSON.parse(body); msg = e.message || e.error || msg; } catch(_) {
+            if (body && body.length < 300) msg = body.trim() || msg;
+          }
           if (res.status === 404) msg = 'Model not found: ' + model + ' — update Venice model in Setup';
+          dbg('[Venice] error body: ' + body.slice(0, 200));
           throw new Error(msg);
-        }).catch(function(jsonErr) {
-          if (jsonErr.message && jsonErr.message.includes('Model not found')) throw jsonErr;
-          throw new Error('Venice error ' + res.status);
         });
       }
       return res.json();
@@ -6467,7 +6468,10 @@ function generatePortrait(charId) {
           // Always inject locked appearance tags directly into Venice prompt — OR may not reproduce them faithfully
           var lockedTags = portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId);
           var lockedPart = lockedTags ? lockedTags + ', ' : '';
-          var fullPrompt = poseTerms + facingTerms + ', ' + lockedPart + sanitiseVenicePrompt(prompt) + ', ' + getPortraitQualityTags();
+          // Cap OR supplement to 350 chars when locked tags are present — they already cover identity
+          var orPart = sanitiseVenicePrompt(prompt);
+          if (lockedPart) orPart = orPart.slice(0, 350);
+          var fullPrompt = poseTerms + facingTerms + ', ' + lockedPart + orPart + ', ' + getPortraitQualityTags();
           dbg('OR prompt built: ' + fullPrompt.slice(0, 80) + '…');
           doGenerate(fullPrompt);
         },
