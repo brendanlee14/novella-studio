@@ -5226,6 +5226,17 @@ function sanitiseVenicePrompt(prompt) {
     .trim();
 }
 
+function splitNegatives(prompt) {
+  // Extract "no X" / "without X" phrases from positive prompt and return them
+  // as negative prompt additions — SD models ignore negations in positive prompts
+  var negatives = [];
+  var positive = prompt
+    .replace(/\bno\s+([^,\n]+)/gi, function(_, term) { negatives.push(term.trim()); return ''; })
+    .replace(/\bwithout\s+([^,\n]+)/gi, function(_, term) { negatives.push(term.trim()); return ''; })
+    .replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
+  return { positive: positive, negatives: negatives.join(', ') };
+}
+
 function getPortraitQualityTags() {
   var styleEl = document.getElementById('portraitStyle');
   var style = styleEl ? styleEl.value : 'studio';
@@ -6373,7 +6384,7 @@ function generatePortrait(charId) {
   var openRouterKey = document.getElementById('apiKey').value.trim();
   var loreTruncated = loreText.slice(0, 800);
 
-  function doGenerate(imagePrompt) {
+  function doGenerate(imagePrompt, extraNegatives) {
     var veniceT0 = Date.now();
     var seedInput = document.getElementById('portrait-' + charId + '-seed');
     var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : null;
@@ -6387,10 +6398,12 @@ function generatePortrait(charId) {
     var studioNegatives = portraitStyleForNeg === 'natural'
       ? ', studio background, studio lighting, studio light, plain background, grey background, white background, solid background, seamless background, gradient background, backdrop, photography studio, ring light, softbox, professional lighting setup'
       : '';
+    var negPrompt = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives;
+    if (extraNegatives) negPrompt += ', ' + extraNegatives;
     var requestBody = {
       model: model,
       prompt: imagePrompt,
-      negative_prompt: 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives,
+      negative_prompt: negPrompt,
       width: 832,
       height: 1216,
       steps: 30,
@@ -6476,7 +6489,8 @@ function generatePortrait(charId) {
           prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
           if (!prompt || prompt.length < 10) {
             dbg('OR prompt too short, using fallback');
-            doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+            var fb = splitNegatives(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+            doGenerate(fb.positive, fb.negatives);
             return;
           }
           // Inject pose SD terms directly — bypasses GPT-4o content filter for explicit poses
@@ -6494,18 +6508,20 @@ function generatePortrait(charId) {
           // Cap total Venice prompt at 1400 chars (lustify-sdxl may have old 1500 limit)
           var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
           if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
-          var fullPrompt = base + orPart + ', ' + qualityPart;
-          dbg('OR prompt built: ' + fullPrompt.slice(0, 80) + '…');
-          doGenerate(fullPrompt);
+          var split = splitNegatives(base + orPart + ', ' + qualityPart);
+          dbg('OR prompt built: ' + split.positive.slice(0, 80) + '…' + (split.negatives ? ' neg+=[' + split.negatives + ']' : ''));
+          doGenerate(split.positive, split.negatives);
         },
         onError: function(err) {
           dbg('Prompt build failed, using lore directly: ' + err.message);
-          doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+          var fb = splitNegatives(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+          doGenerate(fb.positive, fb.negatives);
         }
       }
     );
   } else {
-    doGenerate(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+    var fb = splitNegatives(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
+    doGenerate(fb.positive, fb.negatives);
   }
 }
 
