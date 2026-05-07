@@ -1969,6 +1969,7 @@
         <button class="btn-plan-regen" id="planRefineSynopsisBtn" onclick="refineSynopsis()" style="flex:1;">↺ Refine</button>
       </div>
       <button class="btn-plan-next" id="planGenChBtn" onclick="generateChapterSummaries()">✦ Generate Chapter Summaries</button>
+      <button class="btn-plan-regen" onclick="createBlankChapterSummaries()" style="text-align:center;">Skip — create blank chapter placeholders</button>
     </div>
   </div>
 
@@ -4067,6 +4068,17 @@ function refineSynopsis() {
       }
     }
   );
+}
+
+function createBlankChapterSummaries() {
+  const numCh = parseInt(document.getElementById('planChCount').textContent) || 5;
+  const def = parseInt(document.getElementById('planDefaultBeats').textContent) || 4;
+  planSummaries = [];
+  for (var i = 0; i < numCh; i++) {
+    planSummaries.push({ title: 'Chapter ' + (i + 1), summary: '', beatCount: def });
+  }
+  planGoStage(2, true);
+  saveCurrentStory();
 }
 
 function generateChapterSummaries() {
