@@ -2300,6 +2300,7 @@
     <button class="popup-close-btn" type="button" onclick="closePortraitPopup()">✕ Close</button>
     <span class="popup-counter" id="popupCounter"></span>
     <div class="popup-actions">
+      <button class="popup-action-btn" type="button" id="popupUpscaleBtn" onclick="upscalePortraitFromPopup()">⬆ Upscale 2x</button>
       <button class="popup-action-btn" type="button" onclick="downloadPortraitFromPopup()">⬇ Save</button>
       <button class="popup-action-btn danger" type="button" onclick="showDeleteConfirm()">Delete</button>
     </div>
@@ -6362,18 +6363,36 @@ function upscaleImage(b64, veniceKey, onSuccess, onError) {
   }
 }
 
-function upscalePortrait(charId, b64, pose, veniceKey) {
+function upscalePortraitAtIndex(charId, idx, veniceKey) {
+  var state = portraitState[charId];
+  var img = state.images[idx];
+  if (!img) return;
+  var b64 = img.b64 || img;
   upscaleImage(b64, veniceKey, function(upscaled) {
-    var state = portraitState[charId];
-    if (state.images.length > 0) {
-      state.images[state.images.length - 1].b64 = upscaled;
-      if (activeStoryId) idbSavePortraits(activeStoryId, charId, state.images);
-      renderPortraitCarousel(charId, state.images);
-      showToast('Portrait upscaled to 2x ✓');
+    state.images[idx].b64 = upscaled;
+    if (activeStoryId) idbSavePortraits(activeStoryId, charId, state.images);
+    renderPortraitCarousel(charId, state.images);
+    // Update popup image if still viewing this one
+    if (popupCharId === charId && popupImgIdx === idx) {
+      document.getElementById('popupImg').src = 'data:image/jpeg;base64,' + upscaled;
     }
+    var btn = document.getElementById('popupUpscaleBtn');
+    if (btn) { btn.disabled = false; btn.textContent = '⬆ Upscale 2x'; }
+    showToast('Portrait upscaled to 2x ✓');
   }, function(err) {
+    var btn = document.getElementById('popupUpscaleBtn');
+    if (btn) { btn.disabled = false; btn.textContent = '⬆ Upscale 2x'; }
     showToast('Upscale failed: ' + err.message.slice(0, 120));
   });
+}
+
+function upscalePortraitFromPopup() {
+  if (popupCharId === null || popupImgIdx === null) return;
+  var veniceKey = document.getElementById('veniceApiKey').value.trim();
+  if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
+  var btn = document.getElementById('popupUpscaleBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Upscaling…'; }
+  upscalePortraitAtIndex(popupCharId, popupImgIdx, veniceKey);
 }
 
 function generatePortrait(charId) {
@@ -6493,9 +6512,8 @@ function generatePortrait(charId) {
       }
 
       addPortraitImage(charId, b64, selectedPose);
-      showToast('Portrait generated — upscaling…');
+      showToast('Portrait generated ✓');
       dbg('Portrait saved for ' + charId);
-      upscalePortrait(charId, b64, selectedPose, veniceKey);
     }).catch(function(err) {
       dbg('[Venice] ✗ error=' + err.message + ' elapsed=' + (Date.now() - veniceT0) + 'ms');
       var spinner = document.getElementById('portrait-' + charId + '-spinner');
