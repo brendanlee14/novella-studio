@@ -2669,8 +2669,17 @@ function loadStoryIntoApp(story) {
   sceneImages = {}; // reset, load lazily from IDB when gallery opened
 
   // Restore portraits from IndexedDB (with migration from localStorage if needed)
+  // Reset all portrait state first — prevents previous story's images/seeds bleeding through
+  ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) {
+    portraitState[id].images = [];
+    portraitState[id].currentIdx = 0;
+    portraitState[id].lastSeed = null;
+    var seedInput = document.getElementById('portrait-' + id + '-seed');
+    if (seedInput) seedInput.value = '';
+    renderPortraitCarousel(id, []);
+  });
   migratePortraitsToIDB(story).then(function() {
-    var chars = ['char1', 'char2', 'charSupport'];
+    var chars = ['char1', 'char2', 'charSupport', 'charSupport2', 'charSupport3'];
     var promises = chars.map(function(id) {
       return idbLoadPortraits(story.id, id).then(function(arr) {
         renderPortraitCarousel(id, arr || []);
