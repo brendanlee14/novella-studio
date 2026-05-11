@@ -5257,8 +5257,7 @@ function sanitiseVenicePrompt(prompt) {
 }
 
 function stripPoseTerms(tags) {
-  // Remove pose/action/behavior terms from distilled appearance tags — they interfere
-  // with the selected pose SD term and cause unwanted composition changes
+  // Remove pose/action/behavior/gesture terms that interfere with selected pose SD term
   return tags
     .replace(/\barched back\b/gi, '')
     .replace(/\bflexible\b/gi, '')
@@ -5269,6 +5268,19 @@ function stripPoseTerms(tags) {
     .replace(/\bbending\b/gi, '')
     .replace(/\bleaning\b/gi, '')
     .replace(/\bcrouching\b/gi, '')
+    // Gesture terms — cause random finger/hand poses regardless of pose SD term
+    .replace(/\bexpressive hands?\b/gi, '')
+    .replace(/\bhand gestures?\b/gi, '')
+    .replace(/\buses? gestures?\b/gi, '')
+    .replace(/\banimated gestures?\b/gi, '')
+    .replace(/\bhand movements?\b/gi, '')
+    .replace(/\buses? (?:her|his|their) hands?\b/gi, '')
+    .replace(/\bgesturing\b/gi, '')
+    // Camera angle influencing — lore personality terms that push model to low angle
+    .replace(/\bcommanding presence\b/gi, '')
+    .replace(/\bimposing (?:figure|presence|stature)\b/gi, '')
+    .replace(/\btowering (?:figure|presence|stature)\b/gi, '')
+    .replace(/\bdominant presence\b/gi, '')
     .replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
 }
 
@@ -6049,7 +6061,7 @@ document.getElementById('posePicker').addEventListener('click', function(e) {
 
 function poseToSDTerm(pose) {
   var map = {
-    'Half body front': 'half body shot, from waist up, subject facing camera directly, straight-on frontal view, face and chest pointing toward camera, no body rotation, no side angle, front-facing portrait, eye level camera angle, camera at eye level, hands relaxed and natural, arms at sides or resting naturally, no hand gestures, no pointing, no raised fingers',
+    'Half body front': 'half body shot, from waist up, subject facing camera directly, straight-on frontal view, face and chest pointing toward camera, no body rotation, no side angle, front-facing portrait, eye level camera angle, camera at eye level, no low angle shot, no worm\'s eye view, no upward angle, hands relaxed and natural, arms at sides or resting naturally, no hand gestures, no pointing, no raised fingers, no finger gestures',
     'Three-quarter angle': 'half body shot, three quarter angle, slight turn',
     'Close-up face': 'close up face portrait, head and shoulders only',
     'Looking over shoulder': 'upper body, looking over shoulder, back turned slightly',
@@ -6571,7 +6583,7 @@ function generatePortrait(charId) {
           // Always inject locked appearance tags directly into Venice prompt — OR may not reproduce them faithfully
           var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
           var lockedPart = lockedTags ? lockedTags + ', ' : '';
-          var orPart = sanitiseVenicePrompt(prompt);
+          var orPart = stripPoseTerms(sanitiseVenicePrompt(prompt));
           var qualityPart = getPortraitQualityTags();
           var base = poseTerms + facingTerms + ', ' + lockedPart;
           // Cap total Venice prompt at 1400 chars (lustify-sdxl may have old 1500 limit)
