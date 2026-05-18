@@ -731,6 +731,67 @@
   @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
   .portrait-spinner { animation: pulse 1.4s infinite; }
 
+  /* ── SEED DISCOVERY ── */
+  .sd-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 6px; padding: 12px 0;
+  }
+  .sd-slot {
+    aspect-ratio: 5/7; background: var(--ink); border-radius: 8px;
+    position: relative; cursor: pointer; overflow: hidden;
+    border: 2px solid transparent; transition: border-color 0.15s;
+  }
+  .sd-slot.selected { border-color: var(--gold); }
+  .sd-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .sd-slot-empty {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; color: var(--muted); font-size: 1.4rem; opacity: 0.4;
+  }
+  .sd-slot-loading {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; background: rgba(24,18,14,0.7);
+    font-size: 1.1rem; color: var(--gold-light);
+    animation: pulse 1.4s infinite;
+  }
+  .sd-slot-seed {
+    position: absolute; bottom: 3px; left: 4px;
+    background: rgba(0,0,0,0.65); color: var(--gold-light);
+    font-family: 'Jost', sans-serif; font-size: 0.58rem;
+    padding: 2px 4px; border-radius: 3px; pointer-events: none;
+  }
+  .sd-slot-check {
+    position: absolute; top: 4px; left: 4px; width: 18px; height: 18px;
+    background: var(--gold); border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    color: white; font-size: 0.65rem; pointer-events: none;
+  }
+  .sd-slot-reroll {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(0,0,0,0.6); color: white; border: none;
+    border-radius: 4px; padding: 3px 6px; font-size: 0.65rem; cursor: pointer;
+    font-family: 'Jost', sans-serif;
+  }
+  .sd-slot-reroll:active { background: rgba(0,0,0,0.9); }
+  .sd-progress {
+    font-family: 'Jost', sans-serif; font-size: 0.75rem; color: var(--muted);
+    text-align: center; padding: 4px 0 0; min-height: 18px;
+  }
+  .sd-actions {
+    display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+  }
+  .sd-btn-primary {
+    flex: 2; padding: 13px; background: var(--rose); color: white;
+    border: none; border-radius: 10px; font-family: 'Jost', sans-serif;
+    font-size: 0.9rem; cursor: pointer;
+  }
+  .sd-btn-primary:disabled { opacity: 0.5; cursor: default; }
+  .sd-btn-secondary {
+    flex: 1; padding: 13px; background: none; border: 1px solid var(--border);
+    border-radius: 10px; font-family: 'Jost', sans-serif;
+    font-size: 0.85rem; color: var(--ink); cursor: pointer;
+  }
+  .sd-btn-secondary:disabled { opacity: 0.5; cursor: default; }
+
   /* ── LORE PANELS ── */
   .plan-body.lore-panel {
     padding: 12px 16px 32px;
@@ -1616,6 +1677,7 @@
               style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
             <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char2')">Lock</button>
             <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char2')">Clear</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openSeedDiscovery('char2')">Discover</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
             <span class="portrait-pose-label">Preset</span>
@@ -1675,6 +1737,7 @@
               style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
             <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport')">Lock</button>
             <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport')">Clear</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openSeedDiscovery('charSupport')">Discover</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
             <span class="portrait-pose-label">Preset</span>
@@ -1735,6 +1798,7 @@
               style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
             <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport2')">Lock</button>
             <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport2')">Clear</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openSeedDiscovery('charSupport2')">Discover</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
             <span class="portrait-pose-label">Preset</span>
@@ -1795,6 +1859,7 @@
               style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
             <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('charSupport3')">Lock</button>
             <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('charSupport3')">Clear</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openSeedDiscovery('charSupport3')">Discover</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
             <span class="portrait-pose-label">Preset</span>
@@ -1854,6 +1919,7 @@
               style="width:100px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-family:'Jost',sans-serif;font-size:0.78rem;background:var(--surface);color:var(--ink);" />
             <button type="button" class="portrait-pose-change-btn" onclick="lockPortraitSeed('char1')">Lock</button>
             <button type="button" class="portrait-pose-change-btn" onclick="clearPortraitSeed('char1')">Clear</button>
+            <button type="button" class="portrait-pose-change-btn" onclick="openSeedDiscovery('char1')">Discover</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
             <span class="portrait-pose-label">Preset</span>
@@ -2236,6 +2302,25 @@
     <div class="sheet-actions">
       <button class="btn-cancel" type="button" id="beatCancelBtn" ontouchstart="event.preventDefault();closeBeatModal()" onclick="closeBeatModal()">Cancel</button>
       <button class="btn-save" type="button" id="beatSaveBtn" ontouchstart="event.preventDefault();saveBeat()" onclick="saveBeat()">Save Beat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SEED DISCOVERY MODAL ── -->
+<div class="modal-backdrop" id="seedDiscoveryModal">
+  <div class="modal-sheet" style="max-height:92vh;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sdModalTitle">Seed Discovery</div>
+    <p style="font-family:'Jost',sans-serif;font-size:0.8rem;color:var(--muted);margin:-8px 0 4px;">Generate portraits to find the seed that best fits your character, then lock it.</p>
+    <div class="sd-grid" id="sdGrid"></div>
+    <div class="sd-progress" id="sdProgress"></div>
+    <div class="sd-actions">
+      <button class="sd-btn-primary" id="sdGenBtn" onclick="startSdBatch()">✦ Generate 9</button>
+      <button class="sd-btn-secondary" id="sdRerollBtn" onclick="rerollSdUnselected()" style="display:none">↺ Re-roll rest</button>
+    </div>
+    <div class="sd-actions" style="margin-top:8px;">
+      <button class="sd-btn-primary" id="sdKeepBtn" onclick="keepSdSelected()" style="display:none">✓ Keep Selected &amp; Lock Seed</button>
+      <button class="sd-btn-secondary" onclick="closeSeedDiscovery()">Cancel</button>
     </div>
   </div>
 </div>
@@ -6310,6 +6395,296 @@ function lockPortraitSeed(charId) {
 function clearPortraitSeed(charId) {
   var input = document.getElementById('portrait-' + charId + '-seed');
   if (input) { input.value = ''; showToast('Seed cleared — next generation will be random'); }
+}
+
+// ── SEED DISCOVERY ────────────────────────────────────────────────────────────
+
+var sdState = {
+  charId: null,
+  slots: [],
+  generating: false,
+  aborted: false,
+  positivePrompt: null,
+  negativePrompt: null
+};
+
+function sdMakeSlots() {
+  return Array.apply(null, Array(9)).map(function() {
+    return { b64: null, seed: null, status: 'empty', selected: false };
+  });
+}
+
+function openSeedDiscovery(charId) {
+  var loreText = document.getElementById(charId) && document.getElementById(charId).value.trim();
+  if (!loreText) { showToast('Write some character lore first'); return; }
+  var veniceKey = document.getElementById('veniceApiKey').value.trim();
+  if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
+
+  sdState.charId = charId;
+  sdState.slots = sdMakeSlots();
+  sdState.generating = false;
+  sdState.aborted = false;
+  sdState.positivePrompt = null;
+  sdState.negativePrompt = null;
+
+  // Title: use character name if available from lore textarea label
+  var label = document.querySelector('label[for="' + charId + '"]');
+  var charName = label ? label.textContent.replace(/lore/i,'').trim() : '';
+  document.getElementById('sdModalTitle').textContent = 'Seed Discovery' + (charName ? ' — ' + charName : '');
+
+  sdRenderGrid();
+  sdSyncUI();
+  document.getElementById('seedDiscoveryModal').classList.add('open');
+}
+
+function closeSeedDiscovery() {
+  sdState.aborted = true;
+  sdState.generating = false;
+  document.getElementById('seedDiscoveryModal').classList.remove('open');
+}
+
+function sdSlotHTML(slot, idx) {
+  if (slot.status === 'empty') {
+    return '<div class="sd-slot-empty">✦</div>';
+  }
+  if (slot.status === 'loading') {
+    return '<div class="sd-slot-loading">✦</div>';
+  }
+  if (slot.status === 'error') {
+    return '<div class="sd-slot-empty" style="color:var(--rose);opacity:0.7">✗</div>' +
+      '<button class="sd-slot-reroll" onclick="event.stopPropagation();rerollSdSlot(' + idx + ')">↺</button>';
+  }
+  // done
+  return '<img src="data:image/webp;base64,' + slot.b64 + '" />' +
+    '<div class="sd-slot-seed">#' + slot.seed + '</div>' +
+    (slot.selected ? '<div class="sd-slot-check">✓</div>' : '') +
+    '<button class="sd-slot-reroll" onclick="event.stopPropagation();rerollSdSlot(' + idx + ')">↺</button>';
+}
+
+function sdRenderGrid() {
+  var grid = document.getElementById('sdGrid');
+  grid.innerHTML = '';
+  sdState.slots.forEach(function(slot, idx) {
+    var el = document.createElement('div');
+    el.className = 'sd-slot' + (slot.selected ? ' selected' : '');
+    el.id = 'sd-slot-' + idx;
+    el.onclick = function() { sdToggleSlot(idx); };
+    el.innerHTML = sdSlotHTML(slot, idx);
+    grid.appendChild(el);
+  });
+}
+
+function sdUpdateSlot(idx) {
+  var slot = sdState.slots[idx];
+  var el = document.getElementById('sd-slot-' + idx);
+  if (!el) return;
+  el.className = 'sd-slot' + (slot.selected ? ' selected' : '');
+  el.innerHTML = sdSlotHTML(slot, idx);
+}
+
+function sdSyncUI() {
+  var doneCount = sdState.slots.filter(function(s) { return s.status === 'done' || s.status === 'error'; }).length;
+  var hasDone = sdState.slots.some(function(s) { return s.status === 'done'; });
+  var hasSelected = sdState.slots.some(function(s) { return s.selected; });
+  var hasUnselectedDone = sdState.slots.some(function(s) { return s.status === 'done' && !s.selected; });
+
+  var prog = document.getElementById('sdProgress');
+  var genBtn = document.getElementById('sdGenBtn');
+  var rerollBtn = document.getElementById('sdRerollBtn');
+  var keepBtn = document.getElementById('sdKeepBtn');
+
+  if (sdState.generating) {
+    prog.textContent = doneCount + ' of 9 generated';
+    genBtn.disabled = true;
+    genBtn.textContent = 'Generating…';
+  } else {
+    prog.textContent = hasDone ? doneCount + ' of 9 generated' : '';
+    genBtn.disabled = false;
+    genBtn.textContent = '✦ Generate 9';
+  }
+
+  rerollBtn.style.display = (hasDone && !sdState.generating) ? '' : 'none';
+  rerollBtn.disabled = sdState.generating;
+  keepBtn.style.display = hasDone ? '' : 'none';
+  keepBtn.disabled = !hasSelected;
+  keepBtn.textContent = hasSelected
+    ? '✓ Keep Selected (' + sdState.slots.filter(function(s){return s.selected;}).length + ') & Lock Seed'
+    : '✓ Keep Selected & Lock Seed';
+}
+
+function sdToggleSlot(idx) {
+  var slot = sdState.slots[idx];
+  if (slot.status !== 'done') return;
+  slot.selected = !slot.selected;
+  sdUpdateSlot(idx);
+  sdSyncUI();
+}
+
+function startSdBatch() {
+  if (sdState.generating) return;
+  sdState.slots = sdMakeSlots();
+  sdState.generating = true;
+  sdState.aborted = false;
+  sdRenderGrid();
+  sdSyncUI();
+  sdBuildPrompt(sdState.charId, function(pos, neg) {
+    if (sdState.aborted) return;
+    sdState.positivePrompt = pos;
+    sdState.negativePrompt = neg;
+    sdRunSequential(sdState.slots.map(function(_, i) { return i; }), 0);
+  });
+}
+
+function sdBuildPrompt(charId, cb) {
+  var loreText = document.getElementById(charId).value.trim();
+  var loreTruncated = loreText.slice(0, 800);
+  var openRouterKey = document.getElementById('apiKey').value.trim();
+  var selectedPose = 'Half body front';
+  var poseTerms = poseToSDTerm(selectedPose);
+  var isFemale = charId !== 'char1';
+  var facingTerms = isFemale ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+  var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+  var lockedPart = lockedTags ? lockedTags + ', ' : '';
+  var qualityPart = getPortraitQualityTags();
+
+  var portraitStyleForNeg = document.getElementById('portraitStyle') ? document.getElementById('portraitStyle').value : 'studio';
+  var studioNegatives = portraitStyleForNeg === 'natural'
+    ? ', studio background, studio lighting, studio light, plain background, grey background, white background, solid background, seamless background, gradient background, backdrop, photography studio, ring light, softbox, professional lighting setup'
+    : '';
+  var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives;
+
+  function assemble(orPrompt) {
+    var orPart = stripPoseTerms(sanitiseVenicePrompt(orPrompt || ''));
+    var base = poseTerms + facingTerms + ', ' + lockedPart;
+    var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
+    if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
+    var split = splitNegatives(base + orPart + ', ' + qualityPart);
+    cb(split.positive, split.negatives ? baseNeg + ', ' + split.negatives : baseNeg);
+  }
+
+  if (openRouterKey) {
+    streamingFetch(openRouterKey, 'deepseek/deepseek-v3.2-20251201',
+      [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
+      { maxTokens: 300, label: 'sdPrompt',
+        onDone: function(prompt) {
+          prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
+          assemble(prompt.length >= 10 ? prompt : '');
+        },
+        onError: function() { assemble(''); }
+      });
+  } else {
+    assemble(buildFallbackPrompt(loreTruncated, charId, selectedPose));
+  }
+}
+
+function sdRunSequential(indices, pos) {
+  if (pos >= indices.length || sdState.aborted) {
+    sdState.generating = false;
+    sdSyncUI();
+    return;
+  }
+  sdGenerateOneSlot(indices[pos], function() {
+    sdRunSequential(indices, pos + 1);
+  });
+}
+
+function sdGenerateOneSlot(idx, cb) {
+  if (sdState.aborted) { cb(); return; }
+  var slot = sdState.slots[idx];
+  slot.status = 'loading';
+  sdUpdateSlot(idx);
+  sdSyncUI();
+
+  var veniceKey = document.getElementById('veniceApiKey').value.trim();
+  var model = document.getElementById('veniceImageModel').value;
+  var seed = Math.floor(Math.random() * 999999999) + 1;
+
+  fetch('https://api.venice.ai/api/v1/image/generate', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + veniceKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: model, prompt: sdState.positivePrompt, negative_prompt: sdState.negativePrompt,
+      width: 832, height: 1216, steps: 30, hide_watermark: true,
+      return_binary: false, safe_mode: false, seed: seed
+    })
+  }).then(function(res) {
+    if (!res.ok) {
+      return res.text().then(function(body) {
+        var msg = 'Venice error ' + res.status;
+        try { var e = JSON.parse(body); msg = e.message || e.error || msg; } catch(_) {}
+        throw new Error(msg);
+      });
+    }
+    return res.json();
+  }).then(function(data) {
+    if (sdState.aborted) { cb(); return; }
+    if (data.metadata && data.metadata.seed) seed = data.metadata.seed;
+    var images = data.images || (data.data && data.data.images);
+    var b64 = images && images[0];
+    if (b64 && b64.indexOf(',') > -1) b64 = b64.split(',')[1];
+    if (!b64 || b64.length < 20000) {
+      slot.status = 'error'; slot.b64 = null; slot.seed = null;
+    } else {
+      slot.status = 'done'; slot.b64 = b64; slot.seed = seed;
+    }
+    sdUpdateSlot(idx);
+    sdSyncUI();
+    cb();
+  }).catch(function(err) {
+    if (sdState.aborted) { cb(); return; }
+    dbg('[SeedDisc] slot ' + idx + ' error: ' + err.message);
+    slot.status = 'error'; slot.b64 = null; slot.seed = null;
+    sdUpdateSlot(idx);
+    sdSyncUI();
+    cb();
+  });
+}
+
+function rerollSdSlot(idx) {
+  if (sdState.generating) return;
+  if (!sdState.positivePrompt) {
+    showToast('Generate all 9 first');
+    return;
+  }
+  var slot = sdState.slots[idx];
+  slot.status = 'empty'; slot.b64 = null; slot.seed = null; slot.selected = false;
+  sdState.generating = true;
+  sdSyncUI();
+  sdGenerateOneSlot(idx, function() {
+    sdState.generating = false;
+    sdSyncUI();
+  });
+}
+
+function rerollSdUnselected() {
+  if (sdState.generating) return;
+  if (!sdState.positivePrompt) { showToast('Generate all 9 first'); return; }
+  var targets = [];
+  sdState.slots.forEach(function(slot, idx) {
+    if (!slot.selected) {
+      slot.status = 'empty'; slot.b64 = null; slot.seed = null;
+      sdUpdateSlot(idx);
+      targets.push(idx);
+    }
+  });
+  if (!targets.length) { showToast('All images are selected'); return; }
+  sdState.generating = true;
+  sdSyncUI();
+  sdRunSequential(targets, 0);
+}
+
+function keepSdSelected() {
+  var selected = sdState.slots.filter(function(s) { return s.selected && s.status === 'done'; });
+  if (!selected.length) { showToast('Select at least one portrait'); return; }
+  var charId = sdState.charId;
+  selected.forEach(function(slot) {
+    addPortraitImage(charId, slot.b64, 'Half body front', slot.seed);
+  });
+  // Lock the first selected seed
+  var seedInput = document.getElementById('portrait-' + charId + '-seed');
+  if (seedInput) seedInput.value = selected[0].seed;
+  showToast(selected.length + ' portrait' + (selected.length > 1 ? 's' : '') + ' added · Seed ' + selected[0].seed + ' locked');
+  closeSeedDiscovery();
 }
 
 
