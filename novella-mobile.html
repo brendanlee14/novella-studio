@@ -684,6 +684,56 @@
   }
   .popup-action-btn.danger { background: rgba(192,57,43,0.6); }
 
+  /* ── SEED DISCOVERY EXPAND ── */
+  #sdExpandPopup {
+    display: none; position: fixed; inset: 0;
+    background: #000; z-index: 900;
+    flex-direction: column; align-items: center; justify-content: center;
+    touch-action: none;
+  }
+  #sdExpandPopup.open { display: flex; }
+  #sdExpandImg {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    flex-shrink: 1;
+  }
+  .sd-expand-toolbar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 14px 16px 52px;
+    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    z-index: 10;
+  }
+  .sd-expand-close {
+    background: rgba(255,255,255,0.15); color: white; border: none;
+    border-radius: 8px; padding: 9px 14px; font-family: 'Jost',sans-serif;
+    font-size: 0.8rem; cursor: pointer;
+  }
+  .sd-expand-seed {
+    font-family: 'Jost',sans-serif; font-size: 0.72rem; color: rgba(255,255,255,0.6);
+    flex: 1; text-align: center;
+  }
+  .sd-expand-actions { display: flex; gap: 8px; }
+  .sd-expand-btn {
+    background: rgba(255,255,255,0.15); color: white; border: none;
+    border-radius: 8px; padding: 9px 14px; font-family: 'Jost',sans-serif;
+    font-size: 0.8rem; cursor: pointer; white-space: nowrap;
+  }
+  .sd-expand-btn.active { background: var(--gold); }
+  .sd-expand-btn:disabled { opacity: 0.4; cursor: default; }
+  .sd-expand-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(0,0,0,0.45); color: white; border: none;
+    font-size: 1.8rem; padding: 14px 12px; cursor: pointer; border-radius: 6px;
+    line-height: 1; z-index: 10;
+  }
+  .sd-expand-prev { left: 6px; }
+  .sd-expand-next { right: 6px; }
+  .sd-expand-counter {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    font-family: 'Jost',sans-serif; font-size: 0.72rem;
+    color: rgba(255,255,255,0.55); z-index: 10;
+  }
+
   /* Portrait card shell */
   .portrait-card {
     background: var(--ink); border-radius: 14px;
@@ -2321,6 +2371,22 @@
     <div class="sd-actions" style="margin-top:8px;">
       <button class="sd-btn-primary" id="sdKeepBtn" onclick="keepSdSelected()" style="display:none">✓ Keep Selected &amp; Lock Seed</button>
       <button class="sd-btn-secondary" onclick="closeSeedDiscovery()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SEED DISCOVERY EXPAND POPUP ── -->
+<div id="sdExpandPopup">
+  <div class="sd-expand-counter" id="sdExpandCounter"></div>
+  <img id="sdExpandImg" src="" alt="" />
+  <button class="sd-expand-nav sd-expand-prev" type="button" onclick="sdExpandNav(-1)">&#8249;</button>
+  <button class="sd-expand-nav sd-expand-next" type="button" onclick="sdExpandNav(1)">&#8250;</button>
+  <div class="sd-expand-toolbar">
+    <button class="sd-expand-close" type="button" onclick="closeSdExpand()">✕</button>
+    <span class="sd-expand-seed" id="sdExpandSeed"></span>
+    <div class="sd-expand-actions">
+      <button class="sd-expand-btn" id="sdExpandSelectBtn" type="button" onclick="sdExpandToggleSelect()">Select</button>
+      <button class="sd-expand-btn" id="sdExpandRerollBtn" type="button" onclick="sdExpandReroll()">↺ Re-roll</button>
     </div>
   </div>
 </div>
@@ -6441,6 +6507,8 @@ function closeSeedDiscovery() {
   sdState.aborted = true;
   sdState.generating = false;
   document.getElementById('seedDiscoveryModal').classList.remove('open');
+  document.getElementById('sdExpandPopup').classList.remove('open');
+  sdExpandIdx = null;
 }
 
 function sdSlotHTML(slot, idx) {
@@ -6468,7 +6536,7 @@ function sdRenderGrid() {
     var el = document.createElement('div');
     el.className = 'sd-slot' + (slot.selected ? ' selected' : '');
     el.id = 'sd-slot-' + idx;
-    el.onclick = function() { sdToggleSlot(idx); };
+    el.onclick = function() { openSdExpand(idx); };
     el.innerHTML = sdSlotHTML(slot, idx);
     grid.appendChild(el);
   });
@@ -6512,13 +6580,68 @@ function sdSyncUI() {
     : '✓ Keep Selected & Lock Seed';
 }
 
-function sdToggleSlot(idx) {
+// ── SEED DISCOVERY EXPAND ─────────────────────────────────────────────────────
+
+var sdExpandIdx = null;
+
+function openSdExpand(idx) {
   var slot = sdState.slots[idx];
   if (slot.status !== 'done') return;
-  slot.selected = !slot.selected;
-  sdUpdateSlot(idx);
-  sdSyncUI();
+  sdExpandIdx = idx;
+  sdExpandRender();
+  document.getElementById('sdExpandPopup').classList.add('open');
 }
+
+function closeSdExpand() {
+  document.getElementById('sdExpandPopup').classList.remove('open');
+  sdExpandIdx = null;
+}
+
+function sdExpandRender() {
+  var idx = sdExpandIdx;
+  var slot = sdState.slots[idx];
+  document.getElementById('sdExpandImg').src = 'data:image/webp;base64,' + slot.b64;
+  document.getElementById('sdExpandSeed').textContent = 'Seed #' + slot.seed;
+  document.getElementById('sdExpandCounter').textContent = (idx + 1) + ' / 9';
+
+  var selectBtn = document.getElementById('sdExpandSelectBtn');
+  selectBtn.textContent = slot.selected ? '✓ Selected' : 'Select';
+  selectBtn.className = 'sd-expand-btn' + (slot.selected ? ' active' : '');
+
+  var rerollBtn = document.getElementById('sdExpandRerollBtn');
+  rerollBtn.disabled = sdState.generating;
+
+  // Show/hide nav arrows based on adjacent done slots
+  var hasPrev = sdState.slots.slice(0, idx).some(function(s) { return s.status === 'done'; });
+  var hasNext = sdState.slots.slice(idx + 1).some(function(s) { return s.status === 'done'; });
+  document.querySelector('.sd-expand-prev').style.display = hasPrev ? '' : 'none';
+  document.querySelector('.sd-expand-next').style.display = hasNext ? '' : 'none';
+}
+
+function sdExpandNav(dir) {
+  var done = sdState.slots
+    .map(function(s, i) { return s.status === 'done' ? i : -1; })
+    .filter(function(i) { return i >= 0; });
+  var pos = done.indexOf(sdExpandIdx);
+  var next = done[pos + dir];
+  if (next !== undefined) { sdExpandIdx = next; sdExpandRender(); }
+}
+
+function sdExpandToggleSelect() {
+  var slot = sdState.slots[sdExpandIdx];
+  slot.selected = !slot.selected;
+  sdUpdateSlot(sdExpandIdx);
+  sdSyncUI();
+  sdExpandRender();
+}
+
+function sdExpandReroll() {
+  var idx = sdExpandIdx;
+  closeSdExpand();
+  rerollSdSlot(idx);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function startSdBatch() {
   if (sdState.generating) return;
