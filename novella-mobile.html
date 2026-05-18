@@ -5029,9 +5029,9 @@ function savePortraitToStory(charId) {
   });
 }
 
-function addPortraitImage(charId, b64, pose) {
+function addPortraitImage(charId, b64, pose, seed) {
   var state = portraitState[charId];
-  state.images.push({ b64: b64, pose: pose || 'Half body front', createdAt: Date.now() });
+  state.images.push({ b64: b64, pose: pose || 'Half body front', createdAt: Date.now(), seed: seed || null });
   state.currentIdx = state.images.length - 1;
   renderPortraitCarousel(charId, state.images);
   savePortraitToStory(charId);
@@ -6294,13 +6294,16 @@ function applyPortraitPreset(charId, name) {
 }
 
 function lockPortraitSeed(charId) {
-  var lastSeed = portraitState[charId] && portraitState[charId].lastSeed;
-  if (!lastSeed) { showToast('Generate a portrait first'); return; }
+  var state = portraitState[charId];
+  if (!state) { showToast('Generate a portrait first'); return; }
+  var img = state.images[state.currentIdx];
+  var seed = (img && img.seed) ? img.seed : state.lastSeed;
+  if (!seed) { showToast('Generate a portrait first'); return; }
   var input = document.getElementById('portrait-' + charId + '-seed');
   if (input) {
-    input.value = lastSeed;
-    showToast('Seed ' + lastSeed + ' locked — portraits will be consistent');
-    dbg('Seed locked for ' + charId + ': ' + lastSeed);
+    input.value = seed;
+    showToast('Seed ' + seed + ' locked — portraits will be consistent');
+    dbg('Seed locked for ' + charId + ' (image ' + state.currentIdx + '): ' + seed);
   }
 }
 
@@ -6544,7 +6547,7 @@ function generatePortrait(charId) {
         return;
       }
 
-      addPortraitImage(charId, b64, selectedPose);
+      addPortraitImage(charId, b64, selectedPose, portraitState[charId].lastSeed);
       showToast('Portrait generated ✓');
       dbg('Portrait saved for ' + charId);
     }).catch(function(err) {
