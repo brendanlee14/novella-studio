@@ -699,9 +699,12 @@
   .sd-expand-toolbar {
     position: absolute; bottom: 0; left: 0; right: 0;
     padding: 14px 16px 52px;
-    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
-    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    background: linear-gradient(to top, rgba(0,0,0,0.92), transparent);
+    display: flex; flex-direction: column; gap: 8px;
     z-index: 10;
+  }
+  .sd-expand-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
   }
   .sd-expand-close {
     background: rgba(255,255,255,0.15); color: white; border: none;
@@ -732,6 +735,16 @@
     position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
     font-family: 'Jost',sans-serif; font-size: 0.72rem;
     color: rgba(255,255,255,0.55); z-index: 10;
+  }
+  .sd-expand-pose-select {
+    flex: 1; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px; padding: 8px 10px; font-family: 'Jost',sans-serif; font-size: 0.78rem;
+    appearance: none; -webkit-appearance: none; cursor: pointer;
+  }
+  .sd-expand-pose-select option { background: #1a1410; color: white; }
+  .sd-expand-test-label {
+    flex: 1; text-align: center; font-family: 'Jost',sans-serif;
+    font-size: 0.72rem; color: rgba(255,255,255,0.7);
   }
 
   /* Portrait card shell */
@@ -2382,11 +2395,33 @@
   <button class="sd-expand-nav sd-expand-prev" type="button" onclick="sdExpandNav(-1)">&#8249;</button>
   <button class="sd-expand-nav sd-expand-next" type="button" onclick="sdExpandNav(1)">&#8250;</button>
   <div class="sd-expand-toolbar">
-    <button class="sd-expand-close" type="button" onclick="closeSdExpand()">✕</button>
-    <span class="sd-expand-seed" id="sdExpandSeed"></span>
-    <div class="sd-expand-actions">
-      <button class="sd-expand-btn" id="sdExpandSelectBtn" type="button" onclick="sdExpandToggleSelect()">Select</button>
-      <button class="sd-expand-btn" id="sdExpandRerollBtn" type="button" onclick="sdExpandReroll()">↺ Re-roll</button>
+    <!-- Row 1: main controls (original mode) -->
+    <div class="sd-expand-row" id="sdExpandMainRow">
+      <button class="sd-expand-close" type="button" onclick="closeSdExpand()">✕</button>
+      <span class="sd-expand-seed" id="sdExpandSeed"></span>
+      <div class="sd-expand-actions">
+        <button class="sd-expand-btn" id="sdExpandSelectBtn" type="button" onclick="sdExpandToggleSelect()">Select</button>
+        <button class="sd-expand-btn" id="sdExpandRerollBtn" type="button" onclick="sdExpandReroll()">↺ Re-roll</button>
+      </div>
+    </div>
+    <!-- Row 1b: test result controls (test mode) -->
+    <div class="sd-expand-row" id="sdExpandTestRow" style="display:none">
+      <button class="sd-expand-btn" type="button" onclick="sdExpandBackToOriginal()">← Back</button>
+      <span class="sd-expand-test-label" id="sdExpandTestLabel"></span>
+      <button class="sd-expand-btn active" type="button" id="sdExpandKeepTestBtn" onclick="sdExpandKeepTest()">Keep this</button>
+    </div>
+    <!-- Row 2: pose test bar -->
+    <div class="sd-expand-row" id="sdExpandPoseRow">
+      <select class="sd-expand-pose-select" id="sdExpandPoseSelect">
+        <option value="Full body front">Full body front</option>
+        <option value="Full body back">Full body back</option>
+        <option value="Side profile">Side profile</option>
+        <option value="Sitting relaxed">Sitting relaxed</option>
+        <option value="Casual leaning">Casual leaning</option>
+        <option value="Over the shoulder">Over the shoulder</option>
+        <option value="Three quarter">Three quarter</option>
+      </select>
+      <button class="sd-expand-btn" id="sdExpandTryBtn" type="button" onclick="sdExpandTryPose()">▶ Try pose</button>
     </div>
   </div>
 </div>
@@ -6486,14 +6521,17 @@ function openSeedDiscovery(charId) {
   var veniceKey = document.getElementById('veniceApiKey').value.trim();
   if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
 
+  // Preserve grid when reopening for the same character
+  var hasPrior = sdState.charId === charId && sdState.slots.some(function(s) { return s.status === 'done'; });
+  if (!hasPrior) {
+    sdState.slots = sdMakeSlots();
+    sdState.positivePrompt = null;
+    sdState.negativePrompt = null;
+  }
   sdState.charId = charId;
-  sdState.slots = sdMakeSlots();
   sdState.generating = false;
   sdState.aborted = false;
-  sdState.positivePrompt = null;
-  sdState.negativePrompt = null;
 
-  // Title: use character name if available from lore textarea label
   var label = document.querySelector('label[for="' + charId + '"]');
   var charName = label ? label.textContent.replace(/lore/i,'').trim() : '';
   document.getElementById('sdModalTitle').textContent = 'Seed Discovery' + (charName ? ' — ' + charName : '');
@@ -6583,11 +6621,15 @@ function sdSyncUI() {
 // ── SEED DISCOVERY EXPAND ─────────────────────────────────────────────────────
 
 var sdExpandIdx = null;
+var sdExpandMode = 'original'; // 'original' | 'test'
+var sdExpandTestResult = null; // { b64, pose }
 
 function openSdExpand(idx) {
   var slot = sdState.slots[idx];
   if (slot.status !== 'done') return;
   sdExpandIdx = idx;
+  sdExpandMode = 'original';
+  sdExpandTestResult = null;
   sdExpandRender();
   document.getElementById('sdExpandPopup').classList.add('open');
 }
@@ -6595,27 +6637,118 @@ function openSdExpand(idx) {
 function closeSdExpand() {
   document.getElementById('sdExpandPopup').classList.remove('open');
   sdExpandIdx = null;
+  sdExpandMode = 'original';
+  sdExpandTestResult = null;
 }
 
 function sdExpandRender() {
   var idx = sdExpandIdx;
   var slot = sdState.slots[idx];
-  document.getElementById('sdExpandImg').src = 'data:image/webp;base64,' + slot.b64;
-  document.getElementById('sdExpandSeed').textContent = 'Seed #' + slot.seed;
-  document.getElementById('sdExpandCounter').textContent = (idx + 1) + ' / 9';
+  var isTest = sdExpandMode === 'test' && sdExpandTestResult;
 
-  var selectBtn = document.getElementById('sdExpandSelectBtn');
-  selectBtn.textContent = slot.selected ? '✓ Selected' : 'Select';
-  selectBtn.className = 'sd-expand-btn' + (slot.selected ? ' active' : '');
+  // Image
+  document.getElementById('sdExpandImg').src = isTest
+    ? 'data:image/webp;base64,' + sdExpandTestResult.b64
+    : 'data:image/webp;base64,' + slot.b64;
 
-  var rerollBtn = document.getElementById('sdExpandRerollBtn');
-  rerollBtn.disabled = sdState.generating;
+  // Counter / label
+  document.getElementById('sdExpandCounter').textContent = isTest
+    ? 'Test: ' + sdExpandTestResult.pose
+    : (idx + 1) + ' / 9';
 
-  // Show/hide nav arrows based on adjacent done slots
-  var hasPrev = sdState.slots.slice(0, idx).some(function(s) { return s.status === 'done'; });
-  var hasNext = sdState.slots.slice(idx + 1).some(function(s) { return s.status === 'done'; });
+  // Row visibility
+  document.getElementById('sdExpandMainRow').style.display = isTest ? 'none' : '';
+  document.getElementById('sdExpandTestRow').style.display = isTest ? '' : 'none';
+
+  if (!isTest) {
+    document.getElementById('sdExpandSeed').textContent = 'Seed #' + slot.seed;
+    var selectBtn = document.getElementById('sdExpandSelectBtn');
+    selectBtn.textContent = slot.selected ? '✓ Selected' : 'Select';
+    selectBtn.className = 'sd-expand-btn' + (slot.selected ? ' active' : '');
+    document.getElementById('sdExpandRerollBtn').disabled = sdState.generating;
+  } else {
+    document.getElementById('sdExpandTestLabel').textContent = 'Seed #' + slot.seed;
+  }
+
+  // Try button state
+  document.getElementById('sdExpandTryBtn').disabled = sdState.generating;
+
+  // Nav arrows — hidden in test mode, otherwise based on adjacent done slots
+  var hasPrev = !isTest && sdState.slots.slice(0, idx).some(function(s) { return s.status === 'done'; });
+  var hasNext = !isTest && sdState.slots.slice(idx + 1).some(function(s) { return s.status === 'done'; });
   document.querySelector('.sd-expand-prev').style.display = hasPrev ? '' : 'none';
   document.querySelector('.sd-expand-next').style.display = hasNext ? '' : 'none';
+}
+
+function sdExpandBackToOriginal() {
+  sdExpandMode = 'original';
+  sdExpandTestResult = null;
+  sdExpandRender();
+}
+
+function sdExpandTryPose() {
+  if (sdState.generating) return;
+  var tryBtn = document.getElementById('sdExpandTryBtn');
+  tryBtn.disabled = true;
+  tryBtn.textContent = 'Generating…';
+
+  var charId = sdState.charId;
+  var pose = document.getElementById('sdExpandPoseSelect').value;
+  var slot = sdState.slots[sdExpandIdx];
+  var veniceKey = document.getElementById('veniceApiKey').value.trim();
+  var model = document.getElementById('veniceImageModel').value;
+
+  // Build prompt for the test pose using the same locked tags
+  var loreTruncated = (document.getElementById(charId).value || '').slice(0, 800);
+  var poseTerms = poseToSDTerm(pose);
+  var isFemale = charId !== 'char1';
+  var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
+  var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+  var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+  var lockedPart = lockedTags ? lockedTags + ', ' : '';
+  var qualityPart = getPortraitQualityTags();
+  var orPart = sdState.positivePrompt
+    ? stripPoseTerms(sdState.positivePrompt.replace(poseToSDTerm('Half body front'), '').replace(/^[,\s]+/, ''))
+    : '';
+  var base = poseTerms + facingTerms + ', ' + lockedPart;
+  var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
+  if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
+  var split = splitNegatives(base + orPart + ', ' + qualityPart);
+  var negPrompt = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus';
+  if (split.negatives) negPrompt += ', ' + split.negatives;
+
+  fetch('https://api.venice.ai/api/v1/image/generate', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + veniceKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: model, prompt: split.positive, negative_prompt: negPrompt,
+      width: 832, height: 1216, steps: 30, hide_watermark: true,
+      return_binary: false, safe_mode: false, seed: slot.seed
+    })
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(b) { throw new Error('Venice ' + res.status); });
+    return res.json();
+  }).then(function(data) {
+    var images = data.images || (data.data && data.data.images);
+    var b64 = images && images[0];
+    if (b64 && b64.indexOf(',') > -1) b64 = b64.split(',')[1];
+    if (!b64 || b64.length < 20000) throw new Error('Blank image returned');
+    sdExpandMode = 'test';
+    sdExpandTestResult = { b64: b64, pose: pose };
+    sdExpandRender();
+    tryBtn.disabled = false; tryBtn.textContent = '▶ Try pose';
+  }).catch(function(err) {
+    showToast('Test failed: ' + err.message.slice(0, 80));
+    tryBtn.disabled = false; tryBtn.textContent = '▶ Try pose';
+  });
+}
+
+function sdExpandKeepTest() {
+  if (!sdExpandTestResult) return;
+  var slot = sdState.slots[sdExpandIdx];
+  addPortraitImage(sdState.charId, sdExpandTestResult.b64, sdExpandTestResult.pose, slot.seed);
+  showToast('Test portrait added to carousel');
+  sdExpandBackToOriginal();
 }
 
 function sdExpandNav(dir) {
@@ -6624,7 +6757,12 @@ function sdExpandNav(dir) {
     .filter(function(i) { return i >= 0; });
   var pos = done.indexOf(sdExpandIdx);
   var next = done[pos + dir];
-  if (next !== undefined) { sdExpandIdx = next; sdExpandRender(); }
+  if (next !== undefined) {
+    sdExpandIdx = next;
+    sdExpandMode = 'original';
+    sdExpandTestResult = null;
+    sdExpandRender();
+  }
 }
 
 function sdExpandToggleSelect() {
@@ -6654,7 +6792,7 @@ function startSdBatch() {
     if (sdState.aborted) return;
     sdState.positivePrompt = pos;
     sdState.negativePrompt = neg;
-    sdRunSequential(sdState.slots.map(function(_, i) { return i; }), 0);
+    sdRunWithConcurrency(sdState.slots.map(function(_, i) { return i; }), 2);
   });
 }
 
@@ -6700,15 +6838,22 @@ function sdBuildPrompt(charId, cb) {
   }
 }
 
-function sdRunSequential(indices, pos) {
-  if (pos >= indices.length || sdState.aborted) {
-    sdState.generating = false;
-    sdSyncUI();
-    return;
+function sdRunWithConcurrency(indices, concurrency) {
+  var queue = indices.slice();
+  var inFlight = 0;
+  function pump() {
+    if (sdState.aborted) {
+      if (inFlight === 0) { sdState.generating = false; sdSyncUI(); }
+      return;
+    }
+    while (inFlight < concurrency && queue.length > 0) {
+      var idx = queue.shift();
+      inFlight++;
+      sdGenerateOneSlot(idx, function() { inFlight--; pump(); });
+    }
+    if (inFlight === 0 && queue.length === 0) { sdState.generating = false; sdSyncUI(); }
   }
-  sdGenerateOneSlot(indices[pos], function() {
-    sdRunSequential(indices, pos + 1);
-  });
+  pump();
 }
 
 function sdGenerateOneSlot(idx, cb) {
@@ -6793,7 +6938,7 @@ function rerollSdUnselected() {
   if (!targets.length) { showToast('All images are selected'); return; }
   sdState.generating = true;
   sdSyncUI();
-  sdRunSequential(targets, 0);
+  sdRunWithConcurrency(targets, 2);
 }
 
 function keepSdSelected() {
