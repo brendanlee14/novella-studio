@@ -6707,13 +6707,11 @@ function sdExpandTryPose() {
   var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
   var lockedPart = lockedTags ? lockedTags + ', ' : '';
   var qualityPart = getPortraitQualityTags();
-  var orPart = sdState.positivePrompt
-    ? stripPoseTerms(sdState.positivePrompt.replace(poseToSDTerm('Half body front'), '').replace(/^[,\s]+/, ''))
-    : '';
+  // Don't reuse the batch prompt — it's a mixed blob that includes Half body front terms which
+  // would override the test pose. Locked appearance tags are sufficient for pose testing.
   var base = poseTerms + facingTerms + ', ' + lockedPart;
   var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
-  if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
-  var split = splitNegatives(base + orPart + ', ' + qualityPart);
+  var split = splitNegatives(base + qualityPart);
   var negPrompt = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus';
   if (split.negatives) negPrompt += ', ' + split.negatives;
 
