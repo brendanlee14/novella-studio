@@ -835,6 +835,13 @@
     font-family: 'Jost', sans-serif;
   }
   .sd-slot-reroll:active { background: rgba(0,0,0,0.9); }
+  .sd-slot-expand {
+    position: absolute; bottom: 4px; right: 4px;
+    background: rgba(0,0,0,0.6); color: white; border: none;
+    border-radius: 4px; padding: 3px 6px; font-size: 0.65rem; cursor: pointer;
+    font-family: 'Jost', sans-serif; line-height: 1;
+  }
+  .sd-slot-expand:active { background: rgba(0,0,0,0.9); }
   .sd-progress {
     font-family: 'Jost', sans-serif; font-size: 0.75rem; color: var(--muted);
     text-align: center; padding: 4px 0 0; min-height: 18px;
@@ -6564,7 +6571,8 @@ function sdSlotHTML(slot, idx) {
   return '<img src="data:image/webp;base64,' + slot.b64 + '" />' +
     '<div class="sd-slot-seed">#' + slot.seed + '</div>' +
     (slot.selected ? '<div class="sd-slot-check">✓</div>' : '') +
-    '<button class="sd-slot-reroll" onclick="event.stopPropagation();rerollSdSlot(' + idx + ')">↺</button>';
+    '<button class="sd-slot-reroll" onclick="event.stopPropagation();rerollSdSlot(' + idx + ')">↺</button>' +
+    '<button class="sd-slot-expand" onclick="event.stopPropagation();openSdExpand(' + idx + ')">⤢</button>';
 }
 
 function sdRenderGrid() {
@@ -6574,7 +6582,7 @@ function sdRenderGrid() {
     var el = document.createElement('div');
     el.className = 'sd-slot' + (slot.selected ? ' selected' : '');
     el.id = 'sd-slot-' + idx;
-    el.onclick = function() { openSdExpand(idx); };
+    el.onclick = function() { sdToggleSlot(idx); };
     el.innerHTML = sdSlotHTML(slot, idx);
     grid.appendChild(el);
   });
@@ -6616,6 +6624,14 @@ function sdSyncUI() {
   keepBtn.textContent = hasSelected
     ? '✓ Keep Selected (' + sdState.slots.filter(function(s){return s.selected;}).length + ') & Lock Seed'
     : '✓ Keep Selected & Lock Seed';
+}
+
+function sdToggleSlot(idx) {
+  var slot = sdState.slots[idx];
+  if (slot.status !== 'done') return;
+  slot.selected = !slot.selected;
+  sdUpdateSlot(idx);
+  sdSyncUI();
 }
 
 // ── SEED DISCOVERY EXPAND ─────────────────────────────────────────────────────
