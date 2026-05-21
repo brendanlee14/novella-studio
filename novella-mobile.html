@@ -1732,13 +1732,11 @@
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">Clothing</span>
             <span class="portrait-pose-current" id="portrait-char2-clothing-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-char2-sheer-btn" onclick="togglePortraitOption('char2','sheer')">Sheer</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('char2')">Change</button>
           </div>
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">State</span>
             <span class="portrait-pose-current" id="portrait-char2-state-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-char2-nipples-btn" onclick="togglePortraitOption('char2','nipples')">Hard nipples</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('char2')">Change</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
@@ -1792,13 +1790,11 @@
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">Clothing</span>
             <span class="portrait-pose-current" id="portrait-charSupport-clothing-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-charSupport-sheer-btn" onclick="togglePortraitOption('charSupport','sheer')">Sheer</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport')">Change</button>
           </div>
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">State</span>
             <span class="portrait-pose-current" id="portrait-charSupport-state-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-charSupport-nipples-btn" onclick="togglePortraitOption('charSupport','nipples')">Hard nipples</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport')">Change</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
@@ -1853,13 +1849,11 @@
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">Clothing</span>
             <span class="portrait-pose-current" id="portrait-charSupport2-clothing-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-charSupport2-sheer-btn" onclick="togglePortraitOption('charSupport2','sheer')">Sheer</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport2')">Change</button>
           </div>
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">State</span>
             <span class="portrait-pose-current" id="portrait-charSupport2-state-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-charSupport2-nipples-btn" onclick="togglePortraitOption('charSupport2','nipples')">Hard nipples</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport2')">Change</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
@@ -1914,13 +1908,11 @@
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">Clothing</span>
             <span class="portrait-pose-current" id="portrait-charSupport3-clothing-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-charSupport3-sheer-btn" onclick="togglePortraitOption('charSupport3','sheer')">Sheer</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openClothingPicker('charSupport3')">Change</button>
           </div>
           <div class="portrait-pose-row">
             <span class="portrait-pose-label">State</span>
             <span class="portrait-pose-current" id="portrait-charSupport3-state-label">Nude</span>
-            <button type="button" class="portrait-option-toggle" id="portrait-charSupport3-nipples-btn" onclick="togglePortraitOption('charSupport3','nipples')">Hard nipples</button>
             <button type="button" class="portrait-pose-change-btn" onclick="openStatePicker('charSupport3')">Change</button>
           </div>
           <div class="portrait-pose-row" style="gap:6px;flex-wrap:wrap;">
@@ -5062,10 +5054,10 @@ const PORTRAIT_POSES_FLAT = Object.values(PORTRAIT_POSE_GROUPS).flat();
 // Per-character state
 var portraitState = {
   char1: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', erect: false, holding: false, appearanceTags: '' },
-  char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
-  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
-  charSupport2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' },
-  charSupport3: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', sheer: false, hardNipples: false, appearanceTags: '' }
+  char2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', appearanceTags: '' },
+  charSupport: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', appearanceTags: '' },
+  charSupport2: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', appearanceTags: '' },
+  charSupport3: { images: [], currentIdx: 0, pose: 'Half body front', clothing: 'Nude', dressedState: 'Nude', appearanceTags: '' }
 };
 
 function renderPortraitCarousel(charId, images) {
@@ -5091,9 +5083,6 @@ function renderPortraitCarousel(charId, images) {
   if (charId === 'char1') {
     updateToggleBtn(charId, 'erect');
     updateToggleBtn(charId, 'holding');
-  } else {
-    updateToggleBtn(charId, 'sheer');
-    updateToggleBtn(charId, 'nipples');
   }
 
   if (!state.images.length) {
@@ -6082,11 +6071,6 @@ function selectClothing(item) {
   portraitState[clothingPickerCharId].clothing = item;
   var label = document.getElementById('portrait-' + clothingPickerCharId + '-clothing-label');
   if (label) label.textContent = item;
-  // Auto-set sheer off if nude
-  if (item === 'Nude') {
-    portraitState[clothingPickerCharId].sheer = false;
-    updateToggleBtn(clothingPickerCharId, 'sheer');
-  }
   closeClothingPicker();
   showToast(item);
 }
@@ -6127,12 +6111,7 @@ function selectDressedState(state) {
 
 function togglePortraitOption(charId, option) {
   var state = portraitState[charId];
-  if (option === 'sheer') {
-    if (state.clothing === 'Nude') { showToast('Select a clothing type first'); return; }
-    state.sheer = !state.sheer;
-  } else if (option === 'nipples') {
-    state.hardNipples = !state.hardNipples;
-  } else if (option === 'erect') {
+  if (option === 'erect') {
     state.erect = !state.erect;
     // If turning erect off, also turn holding off
     if (!state.erect) state.holding = false;
@@ -6154,9 +6133,7 @@ function togglePortraitOption(charId, option) {
 function updateToggleBtn(charId, option) {
   var state = portraitState[charId];
   var btnId, on;
-  if (option === 'sheer') { btnId = 'portrait-' + charId + '-sheer-btn'; on = state.sheer; }
-  else if (option === 'nipples') { btnId = 'portrait-' + charId + '-nipples-btn'; on = state.hardNipples; }
-  else if (option === 'erect') { btnId = 'portrait-' + charId + '-erect-btn'; on = state.erect; }
+  if (option === 'erect') { btnId = 'portrait-' + charId + '-erect-btn'; on = state.erect; }
   else if (option === 'holding') { btnId = 'portrait-' + charId + '-holding-btn'; on = state.holding; }
   var btn = document.getElementById(btnId);
   if (btn) btn.classList.toggle('on', !!on);
@@ -6194,9 +6171,7 @@ function buildClothingPromptTerms(charId) {
     if (clothing === 'Nude') {
       parts.push('nude, no clothing, bare skin');
     } else {
-      var clothingTerm = clothing.toLowerCase();
-      if (state.sheer) clothingTerm += ', sheer fabric, see-through, translucent';
-      parts.push(clothingTerm);
+      parts.push(clothing.toLowerCase());
     }
 
     var stateMap = {
@@ -6209,13 +6184,6 @@ function buildClothingPromptTerms(charId) {
     var femStateTerm = stateMap[dressedState] || '';
     if (clothing !== 'Nude' && femStateTerm) parts.push(femStateTerm);
 
-    if (state.hardNipples) {
-      if (dressedState === 'Topless' || dressedState === 'Nude' || clothing === 'Nude') {
-        parts.push('hard nipples, erect nipples');
-      } else {
-        parts.push('hard nipples visible through fabric, erect nipples');
-      }
-    }
   }
 
   return parts.filter(Boolean).join(', ');
@@ -6461,8 +6429,6 @@ function savePortraitPreset(charId) {
     pose: state.pose,
     clothing: state.clothing,
     dressedState: state.dressedState,
-    sheer: state.sheer,
-    hardNipples: state.hardNipples,
     erect: state.erect,
     holding: state.holding,
   };
@@ -6492,11 +6458,9 @@ function applyPortraitPreset(charId, name) {
     var stateLabel = document.getElementById('portrait-' + charId + '-state-label');
     if (stateLabel) stateLabel.textContent = preset.dressedState;
   }
-  state.sheer = !!preset.sheer;
-  state.hardNipples = !!preset.hardNipples;
   state.erect = !!preset.erect;
   state.holding = !!preset.holding;
-  ['sheer','nipples','erect','holding'].forEach(function(opt) { updateToggleBtn(charId, opt); });
+  ['erect','holding'].forEach(function(opt) { updateToggleBtn(charId, opt); });
   // Reset select to placeholder
   var sel = document.getElementById('portrait-' + charId + '-preset');
   if (sel) sel.value = '';
