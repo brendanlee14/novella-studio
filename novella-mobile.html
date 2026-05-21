@@ -5450,11 +5450,18 @@ function deletePortraitFromPopup() {
 }
 
 function sanitiseVenicePrompt(prompt) {
-  // Venice Pro — safe_mode: false but some terms still trigger blank frames
+  // Venice Pro — safe_mode: false but these terms still trigger blank frames
   return prompt
-    .replace(/\bareolae?\b/gi, '')       // "areola", "areolae" — API-level blocked
-    .replace(/\bpubic\b/gi, '')          // "pubic hair" → " hair" (harmless remainder)
+    .replace(/\bareolae?\b/gi, '')
+    .replace(/\bpubic\b/gi, '')
+    .replace(/\bcum\b/gi, '')
+    .replace(/\bcumshot\b/gi, '')
+    .replace(/\bcreampie\b/gi, '')
+    .replace(/\bejaculat\w*/gi, '')
+    .replace(/\bsquirting\b/gi, '')
+    .replace(/\bgaping\b/gi, '')
     .replace(/,\s*,+/g, ',')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
@@ -6897,7 +6904,7 @@ function sdGenerateOneSlot(idx, cb) {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + veniceKey, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: model, prompt: sdState.positivePrompt, negative_prompt: sdState.negativePrompt,
+      model: model, prompt: sanitiseVenicePrompt(sdState.positivePrompt), negative_prompt: sdState.negativePrompt,
       width: 832, height: 1216, steps: 30, hide_watermark: true,
       return_binary: false, safe_mode: false, seed: seed
     })
@@ -7156,7 +7163,7 @@ function generatePortrait(charId) {
     if (extraNegatives) negPrompt += ', ' + extraNegatives;
     var requestBody = {
       model: model,
-      prompt: imagePrompt,
+      prompt: sanitiseVenicePrompt(imagePrompt),
       negative_prompt: negPrompt,
       width: 832,
       height: 1216,
