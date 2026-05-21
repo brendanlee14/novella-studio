@@ -5958,16 +5958,15 @@ function clearPortraitAppearance(charId) {
 }
 
 function buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) {
-  // Pose/action tags are injected AFTER this LLM step to bypass content filters.
-  // This function generates appearance-only tags — body, face, clothing, style.
-  var clothingInstruction = buildClothingPromptTerms(charId);
+  // Clothing/state is injected directly into the Venice prompt — NOT via this LLM step.
+  // This function generates physical appearance tags only: body, face, hair, skin.
   var isFemale = charId !== 'char1';
 
   var poseContext = selectedPose ? 'The image will be posed as: ' + selectedPose + '. Do NOT generate setting, background, environment, or location tags — the pose already defines the location.' : '';
 
   var genderInstruction = isFemale
-    ? 'IMPORTANT: FEMALE character. Output appearance tags only — body, face, hair, clothing, skin. Do NOT include: pose, position, action, composition, setting, background, environment, location, or scene tags. Appearance only.'
-    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms. Output appearance tags only — do NOT include pose, action, setting, background, environment, or location tags.';
+    ? 'IMPORTANT: FEMALE character. Output physical appearance tags only — body proportions, face features, hair, skin. Do NOT include: clothing, fabric, undress state, pose, action, composition, setting, background, environment, or scene tags.'
+    : 'IMPORTANT: MALE character. Male tags only. No female anatomy terms. Output physical appearance tags only — body, face, hair, skin. Do NOT include clothing state, pose, action, setting, or location tags.';
 
   var styleEl = document.getElementById('portraitStyle');
   var portraitStyleVal = styleEl ? styleEl.value : 'studio';
@@ -5989,18 +5988,16 @@ function buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) {
     return 'Generate Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags.\n\n' +
       genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
       'LOCKED CHARACTER APPEARANCE — use these EXACTLY, do not alter or omit:\n' + storedTags + '\n\n' +
-      'Required clothing/state: ' + clothingInstruction + '\n\n' +
-      'Output only: the locked appearance tags + the clothing/state. No setting, background, environment, location, or style context tags.';
+      'Output only: the locked appearance tags (physical features only). No clothing state, no setting, no background, no environment.';
   }
 
   // Fallback: extract structured physical tags directly from lore via regex
   var structuredTags = buildStructuredTags(loreTruncated, charId);
 
-  return 'Convert this character description into Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags describing appearance.\n\n' +
+  return 'Convert this character description into Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags describing physical appearance.\n\n' +
     genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
     'LOCKED PHYSICAL TAGS — include these EXACTLY as written, do not modify:\n' + structuredTags + '\n\n' +
-    'Required clothing/state: ' + clothingInstruction + '\n\n' +
-    'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Appearance only — no setting, background, or location tags. Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
+    'Add remaining appearance tags from this character description (body type, distinctive features, skin texture, overall aesthetic). Physical appearance only — no clothing, no setting, no background. Do not repeat the locked tags. Max 40 additional words.\n\nCharacter:\n' + loreTruncated;
 }
 
 // ══════════════════════════════
@@ -6839,7 +6836,8 @@ function sdBuildPrompt(charId, cb) {
   var isFemale = charId !== 'char1';
   var facingTerms = isFemale ? ', facing camera, front view, looking at viewer' : '';
   var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
-  var lockedPart = lockedTags ? lockedTags + ', ' : '';
+  var clothingTerms = buildClothingPromptTerms(charId);
+  var lockedPart = (lockedTags ? lockedTags + ', ' : '') + (clothingTerms ? clothingTerms + ', ' : '');
   var qualityPart = getPortraitQualityTags();
 
   var portraitStyleForNeg = document.getElementById('portraitStyle') ? document.getElementById('portraitStyle').value : 'studio';
@@ -7280,9 +7278,10 @@ function generatePortrait(charId) {
           // Only add facing-camera terms for non-rear-view poses
           var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
           var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
-          // Always inject locked appearance tags directly into Venice prompt — OR may not reproduce them faithfully
+          // Inject locked appearance + current clothing/state directly — never rely on OR to reproduce them
           var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
-          var lockedPart = lockedTags ? lockedTags + ', ' : '';
+          var clothingTerms = buildClothingPromptTerms(charId);
+          var lockedPart = (lockedTags ? lockedTags + ', ' : '') + (clothingTerms ? clothingTerms + ', ' : '');
           var orPart = stripPoseTerms(sanitiseVenicePrompt(prompt));
           var qualityPart = getPortraitQualityTags();
           var base = poseTerms + facingTerms + ', ' + lockedPart;
