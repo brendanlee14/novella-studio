@@ -6890,55 +6890,62 @@ function sdRunWithConcurrency(indices, concurrency) {
 }
 
 function sdGenerateOneSlot(idx, cb) {
-  if (sdState.aborted) { cb(); return; }
-  var slot = sdState.slots[idx];
-  slot.status = 'loading';
-  sdUpdateSlot(idx);
-  sdSyncUI();
-
-  var veniceKey = document.getElementById('veniceApiKey').value.trim();
-  var model = document.getElementById('veniceImageModel').value;
-  var seed = Math.floor(Math.random() * 999999999) + 1;
-
-  fetch('https://api.venice.ai/api/v1/image/generate', {
-    method: 'POST',
-    headers: { 'Authorization': 'Bearer ' + veniceKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: model, prompt: sanitiseVenicePrompt(sdState.positivePrompt), negative_prompt: sdState.negativePrompt,
-      width: 832, height: 1216, steps: 30, hide_watermark: true,
-      return_binary: false, safe_mode: false, seed: seed
-    })
-  }).then(function(res) {
-    if (!res.ok) {
-      return res.text().then(function(body) {
-        var msg = 'Venice error ' + res.status;
-        try { var e = JSON.parse(body); msg = e.message || e.error || msg; } catch(_) {}
-        throw new Error(msg);
-      });
-    }
-    return res.json();
-  }).then(function(data) {
+  var MAX_ATTEMPTS = 3;
+  function attempt(n) {
     if (sdState.aborted) { cb(); return; }
-    if (data.metadata && data.metadata.seed) seed = data.metadata.seed;
-    var images = data.images || (data.data && data.data.images);
-    var b64 = images && images[0];
-    if (b64 && b64.indexOf(',') > -1) b64 = b64.split(',')[1];
-    if (!b64 || b64.length < 20000) {
-      slot.status = 'error'; slot.b64 = null; slot.seed = null;
-    } else {
-      slot.status = 'done'; slot.b64 = b64; slot.seed = seed;
+    var slot = sdState.slots[idx];
+    slot.status = 'loading';
+    sdUpdateSlot(idx);
+    if (n === 0) sdSyncUI();
+
+    var veniceKey = document.getElementById('veniceApiKey').value.trim();
+    var model = document.getElementById('veniceImageModel').value;
+    var seed = Math.floor(Math.random() * 999999999) + 1;
+
+    function onFail(reason) {
+      dbg('[SeedDisc] slot ' + idx + ' attempt ' + n + ' failed: ' + reason);
+      if (n + 1 < MAX_ATTEMPTS && !sdState.aborted) {
+        var delay = n === 0 ? 4000 : 9000;
+        setTimeout(function() { attempt(n + 1); }, delay);
+      } else {
+        slot.status = 'error'; slot.b64 = null; slot.seed = null;
+        sdUpdateSlot(idx); sdSyncUI(); cb();
+      }
     }
-    sdUpdateSlot(idx);
-    sdSyncUI();
-    cb();
-  }).catch(function(err) {
-    if (sdState.aborted) { cb(); return; }
-    dbg('[SeedDisc] slot ' + idx + ' error: ' + err.message);
-    slot.status = 'error'; slot.b64 = null; slot.seed = null;
-    sdUpdateSlot(idx);
-    sdSyncUI();
-    cb();
-  });
+
+    fetch('https://api.venice.ai/api/v1/image/generate', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + veniceKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: model, prompt: sanitiseVenicePrompt(sdState.positivePrompt), negative_prompt: sdState.negativePrompt,
+        width: 832, height: 1216, steps: 30, hide_watermark: true,
+        return_binary: false, safe_mode: false, seed: seed
+      })
+    }).then(function(res) {
+      if (!res.ok) {
+        res.text().then(function(body) {
+          var msg = 'HTTP ' + res.status;
+          try { var e = JSON.parse(body); msg = e.message || e.error || msg; } catch(_) {}
+          onFail(msg);
+        }).catch(function() { onFail('HTTP ' + res.status); });
+        return;
+      }
+      res.json().then(function(data) {
+        if (sdState.aborted) { cb(); return; }
+        if (data.metadata && data.metadata.seed) seed = data.metadata.seed;
+        var images = data.images || (data.data && data.data.images);
+        var b64 = images && images[0];
+        if (b64 && b64.indexOf(',') > -1) b64 = b64.split(',')[1];
+        if (!b64 || b64.length < 20000) { onFail('blank frame'); return; }
+        slot.status = 'done'; slot.b64 = b64; slot.seed = seed;
+        sdUpdateSlot(idx); sdSyncUI(); cb();
+      }).catch(function(e) { onFail(e.message || 'parse error'); });
+    }).catch(function(err) {
+      if (sdState.aborted) { cb(); return; }
+      onFail(err.message || 'network error');
+    });
+  }
+  attempt(0);
 }
 
 function rerollSdSlot(idx) {
