@@ -2800,6 +2800,13 @@ function saveCurrentStory() {
       charSupport2: portraitState.charSupport2.appearanceTags || '',
       charSupport3: portraitState.charSupport3.appearanceTags || '',
     },
+    portraitSeeds: {
+      char1: (document.getElementById('portrait-char1-seed') || {}).value || '',
+      char2: (document.getElementById('portrait-char2-seed') || {}).value || '',
+      charSupport: (document.getElementById('portrait-charSupport-seed') || {}).value || '',
+      charSupport2: (document.getElementById('portrait-charSupport2-seed') || {}).value || '',
+      charSupport3: (document.getElementById('portrait-charSupport3-seed') || {}).value || '',
+    },
     beatBriefs: {
       char1: beatBriefs.char1 || '',
       char2: beatBriefs.char2 || '',
@@ -2863,12 +2870,13 @@ function loadStoryIntoApp(story) {
 
   // Restore portraits from IndexedDB (with migration from localStorage if needed)
   // Reset all portrait state first — prevents previous story's images/seeds bleeding through
+  var savedSeeds = d.portraitSeeds || {};
   ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(function(id) {
     portraitState[id].images = [];
     portraitState[id].currentIdx = 0;
     portraitState[id].lastSeed = null;
     var seedInput = document.getElementById('portrait-' + id + '-seed');
-    if (seedInput) seedInput.value = '';
+    if (seedInput) seedInput.value = savedSeeds[id] || '';
     renderPortraitCarousel(id, []);
   });
   migratePortraitsToIDB(story).then(function() {
