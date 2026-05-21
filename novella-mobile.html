@@ -5460,6 +5460,7 @@ function sanitiseVenicePrompt(prompt) {
     .replace(/\bejaculat\w*/gi, '')
     .replace(/\bsquirting\b/gi, '')
     .replace(/\bgaping\b/gi, '')
+    .replace(/\b(?:hard\s+|erect\s+)?nipples?\b/gi, '')
     .replace(/,\s*,+/g, ',')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -6836,7 +6837,7 @@ function sdBuildPrompt(charId, cb) {
   var selectedPose = 'Half body front';
   var poseTerms = poseToSDTerm(selectedPose);
   var isFemale = charId !== 'char1';
-  var facingTerms = isFemale ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+  var facingTerms = isFemale ? ', facing camera, front view, looking at viewer' : '';
   var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
   var lockedPart = lockedTags ? lockedTags + ', ' : '';
   var qualityPart = getPortraitQualityTags();
@@ -6845,7 +6846,7 @@ function sdBuildPrompt(charId, cb) {
   var studioNegatives = portraitStyleForNeg === 'natural'
     ? ', studio background, studio lighting, studio light, plain background, grey background, white background, solid background, seamless background, gradient background, backdrop, photography studio, ring light, softbox, professional lighting setup'
     : '';
-  var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives;
+  var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus, nipples, visible nipples, explicit nudity' + studioNegatives;
 
   function assemble(orPrompt) {
     var orPart = stripPoseTerms(sanitiseVenicePrompt(orPrompt || ''));
@@ -6855,8 +6856,8 @@ function sdBuildPrompt(charId, cb) {
     var split = splitNegatives(base + orPart + ', ' + qualityPart);
     var finalPos = split.positive;
     var finalNeg = split.negatives ? baseNeg + ', ' + split.negatives : baseNeg;
-    dbg('[SeedDisc] prompt built (' + finalPos.length + ' chars): ' + finalPos.slice(0, 120) + (finalPos.length > 120 ? '…' : ''));
-    dbg('[SeedDisc] neg (' + finalNeg.length + ' chars): ' + finalNeg.slice(0, 80) + (finalNeg.length > 80 ? '…' : ''));
+    dbg('[SeedDisc] PROMPT (' + finalPos.length + ' chars): ' + finalPos);
+    dbg('[SeedDisc] NEG (' + finalNeg.length + ' chars): ' + finalNeg);
     cb(finalPos, finalNeg);
   }
 
