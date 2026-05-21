@@ -5450,9 +5450,10 @@ function deletePortraitFromPopup() {
 }
 
 function sanitiseVenicePrompt(prompt) {
-  // Venice Pro — safe_mode: false so minimal sanitisation needed
-  // Just clean up structural issues
+  // Venice Pro — safe_mode: false but some terms still trigger blank frames
   return prompt
+    .replace(/\bareolae?\b/gi, '')       // "areola", "areolae" — API-level blocked
+    .replace(/\bpubic\b/gi, '')          // "pubic hair" → " hair" (harmless remainder)
     .replace(/,\s*,+/g, ',')
     .trim();
 }
@@ -5477,6 +5478,9 @@ function stripPoseTerms(tags) {
     .replace(/\bhand movements?\b/gi, '')
     .replace(/\buses? (?:her|his|their) hands?\b/gi, '')
     .replace(/\bgesturing\b/gi, '')
+    // Venice API-level blocked terms — cause blank frames even with safe_mode:false
+    .replace(/\bareolae?\b/gi, '')
+    .replace(/\bpubic\b/gi, '')
     // Camera angle influencing — lore personality terms that push model to low angle
     .replace(/\bcommanding presence\b/gi, '')
     .replace(/\bimposing (?:figure|presence|stature)\b/gi, '')
