@@ -5588,6 +5588,22 @@ function splitNegatives(prompt) {
   return { positive: positive, negatives: negatives.join(', ') };
 }
 
+function stripNudityTerms(tags) {
+  return tags
+    .replace(/\bnude\b/gi, '')
+    .replace(/\bnaked\b/gi, '')
+    .replace(/\bno\s+clothing\b/gi, '')
+    .replace(/\bbare\s+skin\b/gi, '')
+    .replace(/\btopless\b/gi, '')
+    .replace(/\bbottomless\b/gi, '')
+    .replace(/\bno\s+top\b/gi, '')
+    .replace(/\bcompletely\s+bare\b/gi, '')
+    .replace(/\bbare\s+chest\b/gi, '')
+    .replace(/,\s*,+/g, ',')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function getPortraitQualityTags() {
   var styleEl = document.getElementById('portraitStyle');
   var style = styleEl ? styleEl.value : 'studio';
@@ -6911,17 +6927,20 @@ function sdBuildPrompt(charId, cb) {
   var poseTerms = poseToSDTerm(selectedPose);
   var isFemale = charId !== 'char1';
   var facingTerms = isFemale ? ', facing camera, front view, looking at viewer' : '';
+  var currentClothing = portraitState[charId].clothing || 'Nude';
   var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+  if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
   var clothingTerms = buildClothingPromptTerms(charId);
   var locationTerms = locationToSDTags(portraitState[charId].location || '');
-  var lockedPart = (lockedTags ? lockedTags + ', ' : '') + (clothingTerms ? clothingTerms + ', ' : '') + (locationTerms ? locationTerms + ', ' : '');
+  var lockedPart = (clothingTerms ? clothingTerms + ', ' : '') + (locationTerms ? locationTerms + ', ' : '') + (lockedTags ? lockedTags + ', ' : '');
   var qualityPart = getPortraitQualityTags();
 
   var portraitStyleForNeg = document.getElementById('portraitStyle') ? document.getElementById('portraitStyle').value : 'studio';
   var studioNegatives = portraitStyleForNeg === 'natural'
     ? ', studio background, studio lighting, studio light, plain background, grey background, white background, solid background, seamless background, gradient background, backdrop, photography studio, ring light, softbox, professional lighting setup'
     : '';
-  var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus, nipples, visible nipples, explicit nudity' + studioNegatives;
+  var clothingNeg = currentClothing !== 'Nude' ? ', nude, naked, topless, bare chest, no clothing, undressed, exposed' : '';
+  var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus, nipples, visible nipples, explicit nudity' + studioNegatives + clothingNeg;
 
   function assemble(orPrompt) {
     var orPart = stripPoseTerms(sanitiseVenicePrompt(orPrompt || ''));
@@ -7257,6 +7276,8 @@ function generatePortrait(charId) {
       : '';
     var negPrompt = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives;
     if (extraNegatives) negPrompt += ', ' + extraNegatives;
+    var _clothing = portraitState[charId].clothing || 'Nude';
+    if (_clothing !== 'Nude') negPrompt += ', nude, naked, topless, bare chest, no clothing, undressed, exposed';
     var requestBody = {
       model: model,
       prompt: sanitiseVenicePrompt(imagePrompt),
@@ -7356,10 +7377,13 @@ function generatePortrait(charId) {
           var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
           var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
           // Inject locked appearance + current clothing/state + location directly
+          var currentClothing = portraitState[charId].clothing || 'Nude';
           var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+          if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
           var clothingTerms = buildClothingPromptTerms(charId);
           var locationTerms = locationToSDTags(portraitState[charId].location || '');
-          var lockedPart = (lockedTags ? lockedTags + ', ' : '') + (clothingTerms ? clothingTerms + ', ' : '') + (locationTerms ? locationTerms + ', ' : '');
+          // Clothing first — highest prompt weight, prevents stale nude tags from dominating
+          var lockedPart = (clothingTerms ? clothingTerms + ', ' : '') + (locationTerms ? locationTerms + ', ' : '') + (lockedTags ? lockedTags + ', ' : '');
           var orPart = stripPoseTerms(sanitiseVenicePrompt(prompt));
           var qualityPart = getPortraitQualityTags();
           var base = poseTerms + facingTerms + ', ' + lockedPart;
