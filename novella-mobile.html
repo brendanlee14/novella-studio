@@ -6853,7 +6853,11 @@ function sdBuildPrompt(charId, cb) {
     var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
     if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
     var split = splitNegatives(base + orPart + ', ' + qualityPart);
-    cb(split.positive, split.negatives ? baseNeg + ', ' + split.negatives : baseNeg);
+    var finalPos = split.positive;
+    var finalNeg = split.negatives ? baseNeg + ', ' + split.negatives : baseNeg;
+    dbg('[SeedDisc] prompt built (' + finalPos.length + ' chars): ' + finalPos.slice(0, 120) + (finalPos.length > 120 ? '…' : ''));
+    dbg('[SeedDisc] neg (' + finalNeg.length + ' chars): ' + finalNeg.slice(0, 80) + (finalNeg.length > 80 ? '…' : ''));
+    cb(finalPos, finalNeg);
   }
 
   if (openRouterKey) {
@@ -6902,12 +6906,16 @@ function sdGenerateOneSlot(idx, cb) {
     var model = document.getElementById('veniceImageModel').value;
     var seed = Math.floor(Math.random() * 999999999) + 1;
 
+    dbg('[SeedDisc] slot ' + idx + ' attempt ' + (n + 1) + '/' + MAX_ATTEMPTS + ' seed=' + seed + ' model=' + model);
+
     function onFail(reason) {
-      dbg('[SeedDisc] slot ' + idx + ' attempt ' + n + ' failed: ' + reason);
+      dbg('[SeedDisc] slot ' + idx + ' ✗ ' + reason);
       if (n + 1 < MAX_ATTEMPTS && !sdState.aborted) {
         var delay = n === 0 ? 4000 : 9000;
+        dbg('[SeedDisc] slot ' + idx + ' retrying in ' + (delay / 1000) + 's…');
         setTimeout(function() { attempt(n + 1); }, delay);
       } else {
+        dbg('[SeedDisc] slot ' + idx + ' giving up after ' + MAX_ATTEMPTS + ' attempts');
         slot.status = 'error'; slot.b64 = null; slot.seed = null;
         sdUpdateSlot(idx); sdSyncUI(); cb();
       }
@@ -6922,8 +6930,10 @@ function sdGenerateOneSlot(idx, cb) {
         return_binary: false, safe_mode: false, seed: seed
       })
     }).then(function(res) {
+      dbg('[SeedDisc] slot ' + idx + ' HTTP ' + res.status);
       if (!res.ok) {
         res.text().then(function(body) {
+          dbg('[SeedDisc] slot ' + idx + ' body: ' + body.slice(0, 200));
           var msg = 'HTTP ' + res.status;
           try { var e = JSON.parse(body); msg = e.message || e.error || msg; } catch(_) {}
           onFail(msg);
@@ -6936,12 +6946,15 @@ function sdGenerateOneSlot(idx, cb) {
         var images = data.images || (data.data && data.data.images);
         var b64 = images && images[0];
         if (b64 && b64.indexOf(',') > -1) b64 = b64.split(',')[1];
-        if (!b64 || b64.length < 20000) { onFail('blank frame'); return; }
+        var b64len = b64 ? b64.length : 0;
+        dbg('[SeedDisc] slot ' + idx + ' b64len=' + b64len + (b64len < 20000 ? ' ← BLANK FRAME' : ' ✓'));
+        if (!b64 || b64len < 20000) { onFail('blank frame (b64len=' + b64len + ')'); return; }
         slot.status = 'done'; slot.b64 = b64; slot.seed = seed;
         sdUpdateSlot(idx); sdSyncUI(); cb();
       }).catch(function(e) { onFail(e.message || 'parse error'); });
     }).catch(function(err) {
       if (sdState.aborted) { cb(); return; }
+      dbg('[SeedDisc] slot ' + idx + ' fetch error: ' + err.message);
       onFail(err.message || 'network error');
     });
   }
