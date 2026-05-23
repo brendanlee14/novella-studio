@@ -8707,11 +8707,15 @@ function copyProse() {
 function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount) {
   retryCount = retryCount || 0;
   const currentState = document.getElementById('storyState').value.trim();
-  const prompt = 'Update this story state based on the scene just written.\n\nCurrent state:\n' + (currentState || '(none yet)') + '\n\nScene just written for beat "' + beat.title + '":\n' + sceneText.slice(0, 800) + '\n\nWrite a brief updated story state (3-5 sentences) describing where the story now stands. Focus on: character emotional states, what has changed, what tension remains.';
+  var beatContext = beat.title + (beat.desc ? ' — ' + beat.desc : '');
+  const prompt = 'Current story state:\n' + (currentState || '(none yet)') + '\n\nBeat just written: ' + beatContext + '\n\nScene:\n' + sceneText.slice(0, 2500) + '\n\nWrite an updated story state in 3-5 plain sentences. Cover: where each character stands emotionally right now, what shifted in this scene, what unresolved tension carries forward. Do not summarise the scene. Do not use markdown formatting or headers.';
 
   streamingFetch(apiKey, model,
-    [{ role: 'user', content: prompt }],
-    { maxTokens: 1000, label: 'storyState',
+    [
+      { role: 'system', content: 'You maintain a running story state for a fiction writing tool. Write in plain prose — no markdown, no headers, no bold text. Be direct and factual. This output feeds into the next scene as context so it must be accurate and concise.' },
+      { role: 'user', content: prompt }
+    ],
+    { maxTokens: 300, label: 'storyState',
       onDone: function(newState) {
         newState = newState.trim();
         if (newState) {
