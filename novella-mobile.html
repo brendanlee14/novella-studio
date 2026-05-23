@@ -2694,7 +2694,7 @@
 // MULTI-STORY DATA MODEL
 // DeepSeek model IDs — update here if models change
 var DS_FLASH = 'deepseek-v4-flash'; // creative generation: fast, cost-efficient
-var DS_PRO   = 'deepseek-v4-pro';   // structured extraction: beats, summaries, physCont
+var DS_PRO   = 'deepseek-v4-pro';   // structured extraction: beats, chapter summaries
 
 // stories = [ { id, title, createdAt, data: { chapters, writtenScenes, lore, settings, storyState } } ]
 // ══════════════════════════════
@@ -8026,7 +8026,7 @@ function manualUpdatePhysicalContinuity() {
   if (!apiKey) { showToast('Add DeepSeek key in Setup first'); return; }
   var scene = getSelectedScene();
   if (!scene) { showToast('No scenes written yet'); return; }
-  var model = DS_PRO;
+  var model = DS_FLASH;
   var btn = document.getElementById('manualPhysBtn');
   btn.disabled = true; btn.textContent = 'Updating…';
   showToast('Updating physical continuity…');
@@ -8759,7 +8759,7 @@ function writeScene() {
             _wpSetRow('storyState', 'skipped', 'Skipped');
           }
           _wpSetRow('physCont', 'updating', 'Updating\u2026');
-          updatePhysicalContinuity(apiKey, DS_PRO, beat, fullText);
+          updatePhysicalContinuity(apiKey, DS_FLASH, beat, fullText);
           document.getElementById('btnWrite').disabled = false;
           document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
           releaseWakeLock();
@@ -8928,9 +8928,9 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
           saveCurrentStory();
           renderPhysicalContinuity();
           dbg('[DS] physicalContinuity result (' + result.length + ' chars): ' + result.slice(0, 150) + (result.length > 150 ? '…' : ''));
-          _wpIfOpen('physCont', 'done', 'Updated');
           if (typeof onComplete === 'function') onComplete();
         }
+        _wpIfOpen('physCont', result ? 'done' : 'error', result ? 'Updated' : 'Empty response');
       },
       onError: function(e) {
         dbg('Physical continuity update error: ' + e.message + (retryCount < 1 ? ' — retrying in 5s' : ' — giving up'));
