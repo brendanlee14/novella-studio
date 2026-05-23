@@ -5516,17 +5516,14 @@ function deletePortraitFromPopup() {
 }
 
 function sanitiseVenicePrompt(prompt) {
-  // Venice Pro — safe_mode: false but these terms still trigger blank frames
+  // Venice Pro — safe_mode: false; only strip confirmed output-classifier triggers (sex acts)
   return prompt
-    .replace(/\bareolae?\b/gi, '')
-    .replace(/\bpubic\b/gi, '')
     .replace(/\bcum\b/gi, '')
     .replace(/\bcumshot\b/gi, '')
     .replace(/\bcreampie\b/gi, '')
     .replace(/\bejaculat\w*/gi, '')
     .replace(/\bsquirting\b/gi, '')
     .replace(/\bgaping\b/gi, '')
-    .replace(/\b(?:hard\s+|erect\s+)?nipples?\b/gi, '')
     .replace(/,\s*,+/g, ',')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -5552,9 +5549,6 @@ function stripPoseTerms(tags) {
     .replace(/\bhand movements?\b/gi, '')
     .replace(/\buses? (?:her|his|their) hands?\b/gi, '')
     .replace(/\bgesturing\b/gi, '')
-    // Venice API-level blocked terms — cause blank frames even with safe_mode:false
-    .replace(/\bareolae?\b/gi, '')
-    .replace(/\bpubic\b/gi, '')
     // Camera angle influencing — lore personality terms that push model to low angle
     .replace(/\bcommanding presence\b/gi, '')
     .replace(/\bimposing (?:figure|presence|stature)\b/gi, '')
@@ -6912,7 +6906,7 @@ function sdBuildPrompt(charId, cb) {
   var selectedPose = 'Half body front';
   var poseTerms = poseToSDTerm(selectedPose);
   var isFemale = charId !== 'char1';
-  var facingTerms = isFemale ? ', facing camera, front view, looking at viewer' : '';
+  var facingTerms = isFemale ? ', facing camera, front view, looking at viewer, breasts visible' : '';
   var currentClothing = portraitState[charId].clothing || 'Nude';
   var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
   if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
@@ -6926,7 +6920,7 @@ function sdBuildPrompt(charId, cb) {
     ? ', studio background, studio lighting, studio light, plain background, grey background, white background, solid background, seamless background, gradient background, backdrop, photography studio, ring light, softbox, professional lighting setup'
     : '';
   var clothingNeg = currentClothing !== 'Nude' ? ', nude, naked, topless, bare chest, no clothing, undressed, exposed' : '';
-  var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus, nipples, visible nipples, explicit nudity' + studioNegatives + clothingNeg;
+  var baseNeg = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus' + studioNegatives + clothingNeg;
 
   function assemble(orPrompt) {
     var orPart = stripPoseTerms(sanitiseVenicePrompt(orPrompt || ''));
