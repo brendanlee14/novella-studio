@@ -7244,8 +7244,10 @@ function generatePortrait(charId) {
     var veniceT0 = Date.now();
     var seedInput = document.getElementById('portrait-' + charId + '-seed');
     var seedVal = seedInput && seedInput.value.trim() ? parseInt(seedInput.value.trim()) : null;
-    dbg('[Venice] → generate model=' + model + ' promptChars=' + imagePrompt.length + (seedVal ? ' seed=' + seedVal : ' seed=random'));
-    dbg('[Venice] prompt: ' + imagePrompt.slice(0, 120) + '…');
+    var _genClothing = portraitState[charId].clothing || 'Nude';
+    var _genLocation = portraitState[charId].location || 'none';
+    dbg('[Venice] → generate model=' + model + ' charId=' + charId + ' clothing=' + _genClothing + ' location=' + _genLocation + ' promptChars=' + imagePrompt.length + (seedVal ? ' seed=' + seedVal : ' seed=random'));
+    dbg('[Venice] positive: ' + imagePrompt.slice(0, 200) + (imagePrompt.length > 200 ? '…' : ''));
     // Always use a seed — either the locked one or a freshly generated random seed
     // This ensures Lock always has a seed to capture
     if (!seedVal) seedVal = Math.floor(Math.random() * 999999999) + 1;
@@ -7258,6 +7260,7 @@ function generatePortrait(charId) {
     if (extraNegatives) negPrompt += ', ' + extraNegatives;
     var _clothing = portraitState[charId].clothing || 'Nude';
     if (_clothing !== 'Nude') negPrompt += ', nude, naked, topless, bare chest, no clothing, undressed, exposed';
+    dbg('[Venice] negative: ' + negPrompt.slice(0, 150) + (negPrompt.length > 150 ? '…' : ''));
     var requestBody = {
       model: model,
       prompt: sanitiseVenicePrompt(imagePrompt),
@@ -8507,7 +8510,11 @@ function writeScene() {
   const systemPrefix = document.getElementById('systemPrefix').value.trim();
   dbg('calling buildContext...');
   const context = buildContext();
-  dbg('context len=' + context.length);
+  var _ctxHasChar1 = !!document.getElementById('char1').value.trim();
+  var _ctxHasChar2 = !!document.getElementById('char2').value.trim();
+  var _ctxSupportCount = getActiveSupportLore().length;
+  var _ctxHistoryScenes = Object.keys(writtenScenes).filter(function(k) { var p = k.split('-'); return parseInt(p[0]) <= activeChIdx; }).length;
+  dbg('context len=' + context.length + ' | char1=' + _ctxHasChar1 + ' char2=' + _ctxHasChar2 + ' support=' + _ctxSupportCount + ' history=' + _ctxHistoryScenes + ' physCont=' + !!physicalContinuity + ' storyState=' + !!(document.getElementById('storyState').value.trim()));
 
   // ── Heat level instruction ──
   const heatLevel = parseInt(document.getElementById('heatLevel').value) || 3;
@@ -8583,7 +8590,7 @@ function writeScene() {
   let fullText = '';
   var wsT0 = Date.now();
   var wsPromptChars = systemPrompt.length + userPrompt.length;
-  dbg('[OR] → writeScene model=' + model + ' promptChars=' + wsPromptChars);
+  dbg('[DS] → writeScene model=' + model + ' heat=' + heatLevel + ' promptChars=' + wsPromptChars + (continuitySnippet ? ' continuity=yes' : ' continuity=no'));
   fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     signal: writeSignal,
@@ -8711,7 +8718,7 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
           document.getElementById('storyState').value = newState;
           saveCurrentStory();
           showToast('Story state updated');
-          dbg('Story state updated');
+          dbg('[DS] storyState result (' + newState.length + ' chars): ' + newState.slice(0, 100) + (newState.length > 100 ? '…' : ''));
           if (typeof onComplete === 'function') onComplete();
         }
       },
@@ -8785,7 +8792,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
           physicalContinuity = result;
           saveCurrentStory();
           renderPhysicalContinuity();
-          dbg('Physical continuity updated');
+          dbg('[DS] physicalContinuity result (' + result.length + ' chars): ' + result.slice(0, 150) + (result.length > 150 ? '…' : ''));
           if (typeof onComplete === 'function') onComplete();
         }
       },
