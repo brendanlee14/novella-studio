@@ -2226,7 +2226,11 @@
   <div class="settings-group">
     <div class="settings-group-title">API Keys <span style="font-weight:300;font-size:0.7rem;color:var(--muted);letter-spacing:0.04em;">— shared across all stories</span></div>
     <div class="setting-row">
-      <div><div class="setting-label">OpenRouter Key</div><div class="setting-sub">sk-or-v1-… (for writing)</div></div>
+      <div><div class="setting-label">DeepSeek Key</div><div class="setting-sub">For writing — deepseek-chat (V3.2)</div></div>
+      <input type="password" id="deepseekApiKey" placeholder="Paste key" style="width:140px;" />
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">OpenRouter Key</div><div class="setting-sub">Optional — for photo→lore vision</div></div>
       <input type="password" id="apiKey" placeholder="Paste key" style="width:140px;" />
     </div>
     <div class="setting-row">
@@ -2253,27 +2257,6 @@
         <option value="seedream-v4">Seedream V4</option>
         <option value="fluently-xl">Fluently XL</option>
         <option value="nano-banana-pro">Nano Banana Pro</option>
-      </select>
-    </div>
-    <div class="setting-row">
-      <div class="setting-label">Writing Model</div>
-      <select id="modelSelect">
-        <optgroup label="── Free ──">
-          <option value="stepfun/step-3.5-flash:free">Step 3.5 Flash (FREE) ⭐</option>
-          <option value="venice/uncensored:free">Venice Uncensored (FREE)</option>
-        </optgroup>
-        <optgroup label="── Best for Erotica ──">
-          <option value="deepseek/deepseek-v3.2-20251201">DeepSeek V3.2 ⭐ — #1 roleplay</option>
-          <option value="x-ai/grok-4.1-fast">Grok 4.1 Fast — explicit prose</option>
-          <option value="nothingiisreal/mn-celeste-12b">Celeste 12B — NSFW-tuned</option>
-          <option value="neversleep/llama-3.1-lumimaid-70b">Lumimaid 3.1 70B</option>
-          <option value="neversleep/llama-3.1-lumimaid-8b">Lumimaid 3.1 8B — cheapest</option>
-        </optgroup>
-        <optgroup label="── General Quality ──">
-          <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
-          <option value="google/gemini-3-flash-preview">Gemini 3 Flash Preview</option>
-          <option value="openai/gpt-4o">GPT-4o</option>
-        </optgroup>
       </select>
     </div>
   </div>
@@ -2852,7 +2835,7 @@ function saveCurrentStory() {
       veniceImageModel: document.getElementById('veniceImageModel').value,
       portraitStyle: document.getElementById('portraitStyle').value,
       sceneImgStyle: document.getElementById('sceneImgStyle').value,
-      model: document.getElementById('modelSelect').value,
+      model: 'deepseek-chat',
       length: document.getElementById('lengthTarget').value,
       heatLevel: document.getElementById('heatLevel').value,
       autoUpdate: document.getElementById('autoUpdateState').checked,
@@ -2931,7 +2914,6 @@ function loadStoryIntoApp(story) {
   document.getElementById('sceneImgStyle').value = s.sceneImgStyle || 'natural';
   syncGalleryPortraitStyle();
   ['char1','char2','charSupport','charSupport2','charSupport3'].forEach(renderPortraitPresetSelect);
-  document.getElementById('modelSelect').value = s.model || 'stepfun/step-3.5-flash:free';
   document.getElementById('lengthTarget').value = s.length || 'medium';
   document.getElementById('heatLevel').value = s.heatLevel || '3';
   updateHeatLabel(s.heatLevel || '3');
@@ -3040,13 +3022,13 @@ function createSequel(sourceId) {
   if (!source) return;
 
   var apiKey = localStorage.getItem('novella_studio_global_keys_v1') ?
-    (JSON.parse(localStorage.getItem('novella_studio_global_keys_v1')).openRouterKey || '') : '';
+    (JSON.parse(localStorage.getItem('novella_studio_global_keys_v1')).deepseekApiKey || '') : '';
   // Try from DOM if a story is open
-  var keyEl = document.getElementById('apiKey');
+  var keyEl = document.getElementById('deepseekApiKey');
   if (keyEl && keyEl.value.trim()) apiKey = keyEl.value.trim();
 
   if (!apiKey) {
-    showToast('Add OpenRouter key in Setup first');
+    showToast('Add DeepSeek key in Setup first');
     return;
   }
 
@@ -3525,7 +3507,7 @@ function generateSceneImage() {
   var veniceKey = document.getElementById('veniceApiKey').value.trim();
   if (!veniceKey) { showToast('Add Venice API key in Setup first'); return; }
 
-  var apiKey = document.getElementById('apiKey').value.trim();
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
   if (activeChIdx === null || activeBeatIdx === null) { showToast('No beat selected'); return; }
 
   var ch = chapters[activeChIdx];
@@ -3661,7 +3643,7 @@ function generateSceneImage() {
 
   // Build prompt via OR if key available, else fallback
   if (apiKey) {
-    var orModel = 'deepseek/deepseek-v3.2-20251201';
+    var orModel = 'deepseek-chat';
 
     var orSystem = 'You are a Stable Diffusion prompt engineer for photorealistic adult scene generation specialising in lustify-sdxl. ' +
       'First write one line: "PEAK FRAME: [single sentence — the exact visual moment at this beat\'s climax: the specific action, pose, and key detail that makes this scene immediately recognisable]". ' +
@@ -3762,8 +3744,8 @@ function generateSceneImage() {
 var lorePhotoTargetCharId = null;
 
 function openLorePhotoUpload(charId) {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
+  var apiKey = document.getElementById('apiKey').value.trim(); // OpenRouter — photo lore (vision)
+  if (!apiKey) { showToast('Add OpenRouter key for photo lore'); return; }
   lorePhotoTargetCharId = charId;
   var input = document.getElementById('lorePhotoInput');
   if (input) input.click();
@@ -3775,7 +3757,7 @@ function handleLorePhotoSelected(event) {
   // Reset input so same file can be selected again
   event.target.value = '';
 
-  var apiKey = document.getElementById('apiKey').value.trim();
+  var apiKey = document.getElementById('apiKey').value.trim(); // OpenRouter — photo lore (vision)
   var charId = lorePhotoTargetCharId;
   if (!charId || !apiKey) return;
 
@@ -4159,22 +4141,26 @@ function streamingFetch(apiKey, model, messages, opts) {
   var signal = opts.signal || null;
   var t0 = Date.now();
   var promptChars = messages.reduce(function(n, m) { return n + (m.content ? m.content.length : 0); }, 0);
-  dbg('[OR] → ' + label + ' model=' + model + ' maxTokens=' + maxTokens + ' promptChars=' + promptChars);
-  return fetch('https://openrouter.ai/api/v1/chat/completions', {
+  dbg('[DS] → ' + label + ' model=' + model + ' maxTokens=' + maxTokens + ' promptChars=' + promptChars);
+  // === MIGRATED OpenRouter → DeepSeek ===
+  // Old OpenRouter config (kept commented for rollback):
+  //   url: 'https://openrouter.ai/api/v1/chat/completions'
+  //   headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey,
+  //              'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
+  //              'X-Title': 'Novella Studio' }
+  return fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     signal: signal,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'Authorization': 'Bearer ' + apiKey
     },
     body: JSON.stringify({
       model: model, stream: true, max_tokens: maxTokens,
       messages: messages
     })
   }).then(function(res) {
-    dbg('[OR] ' + label + ' status=' + res.status + ' (' + (Date.now() - t0) + 'ms)');
+    dbg('[DS] ' + label + ' status=' + res.status + ' (' + (Date.now() - t0) + 'ms)');
     if (!res.ok) {
       return res.json().then(function(e) {
         throw new Error(e.error && e.error.message ? e.error.message : 'HTTP ' + res.status);
@@ -4190,7 +4176,7 @@ function streamingFetch(apiKey, model, messages, opts) {
     function read() {
       return reader.read().then(function(result) {
         if (result.done) {
-          dbg('[OR] ← ' + label + ' done responseChars=' + fullText.length + ' elapsed=' + (Date.now() - t0) + 'ms');
+          dbg('[DS] ← ' + label + ' done responseChars=' + fullText.length + ' elapsed=' + (Date.now() - t0) + 'ms');
           opts.onDone(fullText);
           return;
         }
@@ -4216,8 +4202,8 @@ function streamingFetch(apiKey, model, messages, opts) {
     }
     return read();
   }).catch(function(err) {
-    if (err.name === 'AbortError') { dbg('[OR] ✗ ' + label + ' aborted'); return; }
-    dbg('[OR] ✗ ' + label + ' err=' + err.message + ' elapsed=' + (Date.now() - t0) + 'ms');
+    if (err.name === 'AbortError') { dbg('[DS] ✗ ' + label + ' aborted'); return; }
+    dbg('[DS] ✗ ' + label + ' err=' + err.message + ' elapsed=' + (Date.now() - t0) + 'ms');
     opts.onError(err);
   });
 }
@@ -4247,8 +4233,8 @@ function seedScenario(type) {
 // DRAFT SYNOPSIS FROM CHARACTERS
 // ══════════════════════════════
 function draftSynopsisFromChars() {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); goScreen('settings'); return; }
 
   var char1 = document.getElementById('char1').value.trim();
   var char2 = document.getElementById('char2').value.trim();
@@ -4257,7 +4243,7 @@ function draftSynopsisFromChars() {
 
   if (!char1 && !char2) { showToast('Add character details in Lore first'); return; }
 
-  var model = document.getElementById('modelSelect').value;
+  var model = 'deepseek-chat';
   var btn = document.getElementById('planDraftFromCharsBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Drafting…'; }
 
@@ -4299,15 +4285,15 @@ function draftSynopsisFromChars() {
 }
 
 function refineSynopsis() {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); goScreen('settings'); return; }
   var synopsis = document.getElementById('planSynopsis').value.trim();
   if (!synopsis || synopsis.length < 10) { showToast('Add a brief story idea first'); return; }
 
   var btn = document.getElementById('planRefineSynopsisBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Refining…'; }
 
-  var model = document.getElementById('modelSelect').value;
+  var model = 'deepseek-chat';
   var char1 = document.getElementById('char1').value.trim();
   var char2 = document.getElementById('char2').value.trim();
   var activeSupportSlots = getActiveSupportLore();
@@ -4376,13 +4362,13 @@ function createBlankChapterSummaries() {
 }
 
 function generateChapterSummaries() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  const apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); goScreen('settings'); return; }
   const synopsis = document.getElementById('planSynopsis').value.trim();
   if (!synopsis) { showToast('Write your plot synopsis first'); return; }
   const timeframe = document.getElementById('planTimeframe').value.trim();
   const numCh = parseInt(document.getElementById('planChCount').textContent) || 5;
-  const model = document.getElementById('modelSelect').value;
+  const model = 'deepseek-chat';
 
   // Build full lore + persona context
   const persona = document.getElementById('systemPrefix').value.trim();
@@ -4518,9 +4504,9 @@ function generateChapterSummaries() {
 
 // ── REFINE A SINGLE CHAPTER SUMMARY ──
 function refineChapterSummary(i) {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); return; }
-  const model = document.getElementById('modelSelect').value;
+  const apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); return; }
+  const model = 'deepseek-chat';
   const textarea = document.getElementById('chsum-' + i);
   const currentText = textarea ? textarea.value.trim() : planSummaries[i].summary;
   const btn = document.getElementById('refine-btn-' + i);
@@ -4569,10 +4555,10 @@ ${document.getElementById('planSynopsis').value.trim().slice(0, 500)}`;
 
 // ── GENERATE BEATS AND IMPORT ──
 function generateAndImportBeats() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  const apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); goScreen('settings'); return; }
   if (!planSummaries.length) { showToast('Generate chapter summaries first'); return; }
-  const model = document.getElementById('modelSelect').value;
+  const model = 'deepseek-chat';
 
   // Check for existing beats
   const hasExisting = chapters.some(ch => ch.beats && ch.beats.length > 0);
@@ -4615,14 +4601,14 @@ function generateAndImportBeats() {
 
 // Per-chapter beat generation — the primary path
 function generateChapterBeats(chIdx) {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); goScreen('settings'); return; }
+  const apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); goScreen('settings'); return; }
   if (!planSummaries[chIdx]) { showToast('No chapter data'); return; }
 
   const btn = document.getElementById('beat-gen-btn-' + chIdx);
   if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
 
-  const model = document.getElementById('modelSelect').value;
+  const model = 'deepseek-chat';
   const ch = planSummaries[chIdx];
   const beatCount = ch.beatCount || 4;
   const synopsis = document.getElementById('planSynopsis').value.trim();
@@ -4890,9 +4876,9 @@ function finishBeatImport(append, results, btn) {
 }
 
 function retryChapterBeats(chIdx) {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); return; }
-  const model = document.getElementById('modelSelect').value;
+  const apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); return; }
+  const model = 'deepseek-chat';
   const ch = planSummaries[chIdx];
   if (!ch) return;
 
@@ -5788,8 +5774,8 @@ function renderBeatBriefStatus(charId) {
 }
 
 function distilBeatBrief(charId) {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('DeepSeek API key required'); return; }
   var loreText = document.getElementById(charId).value.trim();
   if (!loreText) { showToast('Add character lore first'); return; }
 
@@ -5807,7 +5793,7 @@ function distilBeatBrief(charId) {
     'Do NOT include: physical appearance, anatomy, speech pattern detail, full backstory, kink lists, or narrative meta-commentary.\n\n' +
     'Character lore:\n' + loreText;
 
-  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+  streamingFetch(apiKey, 'deepseek-chat',
     [{ role: 'user', content: prompt }],
     { maxTokens: 250, label: 'beatBrief',
       onDone: function(result) {
@@ -5885,8 +5871,8 @@ function renderWorldBriefStatus() {
 }
 
 function distilWorldBrief() {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('DeepSeek API key required'); return; }
   var loreText = document.getElementById('worldLore').value.trim();
   if (!loreText) { showToast('Add world lore first'); return; }
 
@@ -5903,7 +5889,7 @@ function distilWorldBrief() {
     'Do NOT include: sensory prose, physical descriptions of decor, architectural detail, or anything that does not directly constrain or enable character behaviour.\n\n' +
     'World lore:\n' + loreText;
 
-  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+  streamingFetch(apiKey, 'deepseek-chat',
     [{ role: 'user', content: prompt }],
     { maxTokens: 350, label: 'worldBrief',
       onDone: function(result) {
@@ -5963,8 +5949,8 @@ function renderToneBriefStatus() {
 }
 
 function distilToneBrief() {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('DeepSeek API key required'); return; }
   var loreText = document.getElementById('toneStyle').value.trim();
   if (!loreText) { showToast('Add tone lore first'); return; }
 
@@ -5981,7 +5967,7 @@ function distilToneBrief() {
     'Do NOT include: POV mechanics, prose style, sentence rhythm, voice mode examples, dialogue tone, or any instruction about HOW to write — only WHAT should happen.\n\n' +
     'Tone lore:\n' + loreText;
 
-  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+  streamingFetch(apiKey, 'deepseek-chat',
     [{ role: 'user', content: prompt }],
     { maxTokens: 250, label: 'toneBrief',
       onDone: function(result) {
@@ -6012,8 +5998,8 @@ function editToneBrief() {
 }
 
 function distilPortraitAppearance(charId) {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('OpenRouter API key required'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('DeepSeek API key required'); return; }
   var loreText = document.getElementById(charId).value.trim();
   if (!loreText) { showToast('Add character lore first'); return; }
 
@@ -6032,7 +6018,7 @@ function distilPortraitAppearance(charId) {
     'Do NOT include: pose, action, clothing, personality, backstory, psychology, kinks, speech patterns, relationships, or narrative role.\n\n' +
     'Maximum 80 words of tags.\n\nCharacter lore:\n' + loreText;
 
-  streamingFetch(apiKey, 'deepseek/deepseek-v3.2-20251201',
+  streamingFetch(apiKey, 'deepseek-chat',
     [{ role: 'user', content: prompt }],
     { maxTokens: 200, label: 'distilAppearance',
       onDone: function(result) {
@@ -6922,7 +6908,7 @@ function startSdBatch() {
 function sdBuildPrompt(charId, cb) {
   var loreText = document.getElementById(charId).value.trim();
   var loreTruncated = loreText.slice(0, 800);
-  var openRouterKey = document.getElementById('apiKey').value.trim();
+  var deepseekKey = document.getElementById('deepseekApiKey').value.trim();
   var selectedPose = 'Half body front';
   var poseTerms = poseToSDTerm(selectedPose);
   var isFemale = charId !== 'char1';
@@ -6955,8 +6941,8 @@ function sdBuildPrompt(charId, cb) {
     cb(finalPos, finalNeg);
   }
 
-  if (openRouterKey) {
-    streamingFetch(openRouterKey, 'deepseek/deepseek-v3.2-20251201',
+  if (deepseekKey) {
+    streamingFetch(deepseekKey, 'deepseek-chat',
       [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
       { maxTokens: 300, label: 'sdPrompt',
         onDone: function(prompt) {
@@ -7257,7 +7243,7 @@ function generatePortrait(charId) {
   if (btnLabel) btnLabel.textContent = 'Generating…';
 
   var model = document.getElementById('veniceImageModel').value;
-  var openRouterKey = document.getElementById('apiKey').value.trim();
+  var deepseekKey = document.getElementById('deepseekApiKey').value.trim();
   var loreTruncated = loreText.slice(0, 800);
 
   function doGenerate(imagePrompt, extraNegatives) {
@@ -7354,12 +7340,12 @@ function generatePortrait(charId) {
     });
   }
 
-  // Build a good image prompt from lore using OpenRouter if available
-  if (openRouterKey) {
-    // DeepSeek V3.2 for prompt building — follows explicit SD tag instructions without content filtering
-    var orPromptModel = 'deepseek/deepseek-v3.2-20251201';
-    dbg('Building image prompt via OpenRouter…');
-    streamingFetch(openRouterKey, orPromptModel,
+  // Build a good image prompt from lore using DeepSeek if available
+  if (deepseekKey) {
+    // DeepSeek V3.2 for prompt building — follows explicit SD tag instructions
+    var orPromptModel = 'deepseek-chat';
+    dbg('Building image prompt via DeepSeek…');
+    streamingFetch(deepseekKey, orPromptModel,
       [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
       { maxTokens: 300, label: 'portraitPrompt',
         onDone: function(prompt) {
@@ -7951,11 +7937,11 @@ function saveManualBeatSelection() {
 }
 
 function manualUpdateStoryState() {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup first'); return; }
   var scene = getSelectedScene();
   if (!scene) { showToast('No scenes written yet'); return; }
-  var model = document.getElementById('modelSelect').value;
+  var model = 'deepseek-chat';
   var btn = document.getElementById('manualStateBtn');
   btn.disabled = true; btn.textContent = 'Updating…';
   showToast('Updating story state…');
@@ -7965,11 +7951,11 @@ function manualUpdateStoryState() {
 }
 
 function manualUpdatePhysicalContinuity() {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup first'); return; }
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup first'); return; }
   var scene = getSelectedScene();
   if (!scene) { showToast('No scenes written yet'); return; }
-  var model = document.getElementById('modelSelect').value;
+  var model = 'deepseek-chat';
   var btn = document.getElementById('manualPhysBtn');
   btn.disabled = true; btn.textContent = 'Updating…';
   showToast('Updating physical continuity…');
@@ -8510,7 +8496,7 @@ function writeScene() {
   currentWriteAbort = new AbortController();
   var writeSignal = currentWriteAbort.signal;
 
-  const apiKey = document.getElementById('apiKey').value.trim();
+  const apiKey = document.getElementById('deepseekApiKey').value.trim();
   dbg('apiKey present: ' + !!apiKey);
   if (!apiKey) { showToast('No API key — check Setup'); goScreen('settings'); return; }
   dbg('activeChIdx=' + activeChIdx + ' activeBeatIdx=' + activeBeatIdx);
@@ -8522,7 +8508,7 @@ function writeScene() {
   const beat = ch.beats[activeBeatIdx];
   dbg('beat=' + (beat ? beat.title : 'NULL'));
   const key = activeChIdx + '-' + activeBeatIdx;
-  const model = document.getElementById('modelSelect').value;
+  const model = 'deepseek-chat';
   dbg('model=' + model);
   const systemPrefix = document.getElementById('systemPrefix').value.trim();
   dbg('calling buildContext...');
@@ -8604,14 +8590,12 @@ function writeScene() {
   var wsT0 = Date.now();
   var wsPromptChars = systemPrompt.length + userPrompt.length;
   dbg('[OR] → writeScene model=' + model + ' promptChars=' + wsPromptChars);
-  fetch('https://openrouter.ai/api/v1/chat/completions', {
+  fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     signal: writeSignal,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey,
-      'HTTP-Referer': 'https://brendanlee14.github.io/novella-studio/',
-      'X-Title': 'Novella Studio'
+      'Authorization': 'Bearer ' + apiKey
     },
     body: JSON.stringify({
       model: model, stream: true,
@@ -8621,7 +8605,7 @@ function writeScene() {
       ]
     })
   }).then(function(res) {
-    dbg('[OR] writeScene status=' + res.status + ' (' + (Date.now() - wsT0) + 'ms)');
+    dbg('[DS] writeScene status=' + res.status + ' (' + (Date.now() - wsT0) + 'ms)');
     if (!res.ok) {
       return res.json().then(function(err) {
         throw new Error(err.error && err.error.message ? err.error.message : 'HTTP ' + res.status);
@@ -8633,7 +8617,7 @@ function writeScene() {
     function readChunk() {
       return reader.read().then(function(result) {
         if (result.done) {
-          dbg('[OR] ← writeScene done words=' + fullText.split(/\s+/).length + ' elapsed=' + (Date.now() - wsT0) + 'ms');
+          dbg('[DS] ← writeScene done words=' + fullText.split(/\s+/).length + ' elapsed=' + (Date.now() - wsT0) + 'ms');
           currentWriteAbort = null;
           cursor.remove();
           writtenScenes[key] = fullText;
@@ -8872,7 +8856,7 @@ document.getElementById('storySaveBtn').addEventListener('click', saveStoryModal
 document.getElementById('backToStoriesBtn').addEventListener('click', goHome);
 
 // Auto-save inputs
-const watchIds = ['char1','char2','charSupport','charSupport2','charSupport3','worldLore','toneStyle','storyState','systemPrefix','veniceImageModel','modelSelect','lengthTarget','heatLevel','autoUpdateState','includeHistory','planSynopsis'];
+const watchIds = ['char1','char2','charSupport','charSupport2','charSupport3','worldLore','toneStyle','storyState','systemPrefix','veniceImageModel','lengthTarget','heatLevel','autoUpdateState','includeHistory','planSynopsis'];
 watchIds.forEach(id => {
   const el = document.getElementById(id);
   if (el) { el.addEventListener('input', debouncedSave); el.addEventListener('change', debouncedSave); }
@@ -9089,9 +9073,9 @@ function expandWizardPreview() {
 // WIZARD NAME SUGGESTIONS
 // ══════════════════════════════
 function generateWizardNames() {
-  var apiKey = document.getElementById('apiKey').value.trim();
-  if (!apiKey) { showToast('Add OpenRouter key in Setup'); return; }
-  var model = 'openai/gpt-4o-mini'; // Use vision model — writing model may refuse
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { showToast('Add DeepSeek key in Setup'); return; }
+  var model = 'deepseek-chat';
 
   var btn = document.getElementById('wizNamesBtn') || document.querySelector('[onclick="generateWizardNames()"]');
   if (btn) { btn.disabled = true; btn.textContent = 'Generating\u2026'; }
@@ -10134,7 +10118,7 @@ function buildLorePrompt() {
 }
 
 function generateLoreFromWizard() {
-  var apiKey = document.getElementById('apiKey').value.trim();
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
   if (!apiKey) {
     var rawLore = buildLorePrompt();
     fillLoreTarget(rawLore);
@@ -10143,7 +10127,7 @@ function generateLoreFromWizard() {
     return;
   }
 
-  var model = document.getElementById('modelSelect').value;
+  var model = 'deepseek-chat';
   var dataPrompt = buildLorePrompt();
 
   sel('wizBtnNext').disabled = true;
@@ -10226,6 +10210,7 @@ function loadGlobalKeys() {
   try {
     const raw = localStorage.getItem(GLOBAL_KEYS_KEY);
     const keys = raw ? JSON.parse(raw) : {};
+    document.getElementById('deepseekApiKey').value = keys.deepseekApiKey || '';
     document.getElementById('apiKey').value = keys.apiKey || '';
     document.getElementById('veniceApiKey').value = keys.veniceApiKey || '';
     document.getElementById('githubPAT').value = keys.githubPAT || '';
@@ -10235,6 +10220,7 @@ function loadGlobalKeys() {
 function saveGlobalKeys() {
   try {
     const keys = {
+      deepseekApiKey: document.getElementById('deepseekApiKey').value,
       apiKey: document.getElementById('apiKey').value,
       veniceApiKey: document.getElementById('veniceApiKey').value,
       githubPAT: document.getElementById('githubPAT').value,
@@ -10243,7 +10229,7 @@ function saveGlobalKeys() {
   } catch(e) {}
 }
 
-['apiKey','veniceApiKey','githubPAT'].forEach(function(id) {
+['deepseekApiKey','apiKey','veniceApiKey','githubPAT'].forEach(function(id) {
   const el = document.getElementById(id);
   if (el) { el.addEventListener('input', saveGlobalKeys); el.addEventListener('change', saveGlobalKeys); }
 });
