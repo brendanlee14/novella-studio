@@ -2110,7 +2110,7 @@
   </div>
   <div class="state-section">
     <span class="state-label">Physical Continuity</span>
-    <div id="physicalContinuityDisplay" style="font-family:var(--serif,serif);font-size:0.92rem;line-height:1.7;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;min-height:60px;white-space:pre-wrap;"><span style="color:var(--muted);font-style:italic;font-size:0.85rem;">Updated automatically after each scene is written…</span></div>
+    <textarea id="physicalContinuityDisplay" rows="6" placeholder="Updated automatically after each scene is written…" oninput="physicalContinuity = this.value; debouncedSave();"></textarea>
     <div style="display:flex;gap:8px;margin-top:8px;">
       <button onclick="resetPhysicalContinuity()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">Reset</button>
       <button id="manualPhysBtn" onclick="manualUpdatePhysicalContinuity()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:0.8rem;cursor:pointer;">↺ Update Now</button>
@@ -7869,8 +7869,9 @@ function resetStoryState() {
 
 function resetPhysicalContinuity() {
   physicalContinuity = '';
+  var el = document.getElementById('physicalContinuityDisplay');
+  if (el) el.value = '';
   saveCurrentStory();
-  renderPhysicalContinuity();
   showToast('Physical continuity reset');
 }
 
@@ -7964,12 +7965,7 @@ function manualUpdatePhysicalContinuity() {
 function renderPhysicalContinuity() {
   var el = document.getElementById('physicalContinuityDisplay');
   if (!el) return;
-  if (physicalContinuity) {
-    el.textContent = physicalContinuity;
-    el.style.color = 'var(--ink)';
-  } else {
-    el.innerHTML = '<span style="color:var(--muted);font-style:italic;font-size:0.85rem;">Updated automatically after each scene is written…</span>';
-  }
+  el.value = physicalContinuity || '';
 }
 
 function rebuildSceneLog() {
