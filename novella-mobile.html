@@ -541,6 +541,52 @@
   }
   .status-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ── WRITING PROGRESS OVERLAY ── */
+  .wp-overlay {
+    position: fixed; inset: 0;
+    background: rgba(24,18,14,0.65);
+    z-index: 200; display: none;
+    align-items: flex-end; justify-content: center;
+  }
+  .wp-overlay.open { display: flex; }
+  .wp-sheet {
+    background: var(--cream); border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px;
+    padding: 28px 20px 44px;
+    animation: slideUp 0.25s ease;
+  }
+  .wp-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem; color: var(--rose-deep);
+    font-style: italic; text-align: center;
+    margin-bottom: 24px;
+  }
+  .wp-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .wp-row:last-of-type { border-bottom: none; }
+  .wp-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .wp-label { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--ink); flex: 1; }
+  .wp-status { font-family: 'Jost', sans-serif; font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; }
+  .wp-done-btn {
+    width: 100%; margin-top: 22px; padding: 16px;
+    border-radius: 12px; border: none;
+    font-family: 'Jost', sans-serif; font-size: 0.9rem; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--border); color: var(--muted);
+    cursor: not-allowed; transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+  }
+  .wp-done-btn.ready {
+    background: var(--rose-deep); color: var(--parchment);
+    cursor: pointer; box-shadow: 0 4px 18px rgba(140,61,71,0.35);
+  }
+  @keyframes wp-spin { to { transform: rotate(360deg); } }
+  .wp-spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border); border-top-color: var(--rose);
+    border-radius: 50%; animation: wp-spin 0.75s linear infinite;
+  }
+
   /* ── PORTRAIT CARDS ── */
   /* ── PORTRAIT CAROUSEL ── */
   .portrait-carousel {
@@ -2616,6 +2662,29 @@
 </div>
 
 </div><!-- /appShell -->
+
+<!-- WRITING PROGRESS OVERLAY -->
+<div class="wp-overlay" id="writingProgressOverlay">
+  <div class="wp-sheet">
+    <div class="wp-title">Writing Scene</div>
+    <div class="wp-row">
+      <div class="wp-icon" id="wpIcon-scene"></div>
+      <div class="wp-label">Scene</div>
+      <div class="wp-status" id="wpStatus-scene">Waiting…</div>
+    </div>
+    <div class="wp-row">
+      <div class="wp-icon" id="wpIcon-storyState"></div>
+      <div class="wp-label">Story State</div>
+      <div class="wp-status" id="wpStatus-storyState">Waiting…</div>
+    </div>
+    <div class="wp-row">
+      <div class="wp-icon" id="wpIcon-physCont"></div>
+      <div class="wp-label">Physical Continuity</div>
+      <div class="wp-status" id="wpStatus-physCont">Waiting…</div>
+    </div>
+    <button class="wp-done-btn" id="wpDoneBtn" onclick="closeWritingOverlay()">Done</button>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div class="status-toast" id="toast"></div>
@@ -8480,6 +8549,55 @@ function getLengthInstruction(beatOverride) {
 }
 
 // ══════════════════════════════
+// WRITING PROGRESS OVERLAY
+// ══════════════════════════════
+var _wpState = {};
+var _WP_PENDING_SVG = '<svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" fill="none" stroke="#ddd4c8" stroke-width="2"/></svg>';
+var _WP_DONE_SVG    = '<svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="#8c3d47"/><polyline points="5,9.5 8,12.5 13,6" fill="none" stroke="#f5efe6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var _WP_ERROR_SVG   = '<svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="#b5606a"/><line x1="6" y1="6" x2="12" y2="12" stroke="#f5efe6" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="6" x2="6" y2="12" stroke="#f5efe6" stroke-width="2" stroke-linecap="round"/></svg>';
+
+function showWritingOverlay() {
+  _wpState = { scene: 'writing', storyState: 'pending', physCont: 'pending' };
+  _wpSetRow('scene',      'writing', 'Writing…');
+  _wpSetRow('storyState', 'pending', 'Waiting…');
+  _wpSetRow('physCont',   'pending', 'Waiting…');
+  var btn = document.getElementById('wpDoneBtn');
+  if (btn) btn.classList.remove('ready');
+  document.getElementById('writingProgressOverlay').classList.add('open');
+}
+
+function _wpSetRow(key, state, text) {
+  _wpState[key] = state;
+  var iconEl   = document.getElementById('wpIcon-' + key);
+  var statusEl = document.getElementById('wpStatus-' + key);
+  if (!iconEl || !statusEl) return;
+  statusEl.textContent = text;
+  statusEl.style.color = state === 'done' ? 'var(--rose-deep)' : state === 'error' ? 'var(--rose)' : 'var(--muted)';
+  if (state === 'pending')                      iconEl.innerHTML = _WP_PENDING_SVG;
+  else if (state === 'writing' || state === 'updating') iconEl.innerHTML = '<div class="wp-spinner"></div>';
+  else if (state === 'done')                    iconEl.innerHTML = _WP_DONE_SVG;
+  else if (state === 'error' || state === 'skipped') iconEl.innerHTML = _WP_ERROR_SVG;
+  _wpCheckComplete();
+}
+
+function _wpCheckComplete() {
+  var terminal = ['done', 'error', 'skipped'];
+  var allDone = ['scene', 'storyState', 'physCont'].every(function(k) { return terminal.indexOf(_wpState[k]) !== -1; });
+  if (allDone) {
+    var btn = document.getElementById('wpDoneBtn');
+    if (btn) btn.classList.add('ready');
+  }
+}
+
+function _wpIfOpen(key, state, text) {
+  if (document.getElementById('writingProgressOverlay').classList.contains('open')) _wpSetRow(key, state, text);
+}
+
+function closeWritingOverlay() {
+  document.getElementById('writingProgressOverlay').classList.remove('open');
+}
+
+// ══════════════════════════════
 // WRITE SCENE
 // ══════════════════════════════
 function writeScene() {
@@ -8581,6 +8699,7 @@ function writeScene() {
   document.getElementById('btnRewrite').style.display = 'none';
   document.getElementById('sceneImgStyle').style.display = 'none';
   document.getElementById('btnSceneImg').style.display = 'none';
+  showWritingOverlay();
   acquireWakeLock();
 
   let fullText = '';
@@ -8614,7 +8733,8 @@ function writeScene() {
     function readChunk() {
       return reader.read().then(function(result) {
         if (result.done) {
-          dbg('[DS] ← writeScene done words=' + fullText.split(/\s+/).length + ' elapsed=' + (Date.now() - wsT0) + 'ms');
+          var wordCount = fullText.split(/\s+/).length;
+          dbg('[DS] ← writeScene done words=' + wordCount + ' elapsed=' + (Date.now() - wsT0) + 'ms');
           currentWriteAbort = null;
           cursor.remove();
           writtenScenes[key] = fullText;
@@ -8627,13 +8747,15 @@ function writeScene() {
           updateProseWordCount();
           updateSceneLog(activeChIdx, activeBeatIdx, beat.title, fullText);
           populateManualBeatSelect();
+          _wpSetRow('scene', 'done', wordCount + ' words');
           if (document.getElementById('autoUpdateState').checked) {
-            showToast('Updating story state\u2026');
+            _wpSetRow('storyState', 'updating', 'Updating\u2026');
             updateStoryState(apiKey, model, beat, fullText);
+          } else {
+            _wpSetRow('storyState', 'skipped', 'Skipped');
           }
-          // Always update physical continuity silently
+          _wpSetRow('physCont', 'updating', 'Updating\u2026');
           updatePhysicalContinuity(apiKey, model, beat, fullText);
-          showToast('\u2713 Scene written \u2014 ' + fullText.split(/\s+/).length + ' words');
           document.getElementById('btnWrite').disabled = false;
           document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
           releaseWakeLock();
@@ -8661,8 +8783,11 @@ function writeScene() {
     }
     return readChunk();
   }).catch(function(err) {
-    if (err.name === 'AbortError') { dbg('writeScene aborted'); return; }
+    if (err.name === 'AbortError') { dbg('writeScene aborted'); closeWritingOverlay(); return; }
     dbg('ERROR: ' + err.message);
+    _wpSetRow('scene', 'error', 'Failed');
+    _wpSetRow('storyState', 'skipped', 'Skipped');
+    _wpSetRow('physCont', 'skipped', 'Skipped');
     proseDiv.innerHTML = '<div style="color:#c0392b;padding:16px;font-size:0.9rem;line-height:1.6;"><strong>Error:</strong> ' + err.message + '</div>';
     showToast('Error: ' + err.message.slice(0, 120));
     document.getElementById('btnWrite').disabled = false;
@@ -8717,8 +8842,8 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
         if (newState) {
           document.getElementById('storyState').value = newState;
           saveCurrentStory();
-          showToast('Story state updated');
           dbg('[DS] storyState result (' + newState.length + ' chars): ' + newState.slice(0, 100) + (newState.length > 100 ? '…' : ''));
+          _wpIfOpen('storyState', 'done', 'Updated');
           if (typeof onComplete === 'function') onComplete();
         }
       },
@@ -8726,6 +8851,8 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
         dbg('State update error: ' + e.message + (retryCount < 1 ? ' — retrying in 5s' : ' — giving up'));
         if (retryCount < 1) {
           setTimeout(function() { updateStoryState(apiKey, model, beat, sceneText, onComplete, 1); }, 5000);
+        } else {
+          _wpIfOpen('storyState', 'error', 'Failed');
         }
       }
     }
@@ -8797,6 +8924,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
           saveCurrentStory();
           renderPhysicalContinuity();
           dbg('[DS] physicalContinuity result (' + result.length + ' chars): ' + result.slice(0, 150) + (result.length > 150 ? '…' : ''));
+          _wpIfOpen('physCont', 'done', 'Updated');
           if (typeof onComplete === 'function') onComplete();
         }
       },
@@ -8804,6 +8932,8 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
         dbg('Physical continuity update error: ' + e.message + (retryCount < 1 ? ' — retrying in 5s' : ' — giving up'));
         if (retryCount < 1) {
           setTimeout(function() { updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, 1); }, 5000);
+        } else {
+          _wpIfOpen('physCont', 'error', 'Failed');
         }
       }
     }
