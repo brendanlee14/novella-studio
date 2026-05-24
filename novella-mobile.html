@@ -2272,7 +2272,7 @@
   <div class="settings-group">
     <div class="settings-group-title">API Keys <span style="font-weight:300;font-size:0.7rem;color:var(--muted);letter-spacing:0.04em;">— shared across all stories</span></div>
     <div class="setting-row">
-      <div><div class="setting-label">DeepSeek Key</div><div class="setting-sub">For writing — deepseek-v4-flash / v4-pro</div></div>
+      <div><div class="setting-label">DeepSeek Key</div><div class="setting-sub">For writing — deepseek-chat (V3.2)</div></div>
       <input type="password" id="deepseekApiKey" placeholder="Paste key" style="width:140px;" />
     </div>
     <div class="setting-row">
@@ -2693,8 +2693,9 @@
 // ══════════════════════════════
 // MULTI-STORY DATA MODEL
 // DeepSeek model IDs — update here if models change
-var DS_FLASH = 'deepseek-v4-flash'; // creative generation: fast, cost-efficient
-var DS_PRO   = 'deepseek-v4-pro';   // structured extraction: beats, chapter summaries
+// V3.2 (deepseek-chat) used for both tiers — V4 filter is too aggressive for adult fiction
+var DS_FLASH = 'deepseek-chat';
+var DS_PRO   = 'deepseek-chat';
 
 // stories = [ { id, title, createdAt, data: { chapters, writtenScenes, lore, settings, storyState } } ]
 // ══════════════════════════════
