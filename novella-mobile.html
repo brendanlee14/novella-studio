@@ -5588,6 +5588,18 @@ function deletePortraitFromPopup() {
   showToast('Portrait deleted');
 }
 
+function sanitisePhysCont(text) {
+  // Neutralise explicit slang in stored physicalContinuity before injecting into API prompts
+  // Prevents the previous state from triggering DeepSeek's content filter
+  return text
+    .replace(/\b(cock|dick|shaft)\b/gi, 'penis')
+    .replace(/\b(pussy|cunt)\b/gi, 'vagina')
+    .replace(/\bdeep[- ]?throat\w*/gi, 'oral sex')
+    .replace(/\bblowjob|blow job\b/gi, 'oral sex')
+    .replace(/\bcumming\b/gi, 'climaxing')
+    .replace(/\bcum\b/gi, 'climax');
+}
+
 function sanitiseVenicePrompt(prompt) {
   // Venice Pro — safe_mode: false; only strip confirmed output-classifier triggers (sex acts)
   return prompt
@@ -8897,7 +8909,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
     return 'SUPPORTING CHARACTER: ' + c.name;
   }).join('\n');
 
-  var prevContinuity = physicalContinuity ? physicalContinuity.trim() : '';
+  var prevContinuity = physicalContinuity ? sanitisePhysCont(physicalContinuity.trim()) : '';
 
   var prompt = (pronounLines ? 'CHARACTER IDENTITY:\n' + pronounLines + '\n\n' : '') +
     (prevContinuity ? 'PREVIOUS STATE (carry forward anything the beat does not change):\n' + prevContinuity + '\n\n' : '') +
@@ -8905,7 +8917,8 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
     'Update the physical state based on what the beat describes happening. ' +
     'Only change what the beat explicitly changes — carry forward everything else from PREVIOUS STATE.\n\n' +
     'IMPORTANT: Only include characters physically present in the scene. ' +
-    'For clothing: if the beat does not mention removing or changing clothing, carry it forward unchanged.\n\n' +
+    'For clothing: if the beat does not mention removing or changing clothing, carry it forward unchanged.\n' +
+    'Use neutral clinical language — describe acts and positions plainly without slang.\n\n' +
     'Output ONLY this structure:\n' +
     'Location: [where]\n' +
     'Present: [names]\n' +
@@ -8915,7 +8928,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
 
   streamingFetch(apiKey, model,
     [
-      { role: 'system', content: 'You update physical scene state for a fiction writing tool. Use character names, never generic labels. Carry forward the previous state for anything the beat does not explicitly change. Output only the structured list — no commentary.' },
+      { role: 'system', content: 'You update physical scene state for a fiction writing tool. Use character names, never generic labels. Use neutral clinical language — no explicit slang. Carry forward the previous state for anything the beat does not explicitly change. Output only the structured list — no commentary.' },
       { role: 'user', content: prompt }
     ],
     { maxTokens: 500, label: 'physicalContinuity',
