@@ -5944,7 +5944,7 @@ function distilBeatBrief(charId) {
 
   streamingFetch(apiKey, DS_FLASH,
     [{ role: 'user', content: prompt }],
-    { maxTokens: 250, label: 'beatBrief',
+    { maxTokens: 400, label: 'beatBrief',
       onDone: function(result) {
         beatBriefs[charId] = result.trim();
         renderBeatBriefStatus(charId);
@@ -6165,7 +6165,12 @@ function distilPortraitAppearance(charId) {
   var prompt = 'Convert these character facts into Stable Diffusion appearance tags for lustify-sdxl.\n\n' +
     'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
     genderNote + '\n\n' +
-    'Use precise SD vocabulary — examples: hourglass figure, chubby build, almond-shaped eyes, full lips, high cheekbones, wavy brunette hair, shoulder-length hair, pale skin, natural D cup.\n\n' +
+    'Rules:\n' +
+    '- Age: always write as "[N] year old woman" or "[N] year old man"\n' +
+    '- Breasts: use natural SD terms (e.g. "large natural breasts, heavy bust, low-hanging") — avoid clinical terms like tubular, pendulous\n' +
+    '- Cup size: pick ONE (e.g. "D cup") not both D and DD\n' +
+    '- Height: omit unless exceptional — average height adds nothing\n' +
+    '- Eyes: describe shape and any notable quality (e.g. "small expressive eyes", "almond-shaped eyes")\n\n' +
     'Do NOT include pose, clothing, backstory, or personality.\n\n' +
     'Character facts:\n' + appearanceFacts;
 
