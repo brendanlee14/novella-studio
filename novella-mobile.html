@@ -2664,8 +2664,8 @@
 </div><!-- /appShell -->
 
 <!-- WRITING PROGRESS OVERLAY -->
-<div class="wp-overlay" id="writingProgressOverlay">
-  <div class="wp-sheet">
+<div class="wp-overlay" id="writingProgressOverlay" onclick="closeWritingOverlay()">
+  <div class="wp-sheet" onclick="event.stopPropagation()">
     <div class="wp-title">Writing Scene</div>
     <div class="wp-row">
       <div class="wp-icon" id="wpIcon-scene"></div>
@@ -8872,6 +8872,7 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
           setTimeout(function() { updateStoryState(apiKey, model, beat, sceneText, onComplete, 1); }, 5000);
         } else {
           _wpIfOpen('storyState', 'error', 'Failed');
+          if (typeof onComplete === 'function') onComplete('');
         }
       }
     }
