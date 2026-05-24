@@ -8914,21 +8914,23 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
   var prompt = (pronounLines ? 'CHARACTER IDENTITY:\n' + pronounLines + '\n\n' : '') +
     (prevContinuity ? 'PREVIOUS STATE (carry forward anything the beat does not change):\n' + prevContinuity + '\n\n' : '') +
     'BEAT JUST WRITTEN:\n' + beatContext + '\n\n' +
-    'Update the physical state based on what the beat describes happening. ' +
-    'Only change what the beat explicitly changes — carry forward everything else from PREVIOUS STATE.\n\n' +
-    'IMPORTANT: Only include characters physically present in the scene. ' +
-    'For clothing: if the beat does not mention removing or changing clothing, carry it forward unchanged.\n' +
-    'Use neutral clinical language — describe acts and positions plainly without slang.\n\n' +
-    'Output ONLY this structure:\n' +
-    'Location: [where]\n' +
+    'Update the physical state based on what the beat describes. ' +
+    'Carry forward everything from PREVIOUS STATE that the beat does not explicitly change.\n\n' +
+    'Rules:\n' +
+    '- Clothing: list every specific garment still being worn (e.g. "jeans, open button-up shirt, bra" not "clothed"). If nude write "nude". Never write "clothed" or "partially dressed".\n' +
+    '- Position: be specific about body position, orientation, and what they are doing.\n' +
+    '- Only include characters physically present in the scene.\n' +
+    '- Use neutral clinical language — no explicit slang.\n\n' +
+    'Output ONLY:\n' +
+    'Location: [specific location]\n' +
     'Present: [names]\n' +
-    '[Name] clothing: [what they are wearing, or "nude"]\n' +
-    '[Name] position: [physical position/activity at scene end]\n' +
-    'Last physical action: [one sentence]';
+    '[Name] clothing: [every specific garment, or "nude"]\n' +
+    '[Name] position: [specific body position and activity]\n' +
+    'Last physical action: [one precise sentence]';
 
   streamingFetch(apiKey, model,
     [
-      { role: 'system', content: 'You update physical scene state for a fiction writing tool. Use character names, never generic labels. Use neutral clinical language — no explicit slang. Carry forward the previous state for anything the beat does not explicitly change. Output only the structured list — no commentary.' },
+      { role: 'system', content: 'You update physical scene state for a fiction writing tool. Be specific — list every garment by name, never write "clothed" or "partially dressed". Use neutral clinical language. Carry forward the previous state exactly for anything the beat does not change. Output only the structured list.' },
       { role: 'user', content: prompt }
     ],
     { maxTokens: 500, label: 'physicalContinuity',
