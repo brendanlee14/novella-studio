@@ -5771,51 +5771,64 @@ function buildDistilledAppearanceTags(loreText, charId) {
   m = loreText.match(/\bAge:\s*(\d+)/i);
   if (m) tags.push(m[1] + ' year old ' + (isFemale ? 'woman' : 'man'));
 
-  // Ethnicity
-  m = loreText.match(/Ethnicity:\s*([^\n]+)/i);
-  if (m) tags.push(m[1].trim());
+  // Ethnicity — try labelled field first, then nationality, then prose descriptors
+  m = loreText.match(/(?:Ethnicity|Nationality|Heritage|Race):\s*([^\n]+)/i);
+  if (m) {
+    tags.push(m[1].trim());
+  } else {
+    // Prose fallback: look for common ethnic/national descriptors
+    if (loreText.match(/\bAnglo.Australian\b/i))        tags.push('White Anglo-Australian');
+    else if (loreText.match(/\bAustralian\b/i) && loreText.match(/\bwhite\b/i)) tags.push('White Australian');
+    else if (loreText.match(/\bCaucasian\b/i))          tags.push('Caucasian');
+    else if (loreText.match(/\bLatina\b|\bLatino\b/i))  tags.push('Latina');
+    else if (loreText.match(/\bAsian\b/i))              tags.push('Asian');
+  }
 
   // Skin tone (from physical description prose)
-  if (loreText.match(/\bpale\b.{0,30}skin|skin.{0,30}\bpale\b|\bno\s+tan\b/i)) tags.push('pale skin, fair complexion');
+  if (loreText.match(/\bpale\b.{0,30}skin|skin.{0,30}\bpale\b|\bno\s+tan\b|\bfair\s+skin\b/i)) tags.push('pale skin, fair complexion');
   else if (loreText.match(/\bolive\b.{0,20}skin/i)) tags.push('olive skin');
   else if (loreText.match(/\btan(?:ned)?\b.{0,20}skin/i)) tags.push('tanned skin');
 
-  // Build
-  m = loreText.match(/\nBuild:\s*([\s\S]*?)(?=\n\n|\nFace:)/i);
-  if (m) {
-    var b = m[1].toLowerCase();
-    if (b.match(/\bchubby\b/))     tags.push('chubby');
-    if (b.match(/\bhourglass\b/))  tags.push('hourglass figure');
-    if (b.match(/\bpetite\b/))     tags.push('petite');
-    if (b.match(/\bathlet\w+/))    tags.push('athletic build');
-    if (b.match(/\bslim\b/))       tags.push('slim figure');
-    if (b.match(/\bcurvy\b/))      tags.push('curvy figure');
-    if (b.match(/thick thighs/))   tags.push('thick thighs, full hips');
-    if (b.match(/large.*?bum|full.*?bum/)) tags.push('large buttocks');
-    var hm = loreText.match(/(\d{3})\s*cm/i);
-    if (hm && parseInt(hm[1]) >= 175) tags.push('tall');
-  }
+  // Build — search full lore for robustness (section regex is fragile around newline format)
+  var loreL = loreText.toLowerCase();
+  if (loreL.match(/\bchubby\b/))        tags.push('chubby');
+  if (loreL.match(/\bhourglass\b/))     tags.push('hourglass figure');
+  else if (loreL.match(/\bpetite\b/))   tags.push('petite');
+  else if (loreL.match(/\bathlet\w+/))  tags.push('athletic build');
+  else if (loreL.match(/\bslim\b/))     tags.push('slim figure');
+  else if (loreL.match(/\bcurvy\b/))    tags.push('curvy figure');
+  if (loreL.match(/thick\s+thighs|full\s+thighs|ample\s+thighs|wide\s+thighs/)) tags.push('thick thighs, full hips');
+  if (loreL.match(/large.{0,10}bum|full.{0,10}bum|large.{0,10}butt|big.{0,10}butt|large.{0,10}hips|full.{0,10}hips/)) tags.push('large buttocks');
+  var hm = loreText.match(/(\d{3})\s*cm/i);
+  if (hm && parseInt(hm[1]) >= 175) tags.push('tall');
 
-  // Face shape
+  // Face shape — from Face: line only (full-lore search too ambiguous for shape words)
   m = loreText.match(/\nFace:\s*([^\n]+)/i);
   if (m) {
-    var f = m[1];
-    if (f.match(/rectangle|rectangular/i)) tags.push('rectangular face shape');
-    else if (f.match(/\boval\b/i))         tags.push('oval face');
-    else if (f.match(/\bround\b/i))        tags.push('round face');
-    else if (f.match(/\bheart\b/i))        tags.push('heart-shaped face');
-    else if (f.match(/\bsquare\b/i))       tags.push('square jaw');
-    if (f.match(/high cheekbones/i))       tags.push('high cheekbones');
-    if (f.match(/full lips?/i))            tags.push('full lips');
-    if (f.match(/soft jaw|defined jaw/i))  tags.push('defined jawline');
+    var faceStr = m[1];
+    if (faceStr.match(/rectangle|rectangular/i)) tags.push('rectangular face shape');
+    else if (faceStr.match(/\boval\b/i))         tags.push('oval face');
+    else if (faceStr.match(/\bround\b/i))        tags.push('round face');
+    else if (faceStr.match(/\bheart.shaped\b|\bheart\s+face\b/i)) tags.push('heart-shaped face');
+    else if (faceStr.match(/\bsquare\b/i))       tags.push('square jaw');
   }
+  // Face details — search full lore
+  if (loreText.match(/high\s+cheekbones?/i))             tags.push('high cheekbones');
+  if (loreText.match(/full\s+lips?|plump\s+lips?/i))     tags.push('full lips');
+  if (loreText.match(/soft\s+jaw|defined\s+jaw|strong\s+jaw/i)) tags.push('defined jawline');
+  if (loreText.match(/\bfreckles\b/i))                   tags.push('freckles');
 
-  // Eyes
-  var eyeColour = loreText.match(/\b(blue|green|brown|hazel|grey|gray|amber|dark|light)\s+eyes\b/i);
-  if (eyeColour) tags.push(eyeColour[1] + ' eyes');
-  if (loreText.match(/\bsmall\b.{0,20}eyes|eyes.{0,10}\bsmall\b/i)) tags.push('small eyes');
+  // Eyes — parse Eyes: line if present, then full-lore search
+  var eyeStr = loreText;
+  m = loreText.match(/\nEyes?:\s*([^\n]+)/i);
+  if (m) eyeStr = m[1];
+  var eyeColour = eyeStr.match(/\b(blue|green|brown|hazel|grey|gray|amber)\s*eyes?\b/i) ||
+                  loreText.match(/\b(blue|green|brown|hazel|grey|gray|amber)\s+eyes\b/i);
+  if (eyeColour) tags.push(eyeColour[1].toLowerCase() + ' eyes');
+  if (loreText.match(/\bsmall\b.{0,25}eyes|eyes\b.{0,20}\bsmall\b|\bsmall(?:ish)?\s+eyes\b/i)) tags.push('small eyes');
   if (loreText.match(/almond.{0,10}eyes|eyes.{0,10}almond/i))       tags.push('almond-shaped eyes');
   if (loreText.match(/wide.{0,10}eyes/i))                            tags.push('wide eyes');
+  if (loreText.match(/\bhooded\s+eyes?\b/i))                         tags.push('hooded eyes');
 
   // Hair
   m = loreText.match(/\nHair:\s*([^\n]+)/i);
@@ -5835,7 +5848,7 @@ function buildDistilledAppearanceTags(loreText, charId) {
     else if (h.match(/curly/i))         hairParts.push('curly hair');
     if (hairParts.length) tags.push(hairParts.join(', '));
   }
-  if (loreText.match(/dark(?:er)?\s+(?:at the\s+)?roots/i)) tags.push('dark roots');
+  if (loreText.match(/dark\w*\s+(?:at the\s+)?roots|roots\s+(?:are\s+|showing\s+)?dark\w*|natural\s+dark\s+roots/i)) tags.push('dark roots');
 
   // Breast size (female only)
   if (isFemale) {
