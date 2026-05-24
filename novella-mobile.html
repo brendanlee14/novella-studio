@@ -6243,14 +6243,64 @@ function editToneBrief() {
 }
 
 function distilPortraitAppearance(charId) {
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
   var loreText = document.getElementById(charId).value.trim();
   if (!loreText) { showToast('Add character lore first'); return; }
 
-  var tags = buildDistilledAppearanceTags(loreText, charId);
-  portraitState[charId].appearanceTags = tags;
-  renderDistilStatus(charId);
-  saveCurrentStory();
-  showToast('Appearance distilled ✓');
+  // Regex fallback — always computed, used if API is unavailable or filtered
+  var regexTags = buildDistilledAppearanceTags(loreText, charId);
+
+  if (!apiKey) {
+    portraitState[charId].appearanceTags = regexTags;
+    renderDistilStatus(charId);
+    saveCurrentStory();
+    showToast('Appearance distilled ✓ (no API key — regex only)');
+    return;
+  }
+
+  var statusEl = document.getElementById('portrait-' + charId + '-distil-status');
+  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
+
+  var isFemale = charId !== 'char1';
+  var facts = buildAppearanceFacts(loreText, charId);
+
+  var prompt = 'Convert these character appearance facts into Stable Diffusion tags for lustify-sdxl. ' +
+    'Output ONLY a comma-separated list of SD tags. Physical appearance only — no clothing, no pose, no setting, no background.\n\n' +
+    (isFemale
+      ? 'Female character. Include: age descriptor, ethnicity, skin tone, build/body type, distinctive body features, face shape, facial features, eye colour/shape, hair colour/length/style. Add any distinctive or memorable physical traits not captured above.'
+      : 'Male character. Include: age descriptor, ethnicity, skin tone, build, face shape, facial features, eye colour, hair. No female anatomy terms.') + '\n\n' +
+    'Character facts:\n' + facts;
+
+  streamingFetch(apiKey, DS_FLASH,
+    [{ role: 'user', content: prompt }],
+    { maxTokens: 300, label: 'distilAppearance',
+      onDone: function(text) {
+        var tags = text.trim();
+        if (!tags) {
+          // API filtered — fall back to regex
+          tags = regexTags;
+          showToast('Appearance distilled ✓ (regex fallback)');
+        } else {
+          // Append breast size from regex if not present in API output (API never gets that fact)
+          var breastTag = extractBreastSize(loreText);
+          if (breastTag && isFemale && tags.toLowerCase().indexOf('breast') === -1) {
+            tags = tags.replace(/,\s*$/, '') + ', ' + breastTag;
+          }
+          showToast('Appearance distilled ✓');
+        }
+        portraitState[charId].appearanceTags = tags;
+        renderDistilStatus(charId);
+        saveCurrentStory();
+      },
+      onError: function(err) {
+        // Network/auth error — fall back to regex
+        portraitState[charId].appearanceTags = regexTags;
+        renderDistilStatus(charId);
+        saveCurrentStory();
+        showToast('Appearance distilled ✓ (regex fallback — ' + err.message + ')');
+      }
+    }
+  );
 }
 
 function clearPortraitAppearance(charId) {
