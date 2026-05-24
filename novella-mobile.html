@@ -8899,25 +8899,23 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
 
   var prevContinuity = physicalContinuity ? physicalContinuity.trim() : '';
 
-  var prompt = (pronounLines ? 'CHARACTER IDENTITY — use these mappings when reading the scene:\n' + pronounLines + '\n\n' : '') +
-    (prevContinuity ? 'PREVIOUS SCENE STATE (carry forward anything not changed by the new scene):\n' + prevContinuity + '\n\n' : '') +
-    'BEAT CONTEXT:\n' + beatContext + '\n\n' +
-    'Extract the physical state at the END of this scene.\n\n' +
-    'IMPORTANT: A character is physically present only if they are in the scene in person. ' +
-    'Do NOT include a character who is only mentioned, thought about, or referenced in dialogue — only characters who are physically there.\n' +
-    'For clothing: if the scene does not mention a character removing or changing clothing, carry forward their clothing from the PREVIOUS SCENE STATE above. Only mark clothing as unknown if there is no previous state to draw from.\n\n' +
-    'Output ONLY this structure (skip any character who is absent):\n' +
-    'Location: [where the scene takes place]\n' +
-    'Present: [names of characters physically in the scene]\n' +
-    '[For each present character:]\n' +
-    '[Name] clothing: [exactly what they are wearing, or "nude"]\n' +
+  var prompt = (pronounLines ? 'CHARACTER IDENTITY:\n' + pronounLines + '\n\n' : '') +
+    (prevContinuity ? 'PREVIOUS STATE (carry forward anything the beat does not change):\n' + prevContinuity + '\n\n' : '') +
+    'BEAT JUST WRITTEN:\n' + beatContext + '\n\n' +
+    'Update the physical state based on what the beat describes happening. ' +
+    'Only change what the beat explicitly changes — carry forward everything else from PREVIOUS STATE.\n\n' +
+    'IMPORTANT: Only include characters physically present in the scene. ' +
+    'For clothing: if the beat does not mention removing or changing clothing, carry it forward unchanged.\n\n' +
+    'Output ONLY this structure:\n' +
+    'Location: [where]\n' +
+    'Present: [names]\n' +
+    '[Name] clothing: [what they are wearing, or "nude"]\n' +
     '[Name] position: [physical position/activity at scene end]\n' +
-    'Last physical action: [one sentence — what physically just happened]\n\n' +
-    'Scene (final portion — extract end state from this):\n' + sceneText.slice(-2000);
+    'Last physical action: [one sentence]';
 
   streamingFetch(apiKey, model,
     [
-      { role: 'system', content: 'You extract physical scene state. Output only the structured list requested. Always use the character\'s actual name — never use generic labels like "Man" or "Woman". For clothing: carry forward the previous scene state for anything the new scene does not change — do not write "unknown" or "not specified" if a previous state exists. Be precise — if an item was removed, say so. Never invent details not in the scene or previous state. Skip entries for characters who are absent.' },
+      { role: 'system', content: 'You update physical scene state for a fiction writing tool. Use character names, never generic labels. Carry forward the previous state for anything the beat does not explicitly change. Output only the structured list — no commentary.' },
       { role: 'user', content: prompt }
     ],
     { maxTokens: 500, label: 'physicalContinuity',
