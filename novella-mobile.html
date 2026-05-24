@@ -8766,12 +8766,15 @@ function writeScene() {
           _wpSetRow('scene', 'done', wordCount + ' words');
           if (document.getElementById('autoUpdateState').checked) {
             _wpSetRow('storyState', 'updating', 'Updating\u2026');
-            updateStoryState(apiKey, model, beat, fullText);
+            updateStoryState(apiKey, model, beat, fullText, function(newStateText) {
+              _wpSetRow('physCont', 'updating', 'Updating\u2026');
+              updatePhysicalContinuity(apiKey, DS_FLASH, beat, fullText, null, 0, newStateText);
+            });
           } else {
             _wpSetRow('storyState', 'skipped', 'Skipped');
+            _wpSetRow('physCont', 'updating', 'Updating\u2026');
+            updatePhysicalContinuity(apiKey, DS_FLASH, beat, fullText);
           }
-          _wpSetRow('physCont', 'updating', 'Updating\u2026');
-          updatePhysicalContinuity(apiKey, DS_FLASH, beat, fullText);
           document.getElementById('btnWrite').disabled = false;
           document.getElementById('btnWrite').textContent = '\u2726 Write Scene';
           releaseWakeLock();
@@ -8852,7 +8855,7 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
       { role: 'system', content: 'You maintain a running story state for a fiction writing tool. Write in plain prose — no markdown, no headers, no bold text. Be direct and factual. This output feeds into the next scene as context so it must be accurate and concise.' },
       { role: 'user', content: prompt }
     ],
-    { maxTokens: 300, label: 'storyState',
+    { maxTokens: 500, label: 'storyState',
       onDone: function(newState) {
         newState = newState.trim();
         if (newState) {
@@ -8860,7 +8863,7 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
           saveCurrentStory();
           dbg('[DS] storyState result (' + newState.length + ' chars): ' + newState.slice(0, 100) + (newState.length > 100 ? '…' : ''));
           _wpIfOpen('storyState', 'done', 'Updated');
-          if (typeof onComplete === 'function') onComplete();
+          if (typeof onComplete === 'function') onComplete(newState);
         }
       },
       onError: function(e) {
@@ -8875,7 +8878,7 @@ function updateStoryState(apiKey, model, beat, sceneText, onComplete, retryCount
   );
 }
 
-function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, retryCount) {
+function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, retryCount, storyStateText) {
   retryCount = retryCount || 0;
 
   // Beat summary contains character names — use it as the primary identity anchor
@@ -8913,6 +8916,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
 
   var prompt = (pronounLines ? 'CHARACTER IDENTITY:\n' + pronounLines + '\n\n' : '') +
     (prevContinuity ? 'PREVIOUS STATE (carry forward anything the beat does not change):\n' + prevContinuity + '\n\n' : '') +
+    (storyStateText ? 'SCENE SUMMARY (use to understand what changed — no explicit language):\n' + storyStateText + '\n\n' : '') +
     'BEAT JUST WRITTEN:\n' + beatContext + '\n\n' +
     'Update the physical state based on what the beat describes. ' +
     'Carry forward everything from PREVIOUS STATE that the beat does not explicitly change.\n\n' +
@@ -8948,7 +8952,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
       onError: function(e) {
         dbg('Physical continuity update error: ' + e.message + (retryCount < 1 ? ' — retrying in 5s' : ' — giving up'));
         if (retryCount < 1) {
-          setTimeout(function() { updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, 1); }, 5000);
+          setTimeout(function() { updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, 1, storyStateText); }, 5000);
         } else {
           _wpIfOpen('physCont', 'error', 'Failed');
         }
