@@ -5881,7 +5881,7 @@ function distilBeatBrief(charId) {
   if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
 
   var loreForBrief = loreSectionsExtract(loreText, [
-    'PERSONALITY AND DEMEANOUR', 'BACKSTORY AND VULNERABILITIES', 'SPEECH PATTERNS', 'NARRATIVE UTILITY'
+    'PERSONALITY AND DEMEANOUR', 'BACKSTORY AND VULNERABILITIES', 'NARRATIVE UTILITY'
   ]);
 
   var prompt = 'Extract a beat generation brief from this character lore. This brief will be used by an AI story planner to generate story beats — it needs to know how this character BEHAVES and REACTS, not what they look like.\n\n' +
@@ -6117,7 +6117,12 @@ function distilPortraitAppearance(charId) {
   var loreForAppearance = loreSectionsExtract(loreText, ['PHYSICAL DESCRIPTION'])
     .replace(/Pubic hair(?:\s+and\s+\w+)?:[\s\S]*?(?=\n\n|\n[A-Z]|$)/i, '')
     .replace(/\b(vulva|labia|vagina(?:l)?|clitoris)\b/gi, '')
-    .trim();
+    .replace(/\bdoggy\b/gi, 'rear-entry')
+    .replace(/\barse\b/gi, 'bottom')
+    .replace(/\bsuck\b/gi, 'hold')
+    .replace(/\b(stimulat\w*|aroused?)\b/gi, '')
+    .replace(/\bnipples? harden\b[^.]*\./gi, '')
+    .replace(/\s{2,}/g, ' ').trim();
 
   var prompt = 'Convert this character lore into Stable Diffusion appearance tags for lustify-sdxl.\n\n' +
     'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
