@@ -8913,7 +8913,7 @@ function updatePhysicalContinuity(apiKey, model, beat, sceneText, onComplete, re
     '[Name] clothing: [exactly what they are wearing, or "nude"]\n' +
     '[Name] position: [physical position/activity at scene end]\n' +
     'Last physical action: [one sentence — what physically just happened]\n\n' +
-    'Scene:\n' + sceneText.slice(0, 4000);
+    'Scene (final portion — extract end state from this):\n' + sceneText.slice(-2000);
 
   streamingFetch(apiKey, model,
     [
