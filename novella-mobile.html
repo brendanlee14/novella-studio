@@ -6153,8 +6153,8 @@ function distilPortraitAppearance(charId) {
 
   var isFemale = charId !== 'char1';
   var genderNote = isFemale
-    ? 'FEMALE character. Include breast size, body shape, all female physical attributes.'
-    : 'MALE character. Male tags only. No female anatomy.';
+    ? 'FEMALE character. Output physical appearance SD tags: age, body shape, face features, hair, skin tone.'
+    : 'MALE character. Male appearance tags only. No female anatomy.';
 
   var appearanceFacts = buildAppearanceFacts(loreText, charId);
 
@@ -6173,10 +6173,12 @@ function distilPortraitAppearance(charId) {
     { maxTokens: 250, label: 'distilAppearance',
       onDone: function(result) {
         var tags = result.trim().replace(/^[\s\n,]+|[\s\n,]+$/g, '');
-        // Append breast size via regex — kept out of the prompt to avoid content filter
+        // Fall back to regex extraction if DeepSeek returned nothing
+        if (!tags) tags = buildStructuredTags(loreText, charId);
+        // Append breast size via regex — kept out of the DeepSeek prompt to avoid content filter
         if (isFemale) {
           var breastTag = extractBreastSize(loreText);
-          if (breastTag) tags = tags + ', ' + breastTag;
+          if (breastTag) tags = tags.replace(/,\s*$/, '') + ', ' + breastTag;
         }
         portraitState[charId].appearanceTags = tags;
         renderDistilStatus(charId);
