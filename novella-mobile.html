@@ -5761,6 +5761,62 @@ function extractLoreField(lore, patterns) {
   return null;
 }
 
+function buildAppearanceFacts(loreText, charId) {
+  // Extract clean physical facts via regex — safe to send to DeepSeek (no explicit prose)
+  var isFemale = charId !== 'char1';
+  var lines = [];
+  var m;
+  m = loreText.match(/(?:Full\s+)?[Nn]ame:\s*([^\n]+)/);
+  if (m) lines.push('Name: ' + m[1].trim());
+  m = loreText.match(/\bAge:\s*(\d+)/i);
+  if (m) lines.push('Age: ' + m[1] + ' years old');
+  m = loreText.match(/Ethnicity:\s*([^\n]+)/i);
+  if (m) lines.push('Ethnicity: ' + m[1].trim());
+  m = loreText.match(/(\d{3})\s*cm\b/i);
+  if (m) lines.push('Height: ' + m[1] + 'cm');
+  // First sentence of each subsection only — later sentences contain explicit detail
+  m = loreText.match(/\nBuild:\s*([^.]+\.\s*[^.]+\.)/i);
+  if (m) lines.push('Build: ' + m[1].replace(/—her weight settles into[^.]+\./i, '.').replace(/\b(easy to grip|grip during|shift her|presents herself)\b[^,.]*/gi, '').replace(/\s{2,}/g, ' ').trim());
+  m = loreText.match(/\nFace:\s*([^.]+\.)/i);
+  if (m) lines.push('Face: ' + m[1].trim());
+  m = loreText.match(/\nHair:\s*([^.]+\.)/i);
+  if (m) lines.push('Hair: ' + m[1].trim());
+  if (isFemale) {
+    m = loreText.match(/\nBreasts?:\s*([^—.]+)/i);
+    if (m) lines.push('Bust: ' + m[1].trim());
+  }
+  return lines.join('\n');
+}
+
+function buildBehaviorFacts(loreText) {
+  // Extract clean behavioral facts via regex — safe to send to DeepSeek (no explicit prose)
+  var lines = [];
+  var m;
+  m = loreText.match(/(?:Full\s+)?[Nn]ame:\s*([^\n]+)/);
+  if (m) lines.push('Name: ' + m[1].trim());
+  m = loreText.match(/\bAge:\s*(\d+)/i);
+  if (m) lines.push('Age: ' + m[1]);
+  // First 2 sentences of PERSONALITY only — opening lines are safe, explicit content builds later
+  m = loreText.match(/\nPERSONALITY[A-Z\s]+\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+\n|$)/i);
+  if (m) {
+    var sents = (m[1].match(/[^.!?]+[.!?]+/g) || []).slice(0, 2).join(' ').trim();
+    if (sents) lines.push('Personality: ' + sents);
+  }
+  // First 2 sentences of BACKSTORY only
+  m = loreText.match(/\nBACKSTORY[A-Z\s]+\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+\n|$)/i);
+  if (m) {
+    var sents2 = (m[1].match(/[^.!?]+[.!?]+/g) || []).slice(0, 2).join(' ').trim();
+    if (sents2) lines.push('Background: ' + sents2);
+  }
+  // First sentence of NARRATIVE UTILITY only
+  m = loreText.match(/\nNARRATIVE[A-Z\s]+\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+\n|$)/i);
+  if (m) {
+    var sents3 = ((m[1].match(/[^.!?]+[.!?]+/g) || []).slice(0, 1).join(' ')).trim();
+    if (sents3) lines.push('Role: ' + sents3);
+  }
+  return lines.join('\n');
+}
+
 function buildStructuredTags(loreTruncated, charId) {
   // Parse known structured fields directly from lore — never leave these to model inference
   var tags = [];
@@ -5880,20 +5936,11 @@ function distilBeatBrief(charId) {
   var statusEl = document.getElementById('beat-brief-' + charId + '-status');
   if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
 
-  var loreForBrief = loreSectionsExtract(loreText, [
-    'PERSONALITY AND DEMEANOUR', 'BACKSTORY AND VULNERABILITIES', 'NARRATIVE UTILITY'
-  ]);
+  var behaviorFacts = buildBehaviorFacts(loreText);
 
-  var prompt = 'Extract a beat generation brief from this character lore. This brief will be used by an AI story planner to generate story beats — it needs to know how this character BEHAVES and REACTS, not what they look like.\n\n' +
-    'Write a plain prose paragraph of 100-150 words covering ONLY:\n' +
-    '1. Name, age, role in the story\n' +
-    '2. Core personality — 2-3 traits, how they come across vs how they actually are\n' +
-    '3. Emotional pattern — how they handle vulnerability, tension, intimacy\n' +
-    '4. What they want from this relationship and what holds them back\n' +
-    '5. How they behave in charged or intimate situations (do they take charge, hold back, deflect, push)\n' +
-    '6. Their core vulnerability or private fear\n\n' +
-    'Do NOT include: physical appearance, anatomy, speech pattern detail, full backstory, kink lists, or narrative meta-commentary.\n\n' +
-    'Character lore:\n' + loreForBrief;
+  var prompt = 'Write a character brief for story beat planning. Output a plain prose paragraph of 80-120 words.\n\n' +
+    'Cover: name and age, how they present to others vs how they actually are one-on-one, their emotional pattern, what they want from this relationship, and their core vulnerability or private fear.\n\n' +
+    'Character facts:\n' + behaviorFacts;
 
   streamingFetch(apiKey, DS_FLASH,
     [{ role: 'user', content: prompt }],
@@ -6113,24 +6160,14 @@ function distilPortraitAppearance(charId) {
     ? 'FEMALE character. Include breast size, body shape, all female physical attributes.'
     : 'MALE character. Male tags only. No female anatomy.';
 
-  // Extract physical description only — strip genitalia subsection to avoid DS content filter
-  var loreForAppearance = loreSectionsExtract(loreText, ['PHYSICAL DESCRIPTION'])
-    .replace(/Pubic hair(?:\s+and\s+\w+)?:[\s\S]*?(?=\n\n|\n[A-Z]|$)/i, '')
-    .replace(/\b(vulva|labia|vagina(?:l)?|clitoris)\b/gi, '')
-    .replace(/\bdoggy\b/gi, 'rear-entry')
-    .replace(/\barse\b/gi, 'bottom')
-    .replace(/\bsuck\b/gi, 'hold')
-    .replace(/\b(stimulat\w*|aroused?)\b/gi, '')
-    .replace(/\bnipples? harden\b[^.]*\./gi, '')
-    .replace(/\s{2,}/g, ' ').trim();
+  var appearanceFacts = buildAppearanceFacts(loreText, charId);
 
-  var prompt = 'Convert this character lore into Stable Diffusion appearance tags for lustify-sdxl.\n\n' +
+  var prompt = 'Convert these character facts into Stable Diffusion appearance tags for lustify-sdxl.\n\n' +
     'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
     genderNote + '\n\n' +
-    'Required fields: age (e.g. "28 year old woman"), ethnicity and skin tone, body type and build, face shape, eye colour and shape, nose and lip and jawline features, hair colour + length + texture + style, breast size (female only), distinctive features.\n\n' +
-    'Use precise SD vocabulary — examples: hourglass figure, petite frame, athletic build, almond-shaped eyes, full lips, high cheekbones, button nose, soft jawline, wavy brunette hair, shoulder-length hair, olive skin, light freckles, natural D cup.\n\n' +
-    'Do NOT include: pose, action, clothing state, personality, kinks, backstory, or narrative.\n\n' +
-    'Maximum 100 words. Physical appearance only.\n\nCharacter lore:\n' + loreForAppearance;
+    'Use precise SD vocabulary — examples: hourglass figure, chubby build, almond-shaped eyes, full lips, high cheekbones, wavy brunette hair, shoulder-length hair, pale skin, natural D cup.\n\n' +
+    'Do NOT include pose, clothing, backstory, or personality.\n\n' +
+    'Character facts:\n' + appearanceFacts;
 
   streamingFetch(apiKey, DS_FLASH,
     [{ role: 'user', content: prompt }],
