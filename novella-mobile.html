@@ -5835,6 +5835,20 @@ function editPortraitAppearance(charId) {
 // BEAT BRIEF — distilled behavioural lore for beat generation
 // ══════════════════════════════
 
+function loreSectionsExtract(lore, names) {
+  // Pull named all-caps section blocks from structured character lore.
+  // Includes pre-section header (name, age, etc.) + each requested section.
+  var result = [];
+  var pre = lore.match(/^([\s\S]*?)(?=\n[A-Z][A-Z\s&\/]+\n|$)/);
+  if (pre && pre[1].trim()) result.push(pre[1].trim());
+  names.forEach(function(name) {
+    var re = new RegExp('\\n' + name.replace(/\s+/g, '\\s+') + '\\s*\\n([\\s\\S]*?)(?=\\n[A-Z][A-Z\\s&\\/]+\\n|$)', 'i');
+    var m = lore.match(re);
+    if (m && m[1].trim()) result.push(m[1].trim());
+  });
+  return result.join('\n\n').slice(0, 4000);
+}
+
 function renderBeatBriefStatus(charId) {
   var brief = beatBriefs[charId] || '';
   var statusEl = document.getElementById('beat-brief-' + charId + '-status');
@@ -5866,6 +5880,10 @@ function distilBeatBrief(charId) {
   var statusEl = document.getElementById('beat-brief-' + charId + '-status');
   if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
 
+  var loreForBrief = loreSectionsExtract(loreText, [
+    'PERSONALITY AND DEMEANOUR', 'BACKSTORY AND VULNERABILITIES', 'SPEECH PATTERNS', 'NARRATIVE UTILITY'
+  ]);
+
   var prompt = 'Extract a beat generation brief from this character lore. This brief will be used by an AI story planner to generate story beats — it needs to know how this character BEHAVES and REACTS, not what they look like.\n\n' +
     'Write a plain prose paragraph of 100-150 words covering ONLY:\n' +
     '1. Name, age, role in the story\n' +
@@ -5875,7 +5893,7 @@ function distilBeatBrief(charId) {
     '5. How they behave in charged or intimate situations (do they take charge, hold back, deflect, push)\n' +
     '6. Their core vulnerability or private fear\n\n' +
     'Do NOT include: physical appearance, anatomy, speech pattern detail, full backstory, kink lists, or narrative meta-commentary.\n\n' +
-    'Character lore:\n' + loreText;
+    'Character lore:\n' + loreForBrief;
 
   streamingFetch(apiKey, DS_FLASH,
     [{ role: 'user', content: prompt }],
@@ -6095,13 +6113,19 @@ function distilPortraitAppearance(charId) {
     ? 'FEMALE character. Include breast size, body shape, all female physical attributes.'
     : 'MALE character. Male tags only. No female anatomy.';
 
+  // Extract physical description only — strip genitalia subsection to avoid DS content filter
+  var loreForAppearance = loreSectionsExtract(loreText, ['PHYSICAL DESCRIPTION'])
+    .replace(/Pubic hair(?:\s+and\s+\w+)?:[\s\S]*?(?=\n\n|\n[A-Z]|$)/i, '')
+    .replace(/\b(vulva|labia|vagina(?:l)?|clitoris)\b/gi, '')
+    .trim();
+
   var prompt = 'Convert this character lore into Stable Diffusion appearance tags for lustify-sdxl.\n\n' +
     'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
     genderNote + '\n\n' +
     'Required fields: age (e.g. "28 year old woman"), ethnicity and skin tone, body type and build, face shape, eye colour and shape, nose and lip and jawline features, hair colour + length + texture + style, breast size (female only), distinctive features.\n\n' +
-    'Use precise SD vocabulary — examples: hourglass figure, petite frame, athletic build, almond-shaped eyes, full lips, high cheekbones, button nose, soft jawline, wavy brunette hair, shoulder-length hair, olive skin, light freckles, natural C cup.\n\n' +
+    'Use precise SD vocabulary — examples: hourglass figure, petite frame, athletic build, almond-shaped eyes, full lips, high cheekbones, button nose, soft jawline, wavy brunette hair, shoulder-length hair, olive skin, light freckles, natural D cup.\n\n' +
     'Do NOT include: pose, action, clothing state, personality, kinks, backstory, or narrative.\n\n' +
-    'Maximum 100 words. Physical appearance only.\n\nCharacter lore:\n' + loreText;
+    'Maximum 100 words. Physical appearance only.\n\nCharacter lore:\n' + loreForAppearance;
 
   streamingFetch(apiKey, DS_FLASH,
     [{ role: 'user', content: prompt }],
