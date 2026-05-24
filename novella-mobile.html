@@ -5761,6 +5761,92 @@ function extractLoreField(lore, patterns) {
   return null;
 }
 
+function buildDistilledAppearanceTags(loreText, charId) {
+  // Convert character lore directly to SD tags via regex — no DeepSeek, no filter risk
+  var isFemale = charId !== 'char1';
+  var tags = [];
+  var m;
+
+  // Age
+  m = loreText.match(/\bAge:\s*(\d+)/i);
+  if (m) tags.push(m[1] + ' year old ' + (isFemale ? 'woman' : 'man'));
+
+  // Ethnicity
+  m = loreText.match(/Ethnicity:\s*([^\n]+)/i);
+  if (m) tags.push(m[1].trim());
+
+  // Skin tone (from physical description prose)
+  if (loreText.match(/\bpale\b.{0,30}skin|skin.{0,30}\bpale\b|\bno\s+tan\b/i)) tags.push('pale skin, fair complexion');
+  else if (loreText.match(/\bolive\b.{0,20}skin/i)) tags.push('olive skin');
+  else if (loreText.match(/\btan(?:ned)?\b.{0,20}skin/i)) tags.push('tanned skin');
+
+  // Build
+  m = loreText.match(/\nBuild:\s*([\s\S]*?)(?=\n\n|\nFace:)/i);
+  if (m) {
+    var b = m[1].toLowerCase();
+    if (b.match(/\bchubby\b/))     tags.push('chubby');
+    if (b.match(/\bhourglass\b/))  tags.push('hourglass figure');
+    if (b.match(/\bpetite\b/))     tags.push('petite');
+    if (b.match(/\bathlet\w+/))    tags.push('athletic build');
+    if (b.match(/\bslim\b/))       tags.push('slim figure');
+    if (b.match(/\bcurvy\b/))      tags.push('curvy figure');
+    if (b.match(/thick thighs/))   tags.push('thick thighs, full hips');
+    if (b.match(/large.*?bum|full.*?bum/)) tags.push('large buttocks');
+    var hm = loreText.match(/(\d{3})\s*cm/i);
+    if (hm && parseInt(hm[1]) >= 175) tags.push('tall');
+  }
+
+  // Face shape
+  m = loreText.match(/\nFace:\s*([^\n]+)/i);
+  if (m) {
+    var f = m[1];
+    if (f.match(/rectangle|rectangular/i)) tags.push('rectangular face shape');
+    else if (f.match(/\boval\b/i))         tags.push('oval face');
+    else if (f.match(/\bround\b/i))        tags.push('round face');
+    else if (f.match(/\bheart\b/i))        tags.push('heart-shaped face');
+    else if (f.match(/\bsquare\b/i))       tags.push('square jaw');
+    if (f.match(/high cheekbones/i))       tags.push('high cheekbones');
+    if (f.match(/full lips?/i))            tags.push('full lips');
+    if (f.match(/soft jaw|defined jaw/i))  tags.push('defined jawline');
+  }
+
+  // Eyes
+  var eyeColour = loreText.match(/\b(blue|green|brown|hazel|grey|gray|amber|dark|light)\s+eyes\b/i);
+  if (eyeColour) tags.push(eyeColour[1] + ' eyes');
+  if (loreText.match(/\bsmall\b.{0,20}eyes|eyes.{0,10}\bsmall\b/i)) tags.push('small eyes');
+  if (loreText.match(/almond.{0,10}eyes|eyes.{0,10}almond/i))       tags.push('almond-shaped eyes');
+  if (loreText.match(/wide.{0,10}eyes/i))                            tags.push('wide eyes');
+
+  // Hair
+  m = loreText.match(/\nHair:\s*([^\n]+)/i);
+  if (m) {
+    var h = m[1];
+    var hairParts = [];
+    if (h.match(/dirty.{0,10}blond|bleached.{0,10}blond|blond.{0,15}bleach/i)) hairParts.push('dirty blonde hair');
+    else if (h.match(/blond|blonde/i))  hairParts.push('blonde hair');
+    else if (h.match(/brunette|brown/i)) hairParts.push('brunette hair');
+    else if (h.match(/black/i))         hairParts.push('black hair');
+    else if (h.match(/red|auburn/i))    hairParts.push('red hair');
+    if (h.match(/shoulder.length/i))    hairParts.push('shoulder-length hair');
+    else if (h.match(/\bshort\b/i))     hairParts.push('short hair');
+    else if (h.match(/\blong\b/i))      hairParts.push('long hair');
+    if (h.match(/fringe|bangs/i))       hairParts.push('with bangs');
+    if (h.match(/wavy/i))               hairParts.push('wavy hair');
+    else if (h.match(/curly/i))         hairParts.push('curly hair');
+    if (hairParts.length) tags.push(hairParts.join(', '));
+  }
+  if (loreText.match(/dark(?:er)?\s+(?:at the\s+)?roots/i)) tags.push('dark roots');
+
+  // Breast size (female only)
+  if (isFemale) {
+    var breastTag = extractBreastSize(loreText);
+    if (breastTag) tags.push(breastTag);
+    else tags.push('medium breasts');
+  }
+
+  return tags.filter(Boolean).join(', ');
+}
+
 function buildAppearanceFacts(loreText, charId) {
   // Extract clean physical facts via regex — safe to send to DeepSeek (no explicit prose)
   var isFemale = charId !== 'char1';
@@ -6143,50 +6229,14 @@ function editToneBrief() {
 }
 
 function distilPortraitAppearance(charId) {
-  var apiKey = document.getElementById('deepseekApiKey').value.trim();
-  if (!apiKey) { showToast('DeepSeek API key required'); return; }
   var loreText = document.getElementById(charId).value.trim();
   if (!loreText) { showToast('Add character lore first'); return; }
 
-  var statusEl = document.getElementById('portrait-' + charId + '-distil-status');
-  if (statusEl) { statusEl.textContent = '⏳ Distilling…'; statusEl.style.color = 'var(--muted)'; }
-
-  var isFemale = charId !== 'char1';
-  var genderNote = isFemale
-    ? 'FEMALE character. Output physical appearance SD tags: age, body shape, face features, hair, skin tone.'
-    : 'MALE character. Male appearance tags only. No female anatomy.';
-
-  var appearanceFacts = buildAppearanceFacts(loreText, charId);
-
-  var prompt = 'Convert these character facts into Stable Diffusion appearance tags for lustify-sdxl.\n\n' +
-    'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
-    genderNote + '\n\n' +
-    'Rules:\n' +
-    '- Age: write as "[N] year old woman" or "[N] year old man"\n' +
-    '- Height: omit unless exceptional\n' +
-    '- Eyes: describe shape and quality (e.g. "small expressive eyes", "almond-shaped eyes")\n\n' +
-    'Do NOT include pose, clothing, backstory, or personality.\n\n' +
-    'Character facts:\n' + appearanceFacts;
-
-  streamingFetch(apiKey, DS_FLASH,
-    [{ role: 'user', content: prompt }],
-    { maxTokens: 250, label: 'distilAppearance',
-      onDone: function(result) {
-        var tags = result.trim().replace(/^[\s\n,]+|[\s\n,]+$/g, '');
-        // Fall back to regex extraction if DeepSeek returned nothing
-        if (!tags) tags = buildStructuredTags(loreText, charId);
-        // Append breast size via regex — kept out of the DeepSeek prompt to avoid content filter
-        if (isFemale) {
-          var breastTag = extractBreastSize(loreText);
-          if (breastTag) tags = tags.replace(/,\s*$/, '') + ', ' + breastTag;
-        }
-        portraitState[charId].appearanceTags = tags;
-        renderDistilStatus(charId);
-        saveCurrentStory();
-        showToast('Appearance distilled ✓');
-      }
-    }
-  );
+  var tags = buildDistilledAppearanceTags(loreText, charId);
+  portraitState[charId].appearanceTags = tags;
+  renderDistilStatus(charId);
+  saveCurrentStory();
+  showToast('Appearance distilled ✓');
 }
 
 function clearPortraitAppearance(charId) {
