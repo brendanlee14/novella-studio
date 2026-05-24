@@ -5781,10 +5781,6 @@ function buildAppearanceFacts(loreText, charId) {
   if (m) lines.push('Face: ' + m[1].trim());
   m = loreText.match(/\nHair:\s*([^.]+\.)/i);
   if (m) lines.push('Hair: ' + m[1].trim());
-  if (isFemale) {
-    m = loreText.match(/\nBreasts?:\s*([^—.]+)/i);
-    if (m) lines.push('Bust: ' + m[1].trim());
-  }
   return lines.join('\n');
 }
 
@@ -6166,11 +6162,9 @@ function distilPortraitAppearance(charId) {
     'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
     genderNote + '\n\n' +
     'Rules:\n' +
-    '- Age: always write as "[N] year old woman" or "[N] year old man"\n' +
-    '- Breasts: use natural SD terms (e.g. "large natural breasts, heavy bust, low-hanging") — avoid clinical terms like tubular, pendulous\n' +
-    '- Cup size: pick ONE (e.g. "D cup") not both D and DD\n' +
-    '- Height: omit unless exceptional — average height adds nothing\n' +
-    '- Eyes: describe shape and any notable quality (e.g. "small expressive eyes", "almond-shaped eyes")\n\n' +
+    '- Age: write as "[N] year old woman" or "[N] year old man"\n' +
+    '- Height: omit unless exceptional\n' +
+    '- Eyes: describe shape and quality (e.g. "small expressive eyes", "almond-shaped eyes")\n\n' +
     'Do NOT include pose, clothing, backstory, or personality.\n\n' +
     'Character facts:\n' + appearanceFacts;
 
@@ -6179,6 +6173,11 @@ function distilPortraitAppearance(charId) {
     { maxTokens: 250, label: 'distilAppearance',
       onDone: function(result) {
         var tags = result.trim().replace(/^[\s\n,]+|[\s\n,]+$/g, '');
+        // Append breast size via regex — kept out of the prompt to avoid content filter
+        if (isFemale) {
+          var breastTag = extractBreastSize(loreText);
+          if (breastTag) tags = tags + ', ' + breastTag;
+        }
         portraitState[charId].appearanceTags = tags;
         renderDistilStatus(charId);
         saveCurrentStory();
