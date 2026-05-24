@@ -6095,16 +6095,17 @@ function distilPortraitAppearance(charId) {
     ? 'FEMALE character. Include breast size, body shape, all female physical attributes.'
     : 'MALE character. Male tags only. No female anatomy.';
 
-  var prompt = 'Extract Stable Diffusion image generation tags from this character lore.\n\n' +
+  var prompt = 'Convert this character lore into Stable Diffusion appearance tags for lustify-sdxl.\n\n' +
     'Output ONLY comma-separated SD tags. No sentences. No explanation. No markdown.\n' +
     genderNote + '\n\n' +
-    'Include ONLY visual physical attributes: age (e.g. "42 year old woman"), ethnicity/skin tone, body shape and build, face shape and features, eye colour, hair colour and length and style, distinctive physical details, skin texture, body proportions.\n\n' +
-    'Do NOT include: pose, action, clothing, personality, backstory, psychology, kinks, speech patterns, relationships, or narrative role.\n\n' +
-    'Maximum 80 words of tags.\n\nCharacter lore:\n' + loreText;
+    'Required fields: age (e.g. "28 year old woman"), ethnicity and skin tone, body type and build, face shape, eye colour and shape, nose and lip and jawline features, hair colour + length + texture + style, breast size (female only), distinctive features.\n\n' +
+    'Use precise SD vocabulary — examples: hourglass figure, petite frame, athletic build, almond-shaped eyes, full lips, high cheekbones, button nose, soft jawline, wavy brunette hair, shoulder-length hair, olive skin, light freckles, natural C cup.\n\n' +
+    'Do NOT include: pose, action, clothing state, personality, kinks, backstory, or narrative.\n\n' +
+    'Maximum 100 words. Physical appearance only.\n\nCharacter lore:\n' + loreText;
 
   streamingFetch(apiKey, DS_FLASH,
     [{ role: 'user', content: prompt }],
-    { maxTokens: 200, label: 'distilAppearance',
+    { maxTokens: 250, label: 'distilAppearance',
       onDone: function(result) {
         var tags = result.trim().replace(/^[\s\n,]+|[\s\n,]+$/g, '');
         portraitState[charId].appearanceTags = tags;
@@ -7427,56 +7428,53 @@ function generatePortrait(charId) {
     });
   }
 
-  // Build a good image prompt from lore using DeepSeek if available
-  if (deepseekKey) {
-    // DeepSeek V3.2 for prompt building — follows explicit SD tag instructions
-    var orPromptModel = DS_FLASH;
-    dbg('Building image prompt via DeepSeek…');
-    streamingFetch(deepseekKey, orPromptModel,
+  // Shared prompt assembly — character appearance first for highest SD attention weight
+  function assembleAndGenerate(orTags) {
+    var poseTerms = poseToSDTerm(selectedPose);
+    var isFemale = charId !== 'char1';
+    var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
+    var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+    var currentClothing = portraitState[charId].clothing || 'Nude';
+    var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+    if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
+    var clothingTerms = buildClothingPromptTerms(charId);
+    var locationTerms = locationToSDTags(portraitState[charId].location || '');
+    var qualityPart = getPortraitQualityTags();
+    var base = (lockedTags ? lockedTags + ', ' : '') +
+               (clothingTerms ? clothingTerms + ', ' : '') +
+               poseTerms + facingTerms +
+               (locationTerms ? ', ' + locationTerms : '');
+    var orPart = orTags ? stripPoseTerms(sanitiseVenicePrompt(orTags)) : '';
+    var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
+    if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
+    var full = base + (orPart ? ', ' + orPart : '') + ', ' + qualityPart;
+    var split = splitNegatives(full);
+    dbg('[Venice] prompt: ' + split.positive.slice(0, 120) + '…' + (split.negatives ? ' neg+=[' + split.negatives + ']' : ''));
+    doGenerate(split.positive, split.negatives);
+  }
+
+  // Skip DeepSeek when appearance is already locked — tags are authoritative, no round-trip needed
+  if (portraitState[charId].appearanceTags) {
+    dbg('[Venice] Locked appearance — skipping DeepSeek');
+    assembleAndGenerate('');
+  } else if (deepseekKey) {
+    dbg('[Venice] Building appearance tags via DeepSeek…');
+    streamingFetch(deepseekKey, DS_FLASH,
       [{ role: 'user', content: buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) }],
       { maxTokens: 300, label: 'portraitPrompt',
         onDone: function(prompt) {
           prompt = prompt.replace(/```[\s\S]*?```/g, '').replace(/^(prompt:|sd prompt:|image prompt:)/i, '').trim();
-          if (!prompt || prompt.length < 10) {
-            dbg('OR prompt too short, using fallback');
-            var fb = splitNegatives(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
-            doGenerate(fb.positive, fb.negatives);
-            return;
-          }
-          // Inject pose SD terms directly — bypasses GPT-4o content filter for explicit poses
-          var poseTerms = poseToSDTerm(selectedPose);
-          var isFemale = charId !== 'char1';
-          // Only add facing-camera terms for non-rear-view poses
-          var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
-          var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
-          // Inject locked appearance + current clothing/state + location directly
-          var currentClothing = portraitState[charId].clothing || 'Nude';
-          var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
-          if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
-          var clothingTerms = buildClothingPromptTerms(charId);
-          var locationTerms = locationToSDTags(portraitState[charId].location || '');
-          // Clothing first — highest prompt weight, prevents stale nude tags from dominating
-          var lockedPart = (clothingTerms ? clothingTerms + ', ' : '') + (locationTerms ? locationTerms + ', ' : '') + (lockedTags ? lockedTags + ', ' : '');
-          var orPart = stripPoseTerms(sanitiseVenicePrompt(prompt));
-          var qualityPart = getPortraitQualityTags();
-          var base = poseTerms + facingTerms + ', ' + lockedPart;
-          // Cap total Venice prompt at 1400 chars (lustify-sdxl may have old 1500 limit)
-          var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
-          if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
-          var split = splitNegatives(base + orPart + ', ' + qualityPart);
-          dbg('OR prompt built: ' + split.positive.slice(0, 80) + '…' + (split.negatives ? ' neg+=[' + split.negatives + ']' : ''));
-          doGenerate(split.positive, split.negatives);
+          if (!prompt || prompt.length < 10) { assembleAndGenerate(''); return; }
+          assembleAndGenerate(prompt);
         },
         onError: function(err) {
-          dbg('Prompt build failed, using lore directly: ' + err.message);
-          var fb = splitNegatives(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
-          doGenerate(fb.positive, fb.negatives);
+          dbg('[Venice] Prompt build failed, using structured tags: ' + err.message);
+          assembleAndGenerate('');
         }
       }
     );
   } else {
-    var fb = splitNegatives(sanitiseVenicePrompt(buildFallbackPrompt(loreTruncated, charId, selectedPose)));
-    doGenerate(fb.positive, fb.negatives);
+    assembleAndGenerate('');
   }
 }
 
