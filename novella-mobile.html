@@ -7175,6 +7175,7 @@ function sdExpandTryPose() {
     : '';
   var lockedTags = normaliseAppearanceTags(stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId)));
   if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
+  if (!poseHasRearView) lockedTags = lockedTags.replace(/\blarge buttocks?\b,?\s*/gi, '').replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
   var lockedPart = lockedTags ? lockedTags + ', ' : '';
   var qualityPart = getPortraitQualityTags();
   // Don't reuse the batch prompt — it's a mixed blob that includes Half body front terms which
@@ -7278,6 +7279,8 @@ function sdBuildPrompt(charId, cb) {
     : '';
   var lockedTags = normaliseAppearanceTags(stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId)));
   if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
+  // sdBuildPrompt always uses Half body front — never a rear-view pose
+  lockedTags = lockedTags.replace(/\blarge buttocks?\b,?\s*/gi, '').replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
   var clothingTerms = buildClothingPromptTerms(charId);
   var locationTerms = locationToSDTags(portraitState[charId].location || '');
   var lockedPart = (clothingTerms ? clothingTerms + ', ' : '') + (locationTerms ? locationTerms + ', ' : '') + (lockedTags ? lockedTags + ', ' : '');
@@ -7717,6 +7720,8 @@ function generatePortrait(charId) {
       : '';
     var lockedTags = normaliseAppearanceTags(stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId)));
     if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
+    // Strip rear-view bias tags for front-facing poses — 'large buttocks' pulls SDXL toward rear composition
+    if (!poseHasRearView) lockedTags = lockedTags.replace(/\blarge buttocks?\b,?\s*/gi, '').replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
     var clothingTerms = buildClothingPromptTerms(charId);
     var locationTerms = locationToSDTags(portraitState[charId].location || '');
     var qualityPart = getPortraitQualityTags();
