@@ -1579,8 +1579,10 @@
           <option value="4">Graphic</option>
           <option value="5">Unrestricted</option>
         </select>
+        <button id="btnSuggestHeat" onclick="suggestHeatLevel()" title="AI suggest heat level" style="border:none;background:none;cursor:pointer;padding:2px 4px;font-size:0.75rem;color:var(--rose);line-height:1;" aria-label="Suggest heat level">✦</button>
       </div>
     </div>
+    <div id="heatSuggestionBar" style="display:none;padding:5px 14px;font-size:0.72rem;font-family:'Jost',sans-serif;color:var(--gold);background:var(--cream);border-bottom:1px solid var(--border);"></div>
     <div class="editor-actions">
       <button class="btn-write" id="btnWrite" onclick="writeScene()" aria-label="Write scene">✦ Write Scene</button>
       <button class="btn-small" id="btnRewrite" style="display:none" onclick="rewriteScene()" title="Rewrite scene" aria-label="Rewrite scene">↺</button>
@@ -8864,6 +8866,73 @@ function syncEditorControls() {
   var edHeat = document.getElementById('edHeatLevel');
   if (edLen) edLen.value = document.getElementById('lengthTarget').value || 'medium';
   if (edHeat) edHeat.value = document.getElementById('heatLevel').value || '3';
+}
+
+function suggestHeatLevel() {
+  if (activeChIdx === null || activeBeatIdx === null) return;
+  var ch = chapters[activeChIdx];
+  var beat = ch && ch.beats[activeBeatIdx];
+  if (!beat) return;
+  var apiKey = document.getElementById('deepseekApiKey').value.trim();
+  if (!apiKey) { _showHeatSuggestion('No API key set — add it in Settings.', false); return; }
+
+  var btn = document.getElementById('btnSuggestHeat');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  _showHeatSuggestion('Thinking…', false);
+
+  var contextParts = ['Beat title: ' + beat.title];
+  if (beat.desc) contextParts.push('Beat description: ' + beat.desc);
+  if (ch.summary) contextParts.push('Chapter summary: ' + ch.summary.slice(0, 300));
+  var toneStyle = getToneStyle();
+  if (toneStyle) contextParts.push('Story tone/style: ' + toneStyle.slice(0, 150));
+
+  var messages = [
+    { role: 'system', content: 'You are a creative writing assistant. Be direct and concise.' },
+    { role: 'user', content:
+        'Based on this story beat, suggest the best heat level (1–5) for writing this scene:\n' +
+        '1=Sensual (romantic, no explicit acts)\n' +
+        '2=Suggestive (desire clear, acts implied)\n' +
+        '3=Explicit (sex described tastefully)\n' +
+        '4=Graphic (explicit and detailed)\n' +
+        '5=Unrestricted (nothing faded to black)\n\n' +
+        contextParts.join('\n') + '\n\n' +
+        'Reply with ONLY this format: [1-5] — [one sentence reason]. Example: "3 — First intimate encounter, escalating but not fully explicit yet."'
+    }
+  ];
+
+  streamingFetch(apiKey, DS_FLASH, messages, {
+    maxTokens: 80,
+    label: 'suggestHeat',
+    onDone: function(fullText) {
+      var m = (fullText || '').trim().match(/^([1-5])\s*[—\-–]\s*(.+)/);
+      if (m) {
+        var level = m[1];
+        var reason = m[2].replace(/\.$/, '').trim();
+        document.getElementById('edHeatLevel').value = level;
+        document.getElementById('heatLevel').value = level;
+        updateHeatLabel(level);
+        debouncedSave();
+        _showHeatSuggestion(HEAT_LABELS[level] + ' — ' + reason, true);
+      } else {
+        _showHeatSuggestion('Could not parse: ' + (fullText || '').slice(0, 60), false);
+      }
+      if (btn) { btn.disabled = false; btn.textContent = '✦'; }
+    },
+    onError: function(err) {
+      _showHeatSuggestion('Error: ' + (err && err.message ? err.message : err), false);
+      if (btn) { btn.disabled = false; btn.textContent = '✦'; }
+    }
+  });
+}
+
+function _showHeatSuggestion(text, applied) {
+  var bar = document.getElementById('heatSuggestionBar');
+  if (!bar) return;
+  bar.textContent = applied ? '✓ ' + text : text;
+  bar.style.color = applied ? 'var(--gold)' : 'var(--muted)';
+  bar.style.display = 'block';
+  clearTimeout(bar._timer);
+  bar._timer = setTimeout(function() { bar.style.display = 'none'; }, applied ? 6000 : 4000);
 }
 
 function getLengthInstruction(beatOverride) {
