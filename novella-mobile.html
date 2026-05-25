@@ -5659,6 +5659,18 @@ function splitNegatives(prompt) {
   return { positive: positive, negatives: negatives.join(', ') };
 }
 
+function normaliseAppearanceTags(tags) {
+  // Strip non-SD-vocab descriptive phrases the distil model sometimes adds
+  // and normalise tag wording to match SDXL training vocabulary
+  return tags
+    .replace(/\bfine hair texture\b/gi, '')
+    .replace(/\bsoft facial features?\b/gi, '')
+    .replace(/\bdark roots visible\b/gi, 'dark roots')
+    .replace(/,\s*,+/g, ',')
+    .replace(/^[,\s]+|[,\s]+$/g, '')
+    .trim();
+}
+
 function stripNudityTerms(tags) {
   return tags
     .replace(/\bnude\b/gi, '')
@@ -6415,16 +6427,7 @@ function buildPortraitPromptFromOR(loreTruncated, charId, selectedPose) {
     ? 'Style context: cinematic photography aesthetic — dramatic directional light, subtle colour grade, muted palette.'
     : 'Style context: studio portrait aesthetic — sharp focus, polished even lighting.';
 
-  // If distilled appearance tags exist, use them as locked ground truth — skip regex extraction and lore truncation
-  var storedTags = portraitState[charId].appearanceTags || '';
-  if (storedTags) {
-    return 'Generate Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags.\n\n' +
-      genderInstruction + '\n' + styleInstruction + (poseContext ? '\n' + poseContext : '') + '\n\n' +
-      'LOCKED CHARACTER APPEARANCE — use these EXACTLY, do not alter or omit:\n' + storedTags + '\n\n' +
-      'Output only: the locked appearance tags (physical features only). No clothing state, no setting, no background, no environment.';
-  }
-
-  // Fallback: extract structured physical tags directly from lore via regex
+  // Extract structured physical tags directly from lore via regex
   var structuredTags = buildStructuredTags(loreTruncated, charId);
 
   return 'Convert this character description into Stable Diffusion appearance tags for lustify-sdxl. Output ONLY comma-separated SD tags describing physical appearance.\n\n' +
@@ -7164,14 +7167,19 @@ function sdExpandTryPose() {
   var loreTruncated = (document.getElementById(charId).value || '').slice(0, 800);
   var poseTerms = poseToSDTerm(pose);
   var isFemale = charId !== 'char1';
+  var boruAnchor = isFemale ? '1girl, ' : '1man, ';
   var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
-  var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
-  var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+  var currentClothing = portraitState[charId].clothing || 'Nude';
+  var facingTerms = (isFemale && !poseHasRearView)
+    ? ', facing camera, front view, looking at viewer' + (currentClothing === 'Nude' ? ', breasts visible' : '')
+    : '';
+  var lockedTags = normaliseAppearanceTags(stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId)));
+  if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
   var lockedPart = lockedTags ? lockedTags + ', ' : '';
   var qualityPart = getPortraitQualityTags();
   // Don't reuse the batch prompt — it's a mixed blob that includes Half body front terms which
   // would override the test pose. Locked appearance tags are sufficient for pose testing.
-  var base = poseTerms + facingTerms + ', ' + lockedPart;
+  var base = boruAnchor + poseTerms + facingTerms + ', ' + lockedPart;
   var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
   var split = splitNegatives(base + qualityPart);
   var negPrompt = 'ugly, deformed, disfigured, blurry, blur, censored, mosaic, pixelated, low quality, bad anatomy, extra limbs, watermark, text, logo, username, signature, out of focus';
@@ -7263,9 +7271,12 @@ function sdBuildPrompt(charId, cb) {
   var selectedPose = 'Half body front';
   var poseTerms = poseToSDTerm(selectedPose);
   var isFemale = charId !== 'char1';
-  var facingTerms = isFemale ? ', facing camera, front view, looking at viewer, breasts visible' : '';
+  var boruAnchor = isFemale ? '1girl, ' : '1man, ';
   var currentClothing = portraitState[charId].clothing || 'Nude';
-  var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+  var facingTerms = isFemale
+    ? ', facing camera, front view, looking at viewer' + (currentClothing === 'Nude' ? ', breasts visible' : '')
+    : '';
+  var lockedTags = normaliseAppearanceTags(stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId)));
   if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
   var clothingTerms = buildClothingPromptTerms(charId);
   var locationTerms = locationToSDTags(portraitState[charId].location || '');
@@ -7281,7 +7292,7 @@ function sdBuildPrompt(charId, cb) {
 
   function assemble(orPrompt) {
     var orPart = stripPoseTerms(sanitiseVenicePrompt(orPrompt || ''));
-    var base = poseTerms + facingTerms + ', ' + lockedPart;
+    var base = boruAnchor + poseTerms + facingTerms + ', ' + lockedPart;
     var budget = Math.max(0, 1400 - base.length - qualityPart.length - 2);
     if (orPart.length > budget) orPart = orPart.slice(0, budget).replace(/,\s*[^,]*$/, '');
     var split = splitNegatives(base + orPart + ', ' + qualityPart);
@@ -7698,15 +7709,19 @@ function generatePortrait(charId) {
   function assembleAndGenerate(orTags) {
     var poseTerms = poseToSDTerm(selectedPose);
     var isFemale = charId !== 'char1';
+    var boruAnchor = isFemale ? '1girl, ' : '1man, ';
     var poseHasRearView = poseTerms.indexOf('rear view') !== -1 || poseTerms.indexOf('facing away') !== -1 || poseTerms.indexOf('side view') !== -1 || poseTerms.indexOf('side profile') !== -1;
-    var facingTerms = (isFemale && !poseHasRearView) ? ', facing camera, front view, looking at viewer, breasts visible' : '';
     var currentClothing = portraitState[charId].clothing || 'Nude';
-    var lockedTags = stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId));
+    var facingTerms = (isFemale && !poseHasRearView)
+      ? ', facing camera, front view, looking at viewer' + (currentClothing === 'Nude' ? ', breasts visible' : '')
+      : '';
+    var lockedTags = normaliseAppearanceTags(stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId)));
     if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
     var clothingTerms = buildClothingPromptTerms(charId);
     var locationTerms = locationToSDTags(portraitState[charId].location || '');
     var qualityPart = getPortraitQualityTags();
-    var base = (lockedTags ? lockedTags + ', ' : '') +
+    var base = boruAnchor +
+               (lockedTags ? lockedTags + ', ' : '') +
                (clothingTerms ? clothingTerms + ', ' : '') +
                poseTerms + facingTerms +
                (locationTerms ? ', ' + locationTerms : '');
