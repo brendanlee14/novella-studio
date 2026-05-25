@@ -5866,21 +5866,65 @@ function buildAppearanceFacts(loreText, charId) {
   var isFemale = charId !== 'char1';
   var lines = [];
   var m;
+
+  lines.push('Gender: ' + (isFemale ? 'Female' : 'Male'));
+
   m = loreText.match(/(?:Full\s+)?[Nn]ame:\s*([^\n]+)/);
   if (m) lines.push('Name: ' + m[1].trim());
+
   m = loreText.match(/\bAge:\s*(\d+)/i);
   if (m) lines.push('Age: ' + m[1] + ' years old');
-  m = loreText.match(/Ethnicity:\s*([^\n]+)/i);
-  if (m) lines.push('Ethnicity: ' + m[1].trim());
+
+  // Ethnicity — labelled field first, then prose fallback
+  m = loreText.match(/(?:Ethnicity|Nationality|Heritage|Race):\s*([^\n]+)/i);
+  if (m) {
+    lines.push('Ethnicity: ' + m[1].trim());
+  } else if (loreText.match(/\bAnglo.Australian\b/i)) {
+    lines.push('Ethnicity: White Anglo-Australian');
+  } else if (loreText.match(/\bCaucasian\b/i)) {
+    lines.push('Ethnicity: Caucasian');
+  }
+
   m = loreText.match(/(\d{3})\s*cm\b/i);
   if (m) lines.push('Height: ' + m[1] + 'cm');
-  // First sentence of each subsection only — later sentences contain explicit detail
+
+  // Build — first 2 sentences, scrubbed of explicit references
   m = loreText.match(/\nBuild:\s*([^.]+\.\s*[^.]+\.)/i);
   if (m) lines.push('Build: ' + m[1].replace(/—her weight settles into[^.]+\./i, '.').replace(/\b(easy to grip|grip during|shift her|presents herself)\b[^,.]*/gi, '').replace(/\s{2,}/g, ' ').trim());
+
+  // Distinctive body features — full-lore search, clean terms only
+  var loreL = loreText.toLowerCase();
+  var bodyFeatures = [];
+  if (loreL.match(/thick\s+thighs|full\s+thighs|ample\s+thighs/)) bodyFeatures.push('thick thighs and full hips');
+  if (loreL.match(/large.{0,10}bum|full.{0,10}bum|large.{0,10}butt|big.{0,10}butt/)) bodyFeatures.push('large buttocks');
+  if (bodyFeatures.length) lines.push('Distinctive body: ' + bodyFeatures.join(', '));
+
+  // Face
   m = loreText.match(/\nFace:\s*([^.]+\.)/i);
   if (m) lines.push('Face: ' + m[1].trim());
+
+  // Eyes — from Eyes: line if present, else prose search
+  m = loreText.match(/\nEyes?:\s*([^\n]+)/i);
+  if (m) {
+    lines.push('Eyes: ' + m[1].trim());
+  } else {
+    var eyeParts = [];
+    var ec = loreText.match(/\b(blue|green|brown|hazel|grey|gray|amber)\s+eyes\b/i);
+    if (ec) eyeParts.push(ec[1] + ' eyes');
+    if (loreText.match(/\bsmall\b.{0,25}eyes|eyes\b.{0,20}\bsmall\b|\bsmall(?:ish)?\s+eyes\b/i)) eyeParts.push('small eyes');
+    if (loreText.match(/almond.{0,10}eyes|eyes.{0,10}almond/i)) eyeParts.push('almond-shaped eyes');
+    if (eyeParts.length) lines.push('Eyes: ' + eyeParts.join(', '));
+  }
+
+  // Hair
   m = loreText.match(/\nHair:\s*([^.]+\.)/i);
   if (m) lines.push('Hair: ' + m[1].trim());
+
+  // Dark roots — append to hair facts if detected
+  if (loreText.match(/dark\w*\s+(?:at the\s+)?roots|roots\s+(?:are\s+|showing\s+)?dark\w*/i)) {
+    lines.push('Hair detail: dark roots visible');
+  }
+
   return lines.join('\n');
 }
 
@@ -6264,16 +6308,24 @@ function distilPortraitAppearance(charId) {
   var isFemale = charId !== 'char1';
   var facts = buildAppearanceFacts(loreText, charId);
 
-  var prompt = 'Convert these character appearance facts into Stable Diffusion tags for lustify-sdxl. ' +
-    'Output ONLY a comma-separated list of SD tags. Physical appearance only — no clothing, no pose, no setting, no background.\n\n' +
+  var ageM = loreText.match(/\bAge:\s*(\d+)/i);
+  var genderAnchor = (ageM ? ageM[1] + ' year old ' : '') + (isFemale ? 'woman' : 'man');
+
+  var prompt = 'Convert these character appearance facts into Stable Diffusion tags for lustify-sdxl.\n\n' +
+    'Rules:\n' +
+    '- Output ONLY a comma-separated list of SD tags\n' +
+    '- First tag must be the age and gender: "' + genderAnchor + '"\n' +
+    '- Include ALL locked facts exactly as given — do not omit or soften any feature\n' +
+    '- Physical appearance only — no clothing, no pose, no setting, no background\n' +
+    '- Add SD-quality descriptors for skin texture, facial quality, hair texture where the facts support them\n\n' +
     (isFemale
-      ? 'Female character. Include: age descriptor, ethnicity, skin tone, build/body type, distinctive body features, face shape, facial features, eye colour/shape, hair colour/length/style. Add any distinctive or memorable physical traits not captured above.'
-      : 'Male character. Include: age descriptor, ethnicity, skin tone, build, face shape, facial features, eye colour, hair. No female anatomy terms.') + '\n\n' +
-    'Character facts:\n' + facts;
+      ? 'Female character. Cover in order: age/gender, ethnicity, skin, build, distinctive body, face shape, facial features, eyes, hair.'
+      : 'Male character. Cover: age/gender, ethnicity, skin, build, face shape, facial features, eyes, hair. No female anatomy.') + '\n\n' +
+    'LOCKED CHARACTER FACTS:\n' + facts;
 
   streamingFetch(apiKey, DS_FLASH,
     [{ role: 'user', content: prompt }],
-    { maxTokens: 300, label: 'distilAppearance',
+    { maxTokens: 350, label: 'distilAppearance',
       onDone: function(text) {
         var tags = text.trim();
         if (!tags) {
@@ -6281,7 +6333,11 @@ function distilPortraitAppearance(charId) {
           tags = regexTags;
           showToast('Appearance distilled ✓ (regex fallback)');
         } else {
-          // Append breast size from regex if not present in API output (API never gets that fact)
+          // Safety net: ensure age+gender anchor is present
+          if (!tags.match(/\b(woman|man|female|male)\b/i)) {
+            tags = genderAnchor + ', ' + tags;
+          }
+          // Append breast size — API never receives this fact
           var breastTag = extractBreastSize(loreText);
           if (breastTag && isFemale && tags.toLowerCase().indexOf('breast') === -1) {
             tags = tags.replace(/,\s*$/, '') + ', ' + breastTag;
