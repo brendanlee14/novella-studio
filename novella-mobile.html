@@ -2682,7 +2682,10 @@
       <div class="wp-label">Physical Continuity</div>
       <div class="wp-status" id="wpStatus-physCont">Waiting…</div>
     </div>
-    <button class="wp-done-btn" id="wpDoneBtn" onclick="closeWritingOverlay()">Done</button>
+    <div style="display:flex; gap:10px; margin-top:22px;">
+      <button class="wp-done-btn" id="wpDoneBtn" style="margin-top:0; flex:1;" onclick="closeWritingOverlay()">Done</button>
+      <button class="wp-done-btn" id="wpNextBeatBtn" style="margin-top:0; flex:1; display:none;" onclick="goToNextBeat()">Next Beat →</button>
+    </div>
   </div>
 </div>
 
@@ -8884,6 +8887,8 @@ function showWritingOverlay() {
   _wpSetRow('physCont',   'pending', 'Waiting…');
   var btn = document.getElementById('wpDoneBtn');
   if (btn) btn.classList.remove('ready');
+  var nextBtn = document.getElementById('wpNextBeatBtn');
+  if (nextBtn) { nextBtn.classList.remove('ready'); nextBtn.style.display = 'none'; }
   document.getElementById('writingProgressOverlay').classList.add('open');
 }
 
@@ -8907,7 +8912,22 @@ function _wpCheckComplete() {
   if (allDone) {
     var btn = document.getElementById('wpDoneBtn');
     if (btn) btn.classList.add('ready');
+    var nextBtn = document.getElementById('wpNextBeatBtn');
+    var hasNextBeat = activeChIdx !== null && activeBeatIdx !== null &&
+                      chapters[activeChIdx] && chapters[activeChIdx].beats[activeBeatIdx + 1];
+    if (nextBtn && hasNextBeat) {
+      nextBtn.style.display = '';
+      nextBtn.classList.add('ready');
+    }
   }
+}
+
+function goToNextBeat() {
+  if (activeChIdx === null || activeBeatIdx === null) return;
+  var nextIdx = activeBeatIdx + 1;
+  if (!chapters[activeChIdx] || !chapters[activeChIdx].beats[nextIdx]) return;
+  closeWritingOverlay();
+  selectBeat(activeChIdx, nextIdx);
 }
 
 function _wpIfOpen(key, state, text) {
