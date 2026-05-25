@@ -6286,6 +6286,29 @@ function editToneBrief() {
   });
 }
 
+function dedupeAppearanceTags(tags) {
+  // Remove exact duplicates and word-subset near-duplicates (e.g. "visible roots" ⊂ "dark roots visible")
+  var parts = tags.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+  var result = [];
+  parts.forEach(function(tag) {
+    var tagWords = tag.toLowerCase().split(/\s+/);
+    // Drop tag if all its words already appear in a kept tag
+    var absorbed = result.some(function(kept) {
+      var keptWords = kept.toLowerCase().split(/\s+/);
+      return tagWords.every(function(w) { return keptWords.indexOf(w) !== -1; });
+    });
+    if (!absorbed) {
+      // Replace any kept tag whose words are all in this (more specific) tag
+      result = result.filter(function(kept) {
+        var keptWords = kept.toLowerCase().split(/\s+/);
+        return !keptWords.every(function(w) { return tagWords.indexOf(w) !== -1; });
+      });
+      result.push(tag);
+    }
+  });
+  return result.join(', ');
+}
+
 function distilPortraitAppearance(charId) {
   var apiKey = document.getElementById('deepseekApiKey').value.trim();
   var loreText = document.getElementById(charId).value.trim();
@@ -6342,6 +6365,7 @@ function distilPortraitAppearance(charId) {
           if (breastTag && isFemale && tags.toLowerCase().indexOf('breast') === -1) {
             tags = tags.replace(/,\s*$/, '') + ', ' + breastTag;
           }
+          tags = dedupeAppearanceTags(tags);
           showToast('Appearance distilled ✓');
         }
         portraitState[charId].appearanceTags = tags;
