@@ -7176,6 +7176,10 @@ function sdExpandTryPose() {
   var lockedTags = normaliseAppearanceTags(stripPoseTerms(portraitState[charId].appearanceTags || buildStructuredTags(loreTruncated, charId)));
   if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
   if (!poseHasRearView) lockedTags = lockedTags.replace(/\blarge buttocks?\b,?\s*/gi, '').replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
+  if (!poseHasRearView && lockedTags.match(/\bchubby\b/i)) {
+    lockedTags = lockedTags.replace(/\bchubby\b/gi, '(chubby:1.3)');
+    if (!lockedTags.match(/\bplus.size\b|\bplump\b/i)) lockedTags += ', plus size, plump arms, soft belly';
+  }
   var lockedPart = lockedTags ? lockedTags + ', ' : '';
   var qualityPart = getPortraitQualityTags();
   // Don't reuse the batch prompt — it's a mixed blob that includes Half body front terms which
@@ -7281,6 +7285,10 @@ function sdBuildPrompt(charId, cb) {
   if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
   // sdBuildPrompt always uses Half body front — never a rear-view pose
   lockedTags = lockedTags.replace(/\blarge buttocks?\b,?\s*/gi, '').replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
+  if (lockedTags.match(/\bchubby\b/i)) {
+    lockedTags = lockedTags.replace(/\bchubby\b/gi, '(chubby:1.3)');
+    if (!lockedTags.match(/\bplus.size\b|\bplump\b/i)) lockedTags += ', plus size, plump arms, soft belly';
+  }
   var clothingTerms = buildClothingPromptTerms(charId);
   var locationTerms = locationToSDTags(portraitState[charId].location || '');
   var lockedPart = (clothingTerms ? clothingTerms + ', ' : '') + (locationTerms ? locationTerms + ', ' : '') + (lockedTags ? lockedTags + ', ' : '');
@@ -7722,6 +7730,13 @@ function generatePortrait(charId) {
     if (currentClothing !== 'Nude') lockedTags = stripNudityTerms(lockedTags);
     // Strip rear-view bias tags for front-facing poses — 'large buttocks' pulls SDXL toward rear composition
     if (!poseHasRearView) lockedTags = lockedTags.replace(/\blarge buttocks?\b,?\s*/gi, '').replace(/,\s*,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '');
+    // Boost chubby body type for half-body/cropped compositions — upper body in frame only,
+    // so 'thick thighs' and 'full hips' have no effect. Add upper-body-visible reinforcement
+    // and attention-weight chubby so it competes with SDXL's slim portrait training bias.
+    if (!poseHasRearView && lockedTags.match(/\bchubby\b/i)) {
+      lockedTags = lockedTags.replace(/\bchubby\b/gi, '(chubby:1.3)');
+      if (!lockedTags.match(/\bplus.size\b|\bplump\b/i)) lockedTags += ', plus size, plump arms, soft belly';
+    }
     var clothingTerms = buildClothingPromptTerms(charId);
     var locationTerms = locationToSDTags(portraitState[charId].location || '');
     var qualityPart = getPortraitQualityTags();
