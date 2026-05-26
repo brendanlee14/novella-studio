@@ -1585,6 +1585,7 @@
     <div id="heatSuggestionBar" style="display:none;padding:5px 14px;font-size:0.72rem;font-family:'Jost',sans-serif;color:var(--gold);background:var(--cream);border-bottom:1px solid var(--border);"></div>
     <div class="editor-actions">
       <button class="btn-write" id="btnWrite" onclick="writeScene()" aria-label="Write scene">✦ Write Scene</button>
+      <button class="btn-write" id="btnAutoHeatWrite" onclick="suggestHeatAndWrite()" title="AI suggests heat, then writes" style="font-size:0.95rem;" aria-label="Auto-heat and write scene">✦↑ Auto-Heat</button>
       <button class="btn-small" id="btnRewrite" style="display:none" onclick="rewriteScene()" title="Rewrite scene" aria-label="Rewrite scene">↺</button>
       <button class="btn-small" id="btnCopy" style="display:none" onclick="copyProse()" aria-label="Copy prose">Copy</button>
       <select id="sceneImgStyle" style="display:none;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-family:'Jost',sans-serif;font-size:0.72rem;background:var(--surface);color:var(--ink);appearance:none;-webkit-appearance:none;max-width:88px;" title="Scene image style">
@@ -8868,7 +8869,7 @@ function syncEditorControls() {
   if (edHeat) edHeat.value = document.getElementById('heatLevel').value || '3';
 }
 
-function suggestHeatLevel() {
+function suggestHeatLevel(afterApply) {
   if (activeChIdx === null || activeBeatIdx === null) return;
   var ch = chapters[activeChIdx];
   var beat = ch && ch.beats[activeBeatIdx];
@@ -8913,8 +8914,10 @@ function suggestHeatLevel() {
         updateHeatLabel(level);
         debouncedSave();
         _showHeatSuggestion(HEAT_LABELS[level] + ' — ' + reason, true);
+        if (typeof afterApply === 'function') afterApply(level, reason);
       } else {
         _showHeatSuggestion('Could not parse: ' + (fullText || '').slice(0, 60), false);
+        if (typeof afterApply === 'function') afterApply(null, null);
       }
       if (btn) { btn.disabled = false; btn.textContent = '✦'; }
     },
@@ -8922,6 +8925,12 @@ function suggestHeatLevel() {
       _showHeatSuggestion('Error: ' + (err && err.message ? err.message : err), false);
       if (btn) { btn.disabled = false; btn.textContent = '✦'; }
     }
+  });
+}
+
+function suggestHeatAndWrite() {
+  suggestHeatLevel(function(level) {
+    if (level) writeScene();
   });
 }
 
