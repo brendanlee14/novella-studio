@@ -8991,21 +8991,34 @@ function _wpCheckComplete() {
     var btn = document.getElementById('wpDoneBtn');
     if (btn) btn.classList.add('ready');
     var nextBtn = document.getElementById('wpNextBeatBtn');
-    var hasNextBeat = activeChIdx !== null && activeBeatIdx !== null &&
-                      chapters[activeChIdx] && chapters[activeChIdx].beats[activeBeatIdx + 1];
-    if (nextBtn && hasNextBeat) {
+    var next = _findNextBeat();
+    if (nextBtn && next) {
       nextBtn.style.display = '';
       nextBtn.classList.add('ready');
+      nextBtn.textContent = next.crossChapter ? 'Next Chapter →' : 'Next Beat →';
     }
   }
 }
 
+function _findNextBeat() {
+  if (activeChIdx === null || activeBeatIdx === null) return null;
+  var ch = chapters[activeChIdx];
+  if (ch && ch.beats[activeBeatIdx + 1]) {
+    return { chIdx: activeChIdx, bIdx: activeBeatIdx + 1, crossChapter: false };
+  }
+  for (var ci = activeChIdx + 1; ci < chapters.length; ci++) {
+    if (chapters[ci] && chapters[ci].beats && chapters[ci].beats.length > 0) {
+      return { chIdx: ci, bIdx: 0, crossChapter: true };
+    }
+  }
+  return null;
+}
+
 function goToNextBeat() {
-  if (activeChIdx === null || activeBeatIdx === null) return;
-  var nextIdx = activeBeatIdx + 1;
-  if (!chapters[activeChIdx] || !chapters[activeChIdx].beats[nextIdx]) return;
+  var next = _findNextBeat();
+  if (!next) return;
   closeWritingOverlay();
-  selectBeat(activeChIdx, nextIdx);
+  selectBeat(next.chIdx, next.bIdx);
 }
 
 function _wpIfOpen(key, state, text) {
