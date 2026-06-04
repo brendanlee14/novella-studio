@@ -2406,7 +2406,7 @@
   <div class="settings-group">
     <div class="settings-group-title">JSON Backup</div>
     <div style="padding:0 14px 14px;">
-      <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;margin-bottom:12px;">Download all stories as a single JSON file. Restore from a previous backup.</div>
+      <div style="font-size:0.72rem;color:var(--muted);line-height:1.6;margin-bottom:12px;">Download every story — including all portraits and scene images — as a single JSON file. Restore from a previous backup after reinstalling.</div>
       <div style="display:flex;gap:8px;">
         <button type="button" onclick="backupAllStories()" style="flex:1;padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;">⬇ Download Backup</button>
         <button type="button" onclick="document.getElementById('restoreFileInput').click()" style="flex:1;padding:11px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--ink);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;">⬆ Restore Backup</button>
@@ -2805,6 +2805,40 @@ function idbDeleteSceneImage(storyId, chIdx, bIdx) {
       tx.oncomplete = resolve;
     });
   }).catch(function() {});
+}
+
+// Enumerate every entry (portraits + scene images) for full backup
+function idbGetAllEntries() {
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readonly');
+      var store = tx.objectStore(IDB_STORE);
+      var entries = [];
+      var req = store.openCursor();
+      req.onsuccess = function(e) {
+        var cursor = e.target.result;
+        if (cursor) {
+          entries.push({ key: cursor.key, value: cursor.value });
+          cursor.continue();
+        } else {
+          resolve(entries);
+        }
+      };
+      req.onerror = function(e) { reject(e); };
+    });
+  }).catch(function() { return []; });
+}
+
+// Write a single entry back into the store (used on restore)
+function idbPutEntry(key, value) {
+  return idbOpen().then(function(db) {
+    return new Promise(function(resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      var req = tx.objectStore(IDB_STORE).put(value, key);
+      req.onsuccess = function() { resolve(); };
+      req.onerror = function(e) { reject(e); };
+    });
+  });
 }
 
 // Migrate portraits from localStorage story data into IndexedDB
@@ -11121,24 +11155,35 @@ function gistUnlink() {
 // ══════════════════════════════
 function backupAllStories() {
   saveCurrentStory();
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    version: 1,
-    appVersion: 'v27',
-    stories
-  };
-  const json = JSON.stringify(payload, null, 2);
-  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  const date = new Date().toISOString().slice(0,10);
-  a.download = 'novella-studio-backup-' + date + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showToast('Backup downloaded ✓');
+  showToast('Preparing backup…');
+  // Images (portraits + scene images) live in IndexedDB, not in the stories
+  // array — gather them so the backup is complete and restorable.
+  idbGetAllEntries().then(function(images) {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      version: 2,
+      appVersion: 'v27',
+      stories: stories,
+      images: images  // [{ key, value }] from the novella_portraits IDB store
+    };
+    const json = JSON.stringify(payload);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const date = new Date().toISOString().slice(0,10);
+    a.download = 'novella-studio-backup-' + date + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    var imgCount = images.length;
+    showToast('Backup downloaded — ' + stories.length + ' ' + (stories.length === 1 ? 'story' : 'stories') + ', ' + imgCount + ' image set' + (imgCount === 1 ? '' : 's') + ' ✓');
+    dbg('Backup: ' + stories.length + ' stories, ' + imgCount + ' IDB image entries');
+  }).catch(function(err) {
+    showToast('Backup failed: ' + err.message);
+    dbg('Backup error: ' + err.message);
+  });
 }
 
 function restoreFromBackup(input) {
@@ -11162,9 +11207,23 @@ function restoreFromBackup(input) {
         else { stories.unshift(incoming); added++; }
       });
       saveStories();
-      renderStoriesList();
-      showToast(added + ' added, ' + updated + ' updated ✓');
-      dbg('Restore: ' + added + ' added, ' + updated + ' updated');
+
+      // Restore images (portraits + scene images) into IndexedDB. v1 backups
+      // have no images field — restore just the stories in that case.
+      const images = Array.isArray(payload.images) ? payload.images : [];
+      const imgPromise = images.length
+        ? Promise.all(images.map(function(e) { return idbPutEntry(e.key, e.value); }))
+        : Promise.resolve();
+
+      imgPromise.then(function() {
+        renderStoriesList();
+        showToast(added + ' added, ' + updated + ' updated, ' + images.length + ' image set' + (images.length === 1 ? '' : 's') + ' ✓');
+        dbg('Restore: ' + added + ' added, ' + updated + ' updated, ' + images.length + ' IDB image entries');
+      }).catch(function(err) {
+        renderStoriesList();
+        showToast('Stories restored, but images failed: ' + err.message);
+        dbg('Restore image error: ' + err.message);
+      });
     } catch(err) {
       showToast('Restore failed: ' + err.message);
       dbg('Restore error: ' + err.message);
